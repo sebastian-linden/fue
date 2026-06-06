@@ -8,7 +8,7 @@ You can contribute in many ways:
 
 ### Report Bugs
 
-Report bugs at https://github.com/sebastian-linden/cloudy_forecast/issues.
+Report bugs at https://github.com/sebastian-linden/fue/issues.
 
 If you are reporting a bug, please include:
 
@@ -38,7 +38,7 @@ This starts a local server at http://localhost:8000 with live reload. Edit files
 
 ### Submit Feedback
 
-The best way to send feedback is to file an issue at https://github.com/sebastian-linden/cloudy_forecast/issues.
+The best way to send feedback is to file an issue at https://github.com/sebastian-linden/fue/issues.
 
 If you are proposing a feature:
 
@@ -48,7 +48,7 @@ If you are proposing a feature:
 
 ## Get Started!
 
-Ready to contribute? Follow these sections in order to set up cloudy_forecast for local development.
+Ready to contribute? Follow these sections in order to set up fue for local development.
 
 ## Environment Setup
 
@@ -69,8 +69,8 @@ Before you begin, ensure you have:
 1. **Fork the repository** on GitHub and clone your fork locally:
 
    ```sh
-   git clone git@github.com:your-username/cloudy_forecast.git
-   cd cloudy_forecast
+   git clone git@github.com:your-username/fue.git
+   cd fue
    ```
 
    *Why fork?* Forking gives you your own copy to work on without affecting the main repository. You'll later create pull requests to propose changes back to the original project.
@@ -130,7 +130,7 @@ Before submitting a pull request, run this command to verify your code works wit
 
 This project uses `pyproject.toml` to manage dependencies with a clear separation of concerns:
 
-- **Core dependencies** (in the `[project]` section): Required to use cloudy_forecast. Currently includes `typer` (for CLI) and `rich` (for terminal formatting).
+- **Core dependencies** (in the `[project]` section): Required to use fue. Currently includes `typer` (for CLI) and `rich` (for terminal formatting).
 - **Development dependency groups** (in `[dependency-groups]`): Only needed when developing or contributing. Organized by purpose:
   - `lint`: Code formatting and linting (`ruff`)
   - `test`: Testing and coverage (`pytest`, `coverage`)
@@ -179,7 +179,7 @@ test = [
 ]
 ```
 
-*Why separate groups?* Users who install cloudy_forecast from PyPI only get core dependencies. Developers who clone the repository get everything. This keeps the installed package lightweight for end users.
+*Why separate groups?* Users who install fue from PyPI only get core dependencies. Developers who clone the repository get everything. This keeps the installed package lightweight for end users.
 
 #### 3. Sync Your Environment
 
@@ -204,7 +204,7 @@ uv run python -c "import your_new_package; print(your_new_package.__version__)"
 - Commit both the new code and the updated `pyproject.toml`:
 
   ```sh
-  git add src/cloudy_forecast/your_feature.py pyproject.toml
+  git add src/fue/your_feature.py pyproject.toml
   git commit -m "Add your_new_package for feature X
 
   - Added your_new_package to [dependency-groups.test]
@@ -259,7 +259,7 @@ uv run pytest
 To run a specific test file or subset:
 
 ```sh
-uv run pytest tests/test_cloudy_forecast.py
+uv run pytest tests/test_fue.py
 uv run pytest tests/ -k "forecast"
 ```
 
@@ -558,7 +558,7 @@ Git captures the history of your changes and makes it possible to review, revert
    If you forked the project, add the original repository as `upstream` once:
 
    ```sh
-   git remote add upstream https://github.com/sebastian-linden/cloudy_forecast.git
+   git remote add upstream https://github.com/sebastian-linden/fue.git
    git fetch upstream
    ```
 

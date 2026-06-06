@@ -9,7 +9,7 @@ import pandas as pd
 import typer
 
 # Define the relative path to your config
-CONFIG_PATH = Path("data/user/.cloudy_forecast_config.json")
+CONFIG_PATH = Path("data/user/.fue_config.json")
 RAW_DATA_PATH = Path("data/raw/")
 
 
@@ -70,8 +70,8 @@ def set_schedule(action: Annotated[str, typer.Argument(help="Either 'activate' o
 
     # Constants for paths
     SYSTEMD_USER_DIR = Path.home() / ".config/systemd/user"
-    SERVICE_NAME = "cloudy_forecast.service"
-    TIMER_NAME = "cloudy_forecast.timer"
+    SERVICE_NAME = "fue.service"
+    TIMER_NAME = "fue.timer"
 
     SERVICE_CONTENT = f"""[Unit]
     Description=Download weather forecast data
@@ -80,14 +80,14 @@ def set_schedule(action: Annotated[str, typer.Argument(help="Either 'activate' o
     Type=oneshot
     WorkingDirectory={Path.cwd()}
     Environment=PATH=/snap/bin:$PATH
-    ExecStart=/snap/bin/uv run cloudy_forecast download
+    ExecStart=/snap/bin/uv run fue download
 
     [Install]
     WantedBy=default.target
     """
 
     TIMER_CONTENT = """[Unit]
-    Description=Run cloudy_forecast download daily at 9am
+    Description=Run fue download daily at 9am
 
     [Timer]
     OnCalendar=*-*-* 09:00:00

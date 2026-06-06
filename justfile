@@ -1,4 +1,4 @@
-# Justfile for cloudy_forecast
+# Justfile for fue
 
 # Show available commands
 list:

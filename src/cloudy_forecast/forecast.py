@@ -40,9 +40,6 @@ class Forecast:
         # Validate that location, parameters, and city are set and are lists
         if not all([self.latitude, self.longitude, self.city]):
             raise ValueError("Locations or cities not set. Call set_location() first.")
-        print(f"Type of latitude: {type(self.latitude)}")
-        print(f"Type of longitude: {type(self.longitude)}")
-        print(f"Type of city: {type(self.city)}")
         if (
             not isinstance(self.latitude, list)
             or not isinstance(self.longitude, list)
@@ -65,6 +62,8 @@ class Forecast:
             "longitude": self.longitude,
             "daily": self.parameters,
             "timezone": "auto",
+	        "forecast_days": 14,
+	        "past_days": 5,
         }
 
         try:

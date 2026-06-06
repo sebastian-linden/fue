@@ -1,10 +1,10 @@
 # Cloudy Forecast
 
-![PyPI version](https://img.shields.io/pypi/v/cloudy_forecast.svg)
+![PyPI version](https://img.shields.io/pypi/v/fue.svg)
 
 A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to see how they hold up over time. By comparing early predictions to the actual weather, it calculates the "real" uncertainty of a forecast. It’s built for hikers and outdoor enthusiasts who want to know if that 18°C Saturday is a sure thing or just a hopeful guess.
 
-* [GitHub](https://github.com/sebastian-linden/cloudy_forecast/) | [PyPI](https://pypi.org/project/cloudy_forecast/) | [Documentation](https://sebastian-linden.github.io/cloudy_forecast/)
+* [GitHub](https://github.com/sebastian-linden/fue/) | [PyPI](https://pypi.org/project/fue/) | [Documentation](https://sebastian-linden.github.io/fue/)
 * Created by [Sebastian Linden](https://audrey.feldroy.com/) | GitHub [@sebastian-linden](https://github.com/sebastian-linden) | PyPI [@sebastian-linden](https://pypi.org/user/sebastian-linden/)
 * MIT License
 
@@ -16,7 +16,7 @@ A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to se
 
 Documentation is built with [Zensical](https://zensical.org/) and deployed to GitHub Pages.
 
-* **Live site:** https://sebastian-linden.github.io/cloudy_forecast/
+* **Live site:** https://sebastian-linden.github.io/fue/
 * **Preview locally:** `just docs-serve` (serves at http://localhost:8000)
 * **Build:** `just docs-build`
 
@@ -30,14 +30,14 @@ To set up for local development:
 
 ```bash
 # Clone your fork
-git clone git@github.com:your_username/cloudy_forecast.git
-cd cloudy_forecast
+git clone git@github.com:your_username/fue.git
+cd fue
 
 # Install in editable mode with live updates
 uv tool install --editable .
 ```
 
-This installs the CLI globally but with live updates - any changes you make to the source code are immediately available when you run `cloudy_forecast`.
+This installs the CLI globally but with live updates - any changes you make to the source code are immediately available when you run `fue`.
 
 Run tests:
 

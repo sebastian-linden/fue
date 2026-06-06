@@ -1,4 +1,4 @@
-"""Console script for cloudy_forecast."""
+"""Console script for fue."""
 
 from typing import Annotated
 

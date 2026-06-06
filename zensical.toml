@@ -1,8 +1,8 @@
 [project]
 site_name = "Cloudy Forecast"
-site_url = "https://sebastian-linden.github.io/cloudy_forecast/"
-repo_url = "https://github.com/sebastian-linden/cloudy_forecast"
-repo_name = "sebastian-linden/cloudy_forecast"
+site_url = "https://sebastian-linden.github.io/fue/"
+repo_url = "https://github.com/sebastian-linden/fue"
+repo_name = "sebastian-linden/fue"
 
 nav = [
   { "Home" = "index.md" },

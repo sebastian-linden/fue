@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cloudy_forecast"
+name = "fue"
 version = "0.1.0"
 description = "A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to see how they hold up over time. By comparing early predictions to the actual weather, it calculates the \"real\" uncertainty of a forecast. It’s built for hikers and outdoor enthusiasts who want to know if that 18°C Saturday is a sure thing or just a hopeful guess."
 readme = "README.md"
@@ -53,13 +53,13 @@ docs = [
 ]
 
 [project.urls]
-bugs = "https://github.com/sebastian-linden/cloudy_forecast/issues"
-changelog = "https://github.com/sebastian-linden/cloudy_forecast/releases"
-documentation = "https://sebastian-linden.github.io/cloudy_forecast/"
-homepage = "https://github.com/sebastian-linden/cloudy_forecast"
+bugs = "https://github.com/sebastian-linden/fue/issues"
+changelog = "https://github.com/sebastian-linden/fue/releases"
+documentation = "https://sebastian-linden.github.io/fue/"
+homepage = "https://github.com/sebastian-linden/fue"
 
 [project.scripts]
-cloudy_forecast = "cloudy_forecast.cli:app"
+fue = "fue.cli:app"
 
 [tool.ty]
 # All rules are enabled as "error" by default; no need to specify unless overriding.

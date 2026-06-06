@@ -16,7 +16,7 @@ body:
       label: Steps to reproduce
       description: Minimal steps to trigger the bug.
       placeholder: |
-        1. Install with `uv pip install cloudy_forecast`
+        1. Install with `uv pip install fue`
         2. Run `...`
         3. See error
     validations:
