@@ -109,6 +109,7 @@ class Forecast:
 
     def compute_errors(self) -> str:
         """Compute error estimates based on historical forecast data."""
+        
         return "Hello from compute_errors()"
 
     def show(self) -> str:

@@ -105,3 +105,6 @@ testpaths = ["tests"]
 [tool.uv]
 package = true
 default-groups = ["dev"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fue"]
