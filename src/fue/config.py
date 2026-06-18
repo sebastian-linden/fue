@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 
 class Config():
@@ -12,9 +13,10 @@ class Config():
         """
 
         self.params = {}
-        self.path = "config.json"
-        if not os.path.exists(self.path):
-            raise FileNotFoundError("The file 'config.json' was not found.")
+        # Use __file__ to create absolute path to config.json in project root
+        self.path = Path(__file__).parent.parent.parent / "config.json"
+        if not self.path.exists():
+            raise FileNotFoundError(f"The file 'config.json' was not found at: {self.path}")
         else:
             with open(self.path) as file:
                 self.params = json.load(file)
@@ -33,7 +35,7 @@ class Config():
             f"  timezone={self.params.get('timezone')},\n"
             f"  past_days={self.params.get('past_days')},\n"
             f"  forecast_days={self.params.get('forecast_days')},\n"
-            f"  daily_variables={len(self.params.get('daily', []))} variables\n"
+            f"  daily_variables={len(self.params.get('daily', []))}\n"
             f")"
         )
 
