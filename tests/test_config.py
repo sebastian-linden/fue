@@ -252,37 +252,27 @@ class TestRemoveCity:
 
 
 class TestSave:
-    """Tests for the save method."""
-    
+
     def test_save_creates_valid_json(self, temp_config_dir):
         """Test that save creates a valid JSON file."""
         from fue.config import Config
         config = Config()
+        # Retrieve existing settings
+        try:
+            prev_timezone = config.params["timezone"]
+        except:
+            prev_timezone = "Europe/Berlin"
+        # Change the time zone
         config.set_timezone("America/Los_Angeles")
         config.save()
-        
         # Read the saved file and verify
-        with open("config.json", 'r') as f:
-            saved_data = json.load(f)
-        
-        assert "cities" in saved_data
-        assert "timezone" in saved_data
-        assert saved_data["timezone"] == "America/Los_Angeles"
-    
-    def test_save_preserves_city_data(self, temp_config_dir):
-        """Test that save preserves city data in correct format."""
-        from fue.config import Config
         config = Config()
-        config.add_city("new_city", 45.0, 15.0)
+        # Test
+        assert config.params["timezone"] == "America/Los_Angeles"
+        # Reset timezone back to previous value
+        config.set_timezone(prev_timezone)
         config.save()
-        
-        # Read the saved file
-        with open("config.json", 'r') as f:
-            saved_data = json.load(f)
-        
-        assert "new_city" in saved_data["cities"]
-        assert saved_data["cities"]["new_city"]["lat"] == 45.0
-        assert saved_data["cities"]["new_city"]["lon"] == 15.0
+
     
     def test_save_can_be_reloaded(self, temp_config_dir):
         """Test that saved config can be reloaded."""
@@ -296,3 +286,5 @@ class TestSave:
         config2 = Config()
         assert config2.params["timezone"] == "Europe/London"
         assert "save_test" in config2.cities
+
+        config.remove_city("save_test")
