@@ -1,4 +1,4 @@
-# Cloudy Forecast
+# fue
 
 ![PyPI version](https://img.shields.io/pypi/v/fue.svg)
 
@@ -53,6 +53,6 @@ just qa
 
 ## Author
 
-Cloudy Forecast was created in 2026 by Sebastian Linden.
+fue was created in 2026 by Sebastian Linden.
 
 Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.

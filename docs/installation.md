@@ -2,7 +2,7 @@
 
 ## Stable release
 
-To install Cloudy Forecast, run this command in your terminal:
+To install fue, run this command in your terminal:
 
 ```sh
 uv add fue
@@ -16,7 +16,7 @@ pip install fue
 
 ## From source
 
-The source files for Cloudy Forecast can be downloaded from the [Github repo](https://github.com/sebastian-linden/fue).
+The source files for fue can be downloaded from the [Github repo](https://github.com/sebastian-linden/fue).
 
 You can either clone the public repository:
 
