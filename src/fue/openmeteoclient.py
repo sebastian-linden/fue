@@ -9,15 +9,15 @@ from .config import Config  # When imported as part of package
 
 
 class OpenMeteoClient:
-    """ This class implements a client, which fetches data via the Open-Meteo API.
-        It is mainly used by the Data class """
+    """This class implements a client, which fetches data via the Open-Meteo API.
+    It is mainly used by the Data class"""
 
     def __init__(self):
 
         # Setup the Open-Meteo API client with cache and retry on error
-        self.cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
-        self.retry_session = retry(self.cache_session, retries = 5, backoff_factor = 0.2)
-        self.openmeteo = openmeteo_requests.Client(session = self.retry_session) # ty: ignore[invalid-argument-type]
+        self.cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+        self.retry_session = retry(self.cache_session, retries=5, backoff_factor=0.2)
+        self.openmeteo = openmeteo_requests.Client(session=self.retry_session)  # ty: ignore[invalid-argument-type]
 
         # Make sure all required weather variables are listed here
         # The order of variables in hourly or daily is important to assign them correctly below
@@ -36,34 +36,35 @@ class OpenMeteoClient:
         # Fetch responses from API
         responses = self.openmeteo.weather_api(self.url, params=self.config.params)
 
-        columns = ["location_name","latitude","longitude","forecasted_on","forecast_for"] + self.config.params["daily"]
+        columns = ["location_name", "latitude", "longitude", "forecasted_on", "forecast_for"] + self.config.params[
+            "daily"
+        ]
         forecast_data = pd.DataFrame(columns=columns)
 
         # Process each location
         for index, response in enumerate(responses):
-
             location_dict = {
                 "location_name": self.config.cities[index],
                 "latitude": response.Latitude(),
-                "longitude": response.Longitude()
+                "longitude": response.Longitude(),
             }
 
-            location_dict["forecasted_on"] = \
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            location_dict["forecasted_on"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            ''' Process daily data '''
+            """ Process daily data """
             daily = response.Daily()
 
             # Time series - shifted to end of day: 23:59:59
             location_dict["forecast_for"] = pd.date_range(
-                start = pd.to_datetime(daily.Time(), unit = "s"), # ty: ignore[unresolved-attribute]
-                end =  pd.to_datetime(daily.TimeEnd(), unit = "s"), # ty: ignore[unresolved-attribute]
-                freq = pd.Timedelta(seconds = daily.Interval()), # ty: ignore[unresolved-attribute]
-                inclusive = "left") + pd.Timedelta(days=1, hours=1, seconds=-1)
+                start=pd.to_datetime(daily.Time(), unit="s"),  # ty: ignore[unresolved-attribute]
+                end=pd.to_datetime(daily.TimeEnd(), unit="s"),  # ty: ignore[unresolved-attribute]
+                freq=pd.Timedelta(seconds=daily.Interval()),  # ty: ignore[unresolved-attribute]
+                inclusive="left",
+            ) + pd.Timedelta(days=1, hours=1, seconds=-1)
 
             # Predicted Variables
             for i, metric in enumerate(self.config.params["daily"]):
-                location_dict[metric] = daily.Variables(i).ValuesAsNumpy() # type: ignore
+                location_dict[metric] = daily.Variables(i).ValuesAsNumpy()  # type: ignore
 
             # Concatenate DataFrames
             location_data = pd.DataFrame(location_dict, columns=columns)

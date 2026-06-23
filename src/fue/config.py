@@ -3,13 +3,12 @@ from pathlib import Path
 
 
 class Config:
-    """ This class handles writing to and reading from the configuration file.
+    """This class handles writing to and reading from the configuration file.
     It also implements methods to interact with the configuration.
     """
 
     def __init__(self):
-        """ Initializes parameter dictionary and reads from config.json file
-        """
+        """Initializes parameter dictionary and reads from config.json file"""
 
         self.params = {}
         # Use __file__ to create absolute path to config.json in project root
@@ -44,7 +43,7 @@ class Config:
         Args:
             timezone: Timezone string (e.g., 'Europe/Berlin')
         """
-        self.params['timezone'] = timezone
+        self.params["timezone"] = timezone
 
     def set_past_days(self, past_days: int) -> None:
         """Set the number of past days for historical data.
@@ -54,7 +53,7 @@ class Config:
         """
         if not isinstance(past_days, int) or past_days < 0:
             raise ValueError(f"past_days must be a non-negative integer, got {past_days}")
-        self.params['past_days'] = past_days
+        self.params["past_days"] = past_days
 
     def set_forecast_days(self, forecast_days: int) -> None:
         """Set the number of forecast days.
@@ -64,7 +63,7 @@ class Config:
         """
         if not isinstance(forecast_days, int) or forecast_days < 0:
             raise ValueError(f"forecast_days must be a non-negative integer, got {forecast_days}")
-        self.params['forecast_days'] = forecast_days
+        self.params["forecast_days"] = forecast_days
 
     def set_daily_variables(self, daily: list) -> None:
         """Set the daily weather variables to fetch.
@@ -74,7 +73,7 @@ class Config:
         """
         if not isinstance(daily, list):
             raise ValueError(f"daily must be a list, got {type(daily)}")
-        self.params['daily'] = daily
+        self.params["daily"] = daily
 
     def update(self, **kwargs) -> None:
         """Update multiple configuration parameters at once.
@@ -86,13 +85,13 @@ class Config:
             daily: List of daily variables
         """
         for key, value in kwargs.items():
-            if key == 'timezone':
+            if key == "timezone":
                 self.set_timezone(value)
-            elif key == 'past_days':
+            elif key == "past_days":
                 self.set_past_days(value)
-            elif key == 'forecast_days':
+            elif key == "forecast_days":
                 self.set_forecast_days(value)
-            elif key == 'daily':
+            elif key == "daily":
                 self.set_daily_variables(value)
             else:
                 raise KeyError(f"Unknown configuration parameter: {key}")
@@ -137,13 +136,10 @@ class Config:
 
     def save(self) -> None:
         """Save the current configuration back to config.json."""
-        config_data = {
-            'cities': self.city_coordinates,
-            **self.params
-        }
+        config_data = {"cities": self.city_coordinates, **self.params}
         del config_data["latitude"]
         del config_data["longitude"]
-        with open(self.path, 'w') as file:
+        with open(self.path, "w") as file:
             json.dump(config_data, file, indent=4)
 
 

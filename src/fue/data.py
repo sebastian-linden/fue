@@ -7,8 +7,7 @@ from .openmeteoclient import OpenMeteoClient  # When imported as part of package
 
 
 class Data:
-    """ This class manages all of the data related operations.
-    """
+    """This class manages all of the data related operations."""
 
     def __init__(self):
 
@@ -18,21 +17,15 @@ class Data:
         # This is the data as fetched from the open-meteo API.
         self.raw = pd.DataFrame()
 
-        self.meta_variables = [
-            "location_name",
-            "latitude",
-            "longitude",
-            "forecasted_on",
-            "forecast_for"
-        ]
+        self.meta_variables = ["location_name", "latitude", "longitude", "forecasted_on", "forecast_for"]
         self.weather_variables = []
         self.numeric_variables = []
 
         return None
 
     def read_raw(self, path=None):
-        """ This method reads the raw data available in the directory:
-            data/raw/
+        """This method reads the raw data available in the directory:
+        data/raw/
         """
         if path is not None:
             self.PATH_TO_RAW = path
@@ -47,9 +40,9 @@ class Data:
         return None
 
     def convert_to_best_dtypes(self, df):
-        """ This helper method checks each column and if it is not already a data type
-            that is most appropriate for that respective column, then it gets converted
-            to that data type.
+        """This helper method checks each column and if it is not already a data type
+        that is most appropriate for that respective column, then it gets converted
+        to that data type.
         """
 
         datetime_cols = ["forecasted_on", "forecast_for"]
@@ -59,48 +52,50 @@ class Data:
             elif col in datetime_cols:
                 df[col] = pd.to_datetime(df[col])
             else:
-                df[col] = pd.to_numeric(df[col], errors='raise')
+                df[col] = pd.to_numeric(df[col], errors="raise")
 
         return df
 
     def summarize(self):
-        """ This method outputs a summary of all data currently available
-        """
+        """This method outputs a summary of all data currently available"""
         pass
 
     def generate_dataset(self, location_name="aachen"):
-        """ This method filters dataset by city, separates forecasts from
-            measured data, computes uncertainty distributions from given
-            data sub-set and optionally separates data into training and
-            validation data.
-            1. Separate data by city
-            2. Separate forecasts from measurements
-            .. Prepare target dataframe (add/modify columns)
-            3. Match forecasts to their measurements
-            4. Compute absolute differences
-            5. Return DataFrame
+        """This method filters dataset by city, separates forecasts from
+        measured data, computes uncertainty distributions from given
+        data sub-set and optionally separates data into training and
+        validation data.
+        1. Separate data by city
+        2. Separate forecasts from measurements
+        .. Prepare target dataframe (add/modify columns)
+        3. Match forecasts to their measurements
+        4. Compute absolute differences
+        5. Return DataFrame
         """
 
         # 1. Separate data by city
         local_raw = self.raw[self.raw["location_name"] == location_name]
 
         # 2. Separate forecasts from measurements
-        forecast_split = local_raw[(local_raw["forecast_for"]
-                                    - local_raw["forecasted_on"]).dt.total_seconds() > 12*60*60]
-        measured_split = local_raw[(local_raw["forecast_for"]
-                                    - local_raw["forecasted_on"]).dt.total_seconds() <= 12*60*60]
+        forecast_split = local_raw[
+            (local_raw["forecast_for"] - local_raw["forecasted_on"]).dt.total_seconds() > 12 * 60 * 60
+        ]
+        measured_split = local_raw[
+            (local_raw["forecast_for"] - local_raw["forecasted_on"]).dt.total_seconds() <= 12 * 60 * 60
+        ]
 
         # .. Prepare target dataframe (add/modify columns)
-        dataset_columns = ["location_name", "latitude","longitude", "day_of_year", "delta_days"]
+        dataset_columns = ["location_name", "latitude", "longitude", "day_of_year", "delta_days"]
         dataset_columns += self.weather_variables
         for var in self.weather_variables:
             dataset_columns.append(f"abs_diff__{var}")
         dataset = pd.DataFrame(columns=dataset_columns)
-        dataset[["location_name", "latitude","longitude"]] = forecast_split[["location_name", "latitude","longitude"]]
+        dataset[["location_name", "latitude", "longitude"]] = forecast_split[["location_name", "latitude", "longitude"]]
         dataset[self.weather_variables] = forecast_split[self.weather_variables]
         dataset["day_of_year"] = forecast_split["forecast_for"].dt.day_of_year
-        dataset["delta_days"] = (forecast_split["forecast_for"]
-                                 - forecast_split["forecasted_on"]).dt.total_seconds()/(60*60*24)
+        dataset["delta_days"] = (
+            forecast_split["forecast_for"] - forecast_split["forecasted_on"]
+        ).dt.total_seconds() / (60 * 60 * 24)
 
         # 3. Match forecasts to their measurements and compute absolute differences
         """ For every forecast entry,
@@ -110,11 +105,12 @@ class Data:
             # Find match(es)
             measurement = row[1]
             day = measurement["forecast_for"].day_of_year
-            match_condition = (forecast_split["forecast_for"].dt.day_of_year == day)
+            match_condition = forecast_split["forecast_for"].dt.day_of_year == day
             # Compute absolute difference
             for var in self.weather_variables:
-                dataset.loc[match_condition, f"abs_diff__{var}"] = \
-                    (dataset[match_condition][var]-measurement[var]).abs()
+                dataset.loc[match_condition, f"abs_diff__{var}"] = (
+                    dataset[match_condition][var] - measurement[var]
+                ).abs()
 
         # 4. Remove unmatched forecasts
         # This can happen, when in one fetches for example a 14-day forecast,
@@ -128,11 +124,11 @@ class Data:
 
         return dataset
 
-    def remove_duplicates(self, df ):
-        """ This method removes redundant data entries. This might happen when two
-            forecasts are fetched which contain identical forecasts in all variables.
-            This indicates, that that forecast likely stems from the same weather model
-            prediction cycle and is therefore a redundant data point."""
+    def remove_duplicates(self, df):
+        """This method removes redundant data entries. This might happen when two
+        forecasts are fetched which contain identical forecasts in all variables.
+        This indicates, that that forecast likely stems from the same weather model
+        prediction cycle and is therefore a redundant data point."""
 
         # MIN_FETCH_INTERVAL = pd.Timedelta(hours=3) # 3h is a common update frequency of the weather models
         TOL_DECIMALS = 4
@@ -143,8 +139,8 @@ class Data:
         return df
 
     def fetch_and_store_forecasts(self):
-        """ Uses the OpenMeteoClient to fetch current forecasts and combines
-            with historic forecasts in the corresponding .csv file.
+        """Uses the OpenMeteoClient to fetch current forecasts and combines
+        with historic forecasts in the corresponding .csv file.
         """
 
         # Fetch new data
@@ -164,9 +160,8 @@ class Data:
 
         return None
 
+
 if __name__ == "__main__":
     data = Data()
     data.fetch_and_store_forecasts()
     print(data.generate_dataset(location_name="aachen"))
-
-

@@ -9,7 +9,7 @@ app = typer.Typer()
 
 @app.command()
 def help() -> None:
-    """ Displays helpful information"""
+    """Displays helpful information"""
     help_message = """
     [Placeholder help message]
     """
