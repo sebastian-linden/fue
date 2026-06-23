@@ -388,6 +388,7 @@ dependencies = [
     { name = "retry-requests" },
     { name = "rich" },
     { name = "seaborn" },
+    { name = "ty" },
     { name = "typer" },
 ]
 
@@ -423,6 +424,7 @@ requires-dist = [
     { name = "retry-requests" },
     { name = "rich" },
     { name = "seaborn" },
+    { name = "ty", specifier = ">=0.0.30" },
     { name = "typer" },
 ]
 
@@ -431,6 +433,7 @@ dev = [
     { name = "coverage" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "ruff", specifier = ">=0.15.10" },
     { name = "ty" },
 ]
 docs = [

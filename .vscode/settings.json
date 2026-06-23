@@ -19,5 +19,8 @@
         "stockholm",
         "vienna",
         "zurich"
-    ]
+    ],
+    "editor.rulers": [
+    120
+  ],
 }

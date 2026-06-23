@@ -1,11 +1,10 @@
 import json
-import os
 from pathlib import Path
 
 
-class Config():
+class Config:
     """ This class handles writing to and reading from the configuration file.
-    It also implements methods to interact with the configuration. 
+    It also implements methods to interact with the configuration.
     """
 
     def __init__(self):
@@ -41,7 +40,7 @@ class Config():
 
     def set_timezone(self, timezone: str) -> None:
         """Set the timezone parameter.
-        
+
         Args:
             timezone: Timezone string (e.g., 'Europe/Berlin')
         """
@@ -49,7 +48,7 @@ class Config():
 
     def set_past_days(self, past_days: int) -> None:
         """Set the number of past days for historical data.
-        
+
         Args:
             past_days: Number of past days (must be non-negative)
         """
@@ -59,7 +58,7 @@ class Config():
 
     def set_forecast_days(self, forecast_days: int) -> None:
         """Set the number of forecast days.
-        
+
         Args:
             forecast_days: Number of forecast days (must be non-negative)
         """
@@ -69,7 +68,7 @@ class Config():
 
     def set_daily_variables(self, daily: list) -> None:
         """Set the daily weather variables to fetch.
-        
+
         Args:
             daily: List of variable names to fetch
         """
@@ -79,7 +78,7 @@ class Config():
 
     def update(self, **kwargs) -> None:
         """Update multiple configuration parameters at once.
-        
+
         Args:
             timezone: Timezone string
             past_days: Number of past days
@@ -100,7 +99,7 @@ class Config():
 
     def add_city(self, name: str, lat: float, lon: float) -> None:
         """Add a new city to the configuration.
-        
+
         Args:
             name: City name (must be unique)
             lat: Latitude coordinate
@@ -109,10 +108,10 @@ class Config():
         if name in self.cities:
             raise ValueError(f"City '{name}' already exists in configuration")
         if not isinstance(name, str):
-            raise ValueError(f"City name must be a string")
+            raise ValueError("City name must be a string")
         if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
-            raise ValueError(f"Latitude and longitude must be numeric values")
-        
+            raise ValueError("Latitude and longitude must be numeric values")
+
         self.cities.append(name)
         self.city_coordinates[name] = {"lat": lat, "lon": lon}
         self.params["latitude"].append(lat)
@@ -120,16 +119,16 @@ class Config():
 
     def remove_city(self, name: str) -> None:
         """Remove a city from the configuration.
-        
+
         Args:
             name: City name to remove
         """
         if name not in self.cities:
             raise ValueError(f"City '{name}' not found in configuration")
-        
+
         # Find the index of the city
         index = self.cities.index(name)
-        
+
         # Remove from all data structures
         self.cities.remove(name)
         del self.city_coordinates[name]
@@ -142,6 +141,8 @@ class Config():
             'cities': self.city_coordinates,
             **self.params
         }
+        del config_data["latitude"]
+        del config_data["longitude"]
         with open(self.path, 'w') as file:
             json.dump(config_data, file, indent=4)
 
@@ -149,4 +150,3 @@ class Config():
 if __name__ == "__main__":
     config = Config()
     print(config.__repr__)
-        

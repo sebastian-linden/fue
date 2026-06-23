@@ -29,6 +29,7 @@ dependencies = [
   "retry-requests",
   "datetime",
   "seaborn",
+  "ty>=0.0.30",
 ]
 requires-python = ">= 3.12"
 
@@ -37,6 +38,7 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typecheck" },
+    "ruff>=0.15.10",
 ]
 lint = [
     "ruff",
