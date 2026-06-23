@@ -28,6 +28,7 @@ dependencies = [
   "requests-cache",
   "retry-requests",
   "datetime",
+  "seaborn",
 ]
 requires-python = ">= 3.12"
 
