@@ -33,15 +33,16 @@ def temp_config_dir():
         "daily": ["temperature_2m_max", "temperature_2m_min"],
         "timezone": "UTC",
         "past_days": 5,
-        "forecast_days": 10
+        "forecast_days": 10,
     }
 
     config_path = Path(temp_dir) / "config.json"
-    with open(config_path, 'w') as f:
+    with open(config_path, "w") as f:
         json.dump(test_config, f)
 
     # Change to temp directory
     import os
+
     os.chdir(temp_dir)
 
     yield temp_dir
@@ -153,11 +154,7 @@ class TestUpdate:
 
     def test_update_multiple_params(self, config):
         """Test updating multiple parameters at once."""
-        config.update(
-            timezone="UTC",
-            past_days=10,
-            forecast_days=20
-        )
+        config.update(timezone="UTC", past_days=10, forecast_days=20)
         assert config.params["timezone"] == "UTC"
         assert config.params["past_days"] == 10
         assert config.params["forecast_days"] == 20
@@ -253,10 +250,10 @@ class TestRemoveCity:
 
 
 class TestSave:
-
     def test_save_creates_valid_json(self, temp_config_dir):
         """Test that save creates a valid JSON file."""
         from fue.config import Config
+
         config = Config()
         # Retrieve existing settings
         try:
@@ -275,10 +272,10 @@ class TestSave:
         config.set_timezone(prev_timezone)
         config.save()
 
-
     def test_save_can_be_reloaded(self, temp_config_dir):
         """Test that saved config can be reloaded."""
         from fue.config import Config
+
         config = Config()
         config.set_timezone("Europe/London")
         config.add_city("save_test", 51.5, -0.1)

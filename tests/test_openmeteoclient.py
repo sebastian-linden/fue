@@ -14,9 +14,9 @@ class TestOpenMeteoClientInit:
         """Test that OpenMeteoClient initializes without errors"""
         client = OpenMeteoClient()
         assert client is not None
-        assert hasattr(client, 'openmeteo')
-        assert hasattr(client, 'config')
-        assert hasattr(client, 'url')
+        assert hasattr(client, "openmeteo")
+        assert hasattr(client, "config")
+        assert hasattr(client, "url")
 
     def test_url_is_correct(self):
         """Test that the API URL is set correctly"""
@@ -32,8 +32,8 @@ class TestOpenMeteoClientInit:
         """Test that config is loaded"""
         client = OpenMeteoClient()
         assert client.config is not None
-        assert hasattr(client.config, 'params')
-        assert hasattr(client.config, 'cities')
+        assert hasattr(client.config, "params")
+        assert hasattr(client.config, "cities")
 
 
 class TestOpenMeteoClientIntegration:
@@ -44,16 +44,16 @@ class TestOpenMeteoClientIntegration:
         client = OpenMeteoClient()
 
         # Verify all necessary attributes exist
-        assert hasattr(client, 'cache_session')
-        assert hasattr(client, 'retry_session')
-        assert hasattr(client, 'openmeteo')
-        assert hasattr(client, 'url')
-        assert hasattr(client, 'config')
+        assert hasattr(client, "cache_session")
+        assert hasattr(client, "retry_session")
+        assert hasattr(client, "openmeteo")
+        assert hasattr(client, "url")
+        assert hasattr(client, "config")
 
         # Verify config has necessary attributes
-        assert hasattr(client.config, 'params')
-        assert hasattr(client.config, 'cities')
+        assert hasattr(client.config, "params")
+        assert hasattr(client.config, "cities")
 
         # Verify config.params has necessary keys
-        assert 'daily' in client.config.params
-        assert 'timezone' in client.config.params
+        assert "daily" in client.config.params
+        assert "timezone" in client.config.params
