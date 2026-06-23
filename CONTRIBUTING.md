@@ -26,7 +26,7 @@ Look through the GitHub issues for features. Anything tagged with "enhancement" 
 
 ### Write Documentation
 
-Cloudy Forecast could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
+fue could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
 
 To preview the docs locally:
 
