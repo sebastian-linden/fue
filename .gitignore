@@ -58,3 +58,6 @@ data/backup
 
 # Personal notes
 my_workflow.md
+
+# Cache
+scripts/.cache.sqlite
