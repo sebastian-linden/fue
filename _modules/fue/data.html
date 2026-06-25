@@ -119,10 +119,14 @@
 
 <div class="viewcode-block" id="Data.convert_to_best_dtypes">
 <a class="viewcode-back" href="../../index.html#fue.Data.convert_to_best_dtypes">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;This helper method checks each column and if it is not already a data type</span>
-<span class="sd">        that is most appropriate for that respective column, then it gets converted</span>
-<span class="sd">        to that data type.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pd.DataFrame): _description_</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: _description_</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">datetime_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">,</span> <span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span>
