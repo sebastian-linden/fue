@@ -19,3 +19,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## Data Attribution & Licensing
+
+This software fetches and utilizes weather data provided by Open-Meteo.com. 
+The data is governed by the Creative Commons Attribution 4.0 International (CC BY 4.0) license.
+
+* **Source:** https://open-meteo.com/
+* **License:** CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+Users of this software must adhere to the attribution requirements of Open-Meteo when displaying or redistributing the data.

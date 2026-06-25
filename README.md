@@ -56,3 +56,13 @@ just qa
 fue was created in 2026 by Sebastian Linden.
 
 Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.
+
+
+## License & Attribution
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### Data Credit
+This package integrates weather data provided by [Open-Meteo.com](https://open-meteo.com/). The API data is offered under the **Attribution 4.0 International (CC BY 4.0)** license.
+
+Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a>
