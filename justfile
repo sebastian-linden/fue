@@ -55,14 +55,13 @@ coverage:
     uv run --python=3.14 coverage report
     uv run --python=3.14 coverage html
 
-# Serve docs locally with live reload
-docs-serve:
-    -lsof -ti :8000 | xargs kill
-    uv run --group docs zensical serve
-
-# Build docs (strict mode, fails on warnings)
+# Build documentation locally using Sphinx
 docs-build:
-    uv run --group docs zensical build --clean
+    cd docs && uv run make html
+
+# Serve docs locally with a live auto-reloading browser view
+docs-serve:
+    uv run python -m http.server --directory docs/build/html 8000
 
 # Build the project, useful for checking that packaging is correct
 build:
@@ -76,28 +75,29 @@ release:
 
 # Remove all build, test, coverage and Python artifacts
 clean: clean-build clean-pyc clean-test
+    rm -rf docs/build/
 
 # Remove build artifacts
 clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
-	find . -name '*.egg' -exec rm -f {} +
+    rm -fr build/
+    rm -fr dist/
+    rm -fr .eggs/
+    find . -name '*.egg-info' -exec rm -fr {} +
+    find . -name '*.egg' -exec rm -f {} +
 
 # Remove Python file artifacts
 clean-pyc:
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+    find . -name '*.pyc' -exec rm -f {} +
+    find . -name '*.pyo' -exec rm -f {} +
+    find . -name '*~' -exec rm -f {} +
+    find . -name '__pycache__' -exec rm -fr {} +
 
 # Remove test and coverage artifacts
 clean-test:
-	rm -f .coverage
-	rm -f .coverage.*
-	rm -fr htmlcov/
-	rm -fr .pytest_cache
+    rm -f .coverage
+    rm -f .coverage.*
+    rm -fr htmlcov/
+    rm -fr .pytest_cache
 
 # Publish to PyPI (manual alternative to GitHub Actions)
 publish:

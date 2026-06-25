@@ -3,3 +3,4 @@
 from fue import Data
 
 data = Data()
+data.fetch_and_store_forecasts()

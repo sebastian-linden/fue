@@ -55,3 +55,6 @@ site/
 
 # Backup
 data/backup
+
+# Personal notes
+my_workflow.md

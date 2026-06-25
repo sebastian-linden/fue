@@ -39,10 +39,14 @@ class Data:
             raise FileNotFoundError("forecasts.csv was not found") from e
         return None
 
-    def convert_to_best_dtypes(self, df):
-        """This helper method checks each column and if it is not already a data type
-        that is most appropriate for that respective column, then it gets converted
-        to that data type.
+    def convert_to_best_dtypes(self, df:pd.DataFrame) -> pd.DataFrame:
+        """_summary_
+
+        Args:
+            df (pd.DataFrame): _description_
+
+        Returns:
+            pd.DataFrame: _description_
         """
 
         datetime_cols = ["forecasted_on", "forecast_for"]

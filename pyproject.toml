@@ -27,9 +27,7 @@ dependencies = [
   "openmeteo-requests",
   "requests-cache",
   "retry-requests",
-  "datetime",
   "seaborn",
-  "sphinx",
   "ty>=0.0.30",
 ]
 requires-python = ">= 3.12"
@@ -39,12 +37,10 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typecheck" },
-    "ruff>=0.15.10",
-    "sphinx-rtd-theme>=3.1.0",
-    "sphinxcontrib-bibtex>=2.7.0",
+    { include-group = "docs" },
 ]
 lint = [
-    "ruff",
+    "ruff>=0.15.10",
 ]
 test = [
     "coverage",
@@ -54,9 +50,9 @@ typecheck = [
     "ty",
 ]
 docs = [
-    "zensical",
-    "mkdocstrings-python",
     "sphinx",
+    "sphinx-rtd-theme>=3.1.0",
+    "sphinxcontrib-bibtex>=2.7.0",
 ]
 
 [project.urls]

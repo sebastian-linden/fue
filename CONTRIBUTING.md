@@ -31,7 +31,7 @@ fue could always use more documentation, whether as part of the official docs, i
 To preview the docs locally:
 
 ```sh
-just docs-serve
+uv run make html
 ```
 
 This starts a local server at http://localhost:8000 with live reload. Edit files in `docs/` or add docstrings to your code (the API reference page is auto-generated).
