@@ -39,7 +39,7 @@ class Data:
             raise FileNotFoundError("forecasts.csv was not found") from e
         return None
 
-    def convert_to_best_dtypes(self, df:pd.DataFrame) -> pd.DataFrame:
+    def convert_to_best_dtypes(self, df: pd.DataFrame) -> pd.DataFrame:
         """_summary_
 
         Args:
