@@ -87,7 +87,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This class implements a client, which fetches data via the Open-Meteo API.</span>
 <span class="sd">    It is mainly used by the Data class&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
         <span class="c1"># Setup the Open-Meteo API client with cache and retry on error</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_session</span> <span class="o">=</span> <span class="n">requests_cache</span><span class="o">.</span><span class="n">CachedSession</span><span class="p">(</span><span class="s2">&quot;.cache&quot;</span><span class="p">,</span> <span class="n">expire_after</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span>
@@ -97,7 +97,10 @@
         <span class="c1"># Make sure all required weather variables are listed here</span>
         <span class="c1"># The order of variables in hourly or daily is important to assign them correctly below</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.open-meteo.com/v1/forecast&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 
 <div class="viewcode-block" id="OpenMeteoClient.fetch_forecast">
 <a class="viewcode-back" href="../../index.html#fue.OpenMeteoClient.fetch_forecast">[docs]</a>

@@ -76,7 +76,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.openmeteoclient</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenMeteoClient</span>  <span class="c1"># When imported as part of package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.openmeteoclient</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenMeteoClient</span>
 
 
 <div class="viewcode-block" id="Data">
@@ -208,9 +208,12 @@
         <span class="c1"># Then, we&#39;re left with forecasts, for which we don&#39;t know the ground truth.</span>
         <span class="c1"># When there&#39;s a NAN entry for the absolute difference of a variable, then</span>
         <span class="c1"># this indicates an unmatched forecast.</span>
-        <span class="n">some_abs_diff__weather_variable</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;abs_diff__</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">nonNAN_indices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="n">some_abs_diff__weather_variable</span><span class="p">])</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">nonNAN_indices</span><span class="p">]</span>
+        <span class="c1"># I need to check for each weather variable, if there are any NAN entries in the</span>
+        <span class="c1"># corresponding absolute difference column.</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">:</span>
+            <span class="n">abs_diff_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;abs_diff__</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">nonNAN_indices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="n">abs_diff_col</span><span class="p">])</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">nonNAN_indices</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">dataset</span></div>
 
@@ -232,17 +235,38 @@
         <span class="k">return</span> <span class="n">df</span></div>
 
 
-<div class="viewcode-block" id="Data.fetch_and_store_forecasts">
-<a class="viewcode-back" href="../../index.html#fue.Data.fetch_and_store_forecasts">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_and_store_forecasts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Uses the OpenMeteoClient to fetch current forecasts and combines</span>
-<span class="sd">        with historic forecasts in the corresponding .csv file.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Data.fetch_forecast">
+<a class="viewcode-back" href="../../index.html#fue.Data.fetch_forecast">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Uses the OpenMeteoClient class to fetch current forecasts.</span>
 
-        <span class="c1"># Fetch new data</span>
-        <span class="n">client</span> <span class="o">=</span> <span class="n">OpenMeteoClient</span><span class="p">()</span>
+<span class="sd">        Args:</span>
+<span class="sd">            config (_type_, optional): Optionally pass a custom config object. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: DataFrame containing the fetched forecast</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="n">OpenMeteoClient</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="n">OpenMeteoClient</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
         <span class="n">current_forecasts</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_forecast</span><span class="p">()</span>
         <span class="n">current_forecasts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_best_dtypes</span><span class="p">(</span><span class="n">current_forecasts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">current_forecasts</span></div>
+
+
+<div class="viewcode-block" id="Data.combine_and_store_forecasts">
+<a class="viewcode-back" href="../../index.html#fue.Data.combine_and_store_forecasts">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">combine_and_store_forecasts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_forecasts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Uses the OpenMeteoClient to fetch current forecasts and combines</span>
+<span class="sd">        with historic forecasts in the corresponding .csv file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            current_forecasts (pd.DataFrame): DataFrame containing the fetched forecast</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Read existing data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
@@ -257,12 +281,6 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 </div>
 
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span>
-    <span class="n">data</span><span class="o">.</span><span class="n">fetch_and_store_forecasts</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">generate_dataset</span><span class="p">(</span><span class="n">location_name</span><span class="o">=</span><span class="s2">&quot;aachen&quot;</span><span class="p">))</span>
 </pre></div>
 
            </div>

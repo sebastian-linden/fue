@@ -1,0 +1,270 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fue.forecast &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data/index.html">Forecast Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model/index.html">Mathematical Background</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">fue.forecast</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for fue.forecast</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span>
+
+
+<div class="viewcode-block" id="Forecast">
+<a class="viewcode-back" href="../../index.html#fue.Forecast">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Forecast</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A class, that applies a fitted uncertainty model to a forecast, that can be either</span>
+<span class="sd">    given or fetched from the Open-Meteo API via the OpenMeteoClient() class. This class also provides</span>
+<span class="sd">    methods to visualize the forecast and its uncertainty predictions, if a model is given.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Forecast.fetch_forecast">
+<a class="viewcode-back" href="../../index.html#fue.Forecast.fetch_forecast">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">14</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            location_name (str): The name of the location. Must be one of the cities defined in the configuration file.</span>
+<span class="sd">            forecast_days (int, optional): The number of days to fetch. Defaults to 14.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None: Sets the forecast DataFrame directly in the class instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Create a custom Config() object and fetch data using that</span>
+        <span class="n">one_city_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">location_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">cities</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Location &#39;</span><span class="si">{</span><span class="n">location_name</span><span class="si">}</span><span class="s2">&#39; is not defined in the configuration file.&quot;</span><span class="p">)</span>
+        <span class="n">one_city_config</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">city_coordinates</span><span class="p">[</span><span class="n">location_name</span><span class="p">][</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span>
+        <span class="n">one_city_config</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">city_coordinates</span><span class="p">[</span><span class="n">location_name</span><span class="p">][</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span>
+        <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_forecast_days</span><span class="p">(</span><span class="n">forecast_days</span><span class="p">)</span>
+        <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_past_days</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span><span class="o">.</span><span class="n">fetch_forecast</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">one_city_config</span><span class="p">)</span>
+
+        <span class="c1"># Here are two lines that are copied from the Data() class:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;delta_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Forecast.compute_uncertainties">
+<a class="viewcode-back" href="../../index.html#fue.Forecast.compute_uncertainties">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_uncertainties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uncertainty_model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Applies a fitted uncertainty model to the forecast DataFrame to generate uncertainty predictions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            uncertainty_model: A fitted instance of an UncertaintyModel subclass.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None: Sets the uncertainty predictions DataFrame directly in the class instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="o">=</span> <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Forecast.plot">
+<a class="viewcode-back" href="../../index.html#fue.Forecast.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_variables</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="c1"># Value and Type Checks</span>
+        <span class="k">if</span> <span class="n">target_variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target_variables must be provided for plotting.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Forecast data has not been fetched. Call &#39;fetch_forecast()&#39; first.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Uncertainty predictions have not been computed. Call &#39;compute_uncertainties()&#39; first.&quot;</span><span class="p">)</span>
+
+        <span class="k">match</span> <span class="n">target_variables</span><span class="p">:</span>
+            <span class="k">case</span> <span class="nb">str</span><span class="p">():</span>
+                <span class="n">target_variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">target_variables</span><span class="p">]</span>
+            <span class="k">case</span> <span class="nb">list</span><span class="p">():</span>
+                <span class="k">pass</span>
+            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;target_variables must be either a string or a list of strings.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">target_variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">var</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;abs_diff__&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target variables need to start with &#39;abs_diff__&#39;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Plot specifications</span>
+        <span class="n">COLORS</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># Raw features</span>
+            <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;crimson&quot;</span><span class="p">,</span>  <span class="c1"># Warm red for maximum temperature</span>
+            <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;royalblue&quot;</span><span class="p">,</span>  <span class="c1"># Cool blue for minimum temperature</span>
+            <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;teal&quot;</span><span class="p">,</span>  <span class="c1"># Greenish-blue for rain accumulation</span>
+            <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;gold&quot;</span><span class="p">,</span>  <span class="c1"># Sunny yellow for hours of sun</span>
+            <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;slategray&quot;</span><span class="p">,</span>  <span class="c1"># Muted slate for wind speed vectors</span>
+            <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">,</span>  <span class="c1"># Soft blue for probability percentiles</span>
+            <span class="c1"># Target variables</span>
+            <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;darkred&quot;</span><span class="p">,</span>  <span class="c1"># Deep red for max temperature inaccuracy</span>
+            <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;navy&quot;</span><span class="p">,</span>  <span class="c1"># Deep navy for min temperature inaccuracy</span>
+            <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;darkcyan&quot;</span><span class="p">,</span>  <span class="c1"># Dark cyan for rain forecast error</span>
+            <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;darkorange&quot;</span><span class="p">,</span>  <span class="c1"># Rich orange for sunshine duration error</span>
+            <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;dimgray&quot;</span><span class="p">,</span>  <span class="c1"># Dark neutral gray for wind speed error</span>
+            <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;mediumpurple&quot;</span><span class="p">,</span>  <span class="c1"># Distinct purple accent for probability error</span>
+        <span class="p">}</span>
+        <span class="n">UNITS</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># Raw features</span>
+            <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span>  <span class="c1"># Seconds (or &#39;h&#39; if parsed to hours)</span>
+            <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>  <span class="c1"># Standard meteorological velocity</span>
+            <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span>
+            <span class="c1"># Target variables (same units as raw features)</span>
+            <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">TITLES</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># Raw features</span>
+            <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Maximum Temperature (2m)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Minimum Temperature (2m)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Total Daily Precipitation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;Daily Sunshine Duration&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Wind Speed (10m)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Precipitation Probability&quot;</span><span class="p">,</span>
+            <span class="c1"># Target variables</span>
+            <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Max Temperature Forecast Absolute Error&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Min Temperature Forecast Absolute Error&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Forecast Absolute Error&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;Sunshine Duration Forecast Absolute Error&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Wind Speed Forecast Absolute Error&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Probability Forecast Absolute Error&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="s2">, </span><span class="si">%d</span><span class="s2">-%m-%Y&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">abs_diff__var</span> <span class="ow">in</span> <span class="n">target_variables</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">abs_diff__var</span><span class="p">[</span><span class="mi">10</span><span class="p">:]</span>  <span class="c1"># &quot;abs_diff__&quot; has 10 letters</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; is not present in the forecast DataFrame.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">abs_diff__var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uncertainty predictions for target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; are not available.&quot;</span><span class="p">)</span>
+
+            <span class="n">var_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+            <span class="n">var_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">]</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">var_series</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">COLORS</span><span class="p">[</span><span class="n">var</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">TITLES</span><span class="p">[</span><span class="n">var</span><span class="p">])</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">days</span><span class="p">,</span>
+                <span class="n">y1</span><span class="o">=</span><span class="n">var_series</span> <span class="o">-</span> <span class="n">var_diff</span><span class="p">,</span>
+                <span class="n">y2</span><span class="o">=</span><span class="n">var_series</span> <span class="o">+</span> <span class="n">var_diff</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">COLORS</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">],</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">TITLES</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">TITLES</span><span class="p">[</span><span class="n">var</span><span class="p">])</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TITLES</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">UNITS</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

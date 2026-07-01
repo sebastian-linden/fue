@@ -94,7 +94,7 @@ documentation for details.</p>
 <p>Top-level package for fue.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="fue.Config">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="_modules/fue/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class handles writing to and reading from the configuration file.
 It also implements methods to interact with the configuration.</p>
@@ -105,12 +105,25 @@ It also implements methods to interact with the configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> – City name (must be unique)</p></li>
-<li><p><strong>lat</strong> – Latitude coordinate</p></li>
-<li><p><strong>lon</strong> – Longitude coordinate</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – City name (must be unique)</p></li>
+<li><p><strong>lat</strong> (<em>float</em>) – Latitude coordinate</p></li>
+<li><p><strong>lon</strong> (<em>float</em>) – Longitude coordinate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If city is already in the configuration</p></li>
+<li><p><strong>ValueError</strong> – If city name is not a string</p></li>
+<li><p><strong>ValueError</strong> – If latitude or longitude are not numeric values</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.get_preprocessing_rules">
+<span class="sig-name descname"><span class="pre">get_preprocessing_rules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/fue/config.html#Config.get_preprocessing_rules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.get_preprocessing_rules" title="Link to this definition"></a></dt>
+<dd><p>Returns the preprocessing dictionary from config.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -164,6 +177,20 @@ It also implements methods to interact with the configuration.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.set_preprocessing_rule">
+<span class="sig-name descname"><span class="pre">set_preprocessing_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/config.html#Config.set_preprocessing_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_preprocessing_rule" title="Link to this definition"></a></dt>
+<dd><p>Sets or updates a transformation method for a specific variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> – Weather variable name (e.g., ‘temperature_2m_max’)</p></li>
+<li><p><strong>method</strong> – Transformation method to apply (e.g. log, min-max, …)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fue.Config.set_timezone">
 <span class="sig-name descname"><span class="pre">set_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timezone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/config.html#Config.set_timezone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_timezone" title="Link to this definition"></a></dt>
 <dd><p>Set the timezone parameter.</p>
@@ -198,6 +225,21 @@ It also implements methods to interact with the configuration.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class manages all of the data related operations.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.combine_and_store_forecasts">
+<span class="sig-name descname"><span class="pre">combine_and_store_forecasts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/data.html#Data.combine_and_store_forecasts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.combine_and_store_forecasts" title="Link to this definition"></a></dt>
+<dd><p>Uses the OpenMeteoClient to fetch current forecasts and combines
+with historic forecasts in the corresponding .csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>current_forecasts</strong> (<em>pd.DataFrame</em>) – DataFrame containing the fetched forecast</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fue.Data.convert_to_best_dtypes">
 <span class="sig-name descname"><span class="pre">convert_to_best_dtypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/fue/data.html#Data.convert_to_best_dtypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.convert_to_best_dtypes" title="Link to this definition"></a></dt>
 <dd><p>_summary_</p>
@@ -215,10 +257,20 @@ It also implements methods to interact with the configuration.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fue.Data.fetch_and_store_forecasts">
-<span class="sig-name descname"><span class="pre">fetch_and_store_forecasts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.fetch_and_store_forecasts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.fetch_and_store_forecasts" title="Link to this definition"></a></dt>
-<dd><p>Uses the OpenMeteoClient to fetch current forecasts and combines
-with historic forecasts in the corresponding .csv file.</p>
+<dt class="sig sig-object py" id="fue.Data.fetch_forecast">
+<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/fue/data.html#Data.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.fetch_forecast" title="Link to this definition"></a></dt>
+<dd><p>Uses the OpenMeteoClient class to fetch current forecasts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>_type_</em><em>, </em><em>optional</em>) – Optionally pass a custom config object. Defaults to None.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame containing the fetched forecast</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -261,8 +313,59 @@ prediction cycle and is therefore a redundant data point.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="fue.Forecast">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">Forecast</span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class, that applies a fitted uncertainty model to a forecast, that can be either
+given or fetched from the Open-Meteo API via the OpenMeteoClient() class. This class also provides
+methods to visualize the forecast and its uncertainty predictions, if a model is given.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Forecast.compute_uncertainties">
+<span class="sig-name descname"><span class="pre">compute_uncertainties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.compute_uncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.compute_uncertainties" title="Link to this definition"></a></dt>
+<dd><p>Applies a fitted uncertainty model to the forecast DataFrame to generate uncertainty predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>uncertainty_model</strong> – A fitted instance of an UncertaintyModel subclass.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sets the uncertainty predictions DataFrame directly in the class instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Forecast.fetch_forecast">
+<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">14</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.fetch_forecast" title="Link to this definition"></a></dt>
+<dd><p>Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>location_name</strong> (<em>str</em>) – The name of the location. Must be one of the cities defined in the configuration file.</p></li>
+<li><p><strong>forecast_days</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of days to fetch. Defaults to 14.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sets the forecast DataFrame directly in the class instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Forecast.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="fue.OpenMeteoClient">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">OpenMeteoClient</span></span><a class="reference internal" href="_modules/fue/openmeteoclient.html#OpenMeteoClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.OpenMeteoClient" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">OpenMeteoClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#fue.Config" title="fue.config.Config"><span class="pre">Config</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/openmeteoclient.html#OpenMeteoClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.OpenMeteoClient" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class implements a client, which fetches data via the Open-Meteo API.
 It is mainly used by the Data class</p>

@@ -82,23 +82,43 @@
 <span class="sd">    It also implements methods to interact with the configuration.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes parameter dictionary and reads from config.json file&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="c1"># Use __file__ to create absolute path to config.json in project root</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;config.json&quot;</span>
+        <span class="c1"># If a custom path is given, use it; otherwise, fall back to default project root</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;config.json&quot;</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The file &#39;config.json&#39; was not found at: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
             <span class="c1"># Reformat dictionary to suit the format that Open-Meteo needs</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;cities&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;cities&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cities&quot;</span><span class="p">,</span> <span class="p">{})</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+            <span class="c1"># Pull out some of the configuration variables into separate variables and delete</span>
+            <span class="c1"># them from the self.params dictionary, as this is the one, that will be passed to</span>
+            <span class="c1"># Open-Meteo API</span>
+            <span class="k">if</span> <span class="s2">&quot;cities&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;cities&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;preprocessing&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;preprocessing&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;preprocessing&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;default_feature_columns&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">default_feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;default_feature_columns&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;default_feature_columns&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;default_target_columns&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">default_target_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;default_target_columns&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;default_target_columns&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span>
@@ -192,9 +212,14 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new city to the configuration.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            name: City name (must be unique)</span>
-<span class="sd">            lat: Latitude coordinate</span>
-<span class="sd">            lon: Longitude coordinate</span>
+<span class="sd">            name (str): City name (must be unique)</span>
+<span class="sd">            lat (float): Latitude coordinate</span>
+<span class="sd">            lon (float): Longitude coordinate</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If city is already in the configuration</span>
+<span class="sd">            ValueError: If city name is not a string</span>
+<span class="sd">            ValueError: If latitude or longitude are not numeric values</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cities</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;City &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; already exists in configuration&quot;</span><span class="p">)</span>
@@ -234,11 +259,35 @@
 <a class="viewcode-back" href="../../index.html#fue.Config.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the current configuration back to config.json.&quot;&quot;&quot;</span>
-        <span class="n">config_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cities&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">}</span>
+        <span class="n">config_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;cities&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span>
+        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;preprocessing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span>
+        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;default_feature_columns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_feature_columns</span>
+        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;default_target_columns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_target_columns</span>
         <span class="k">del</span> <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">]</span>
         <span class="k">del</span> <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config_data</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Config.get_preprocessing_rules">
+<a class="viewcode-back" href="../../index.html#fue.Config.get_preprocessing_rules">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_preprocessing_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the preprocessing dictionary from config.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span></div>
+
+
+<div class="viewcode-block" id="Config.set_preprocessing_rule">
+<a class="viewcode-back" href="../../index.html#fue.Config.set_preprocessing_rule">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_preprocessing_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets or updates a transformation method for a specific variable.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            variable: Weather variable name (e.g., &#39;temperature_2m_max&#39;)</span>
+<span class="sd">            method: Transformation method to apply (e.g. log, min-max, ...)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 </div>
 
 
