@@ -2,6 +2,7 @@
 
 from .config import Config
 from .data import Data
+from .forecast import Forecast
 from .openmeteoclient import OpenMeteoClient
 
-__all__ = ["Config", "OpenMeteoClient", "Data"]
+__all__ = ["Config", "OpenMeteoClient", "Data", "Forecast"]

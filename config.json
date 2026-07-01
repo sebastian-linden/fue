@@ -13,7 +13,7 @@
             "lon": 9.9937
         },
         "freiburg": {
-            "lat": 47.9990,
+            "lat": 47.999,
             "lon": 7.8421
         },
         "leipzig": {
@@ -94,5 +94,37 @@
     ],
     "timezone": "Europe/London",
     "past_days": 14,
-    "forecast_days": 14
+    "forecast_days": 14,
+    "preprocessing": {
+        "temperature_2m_max": "standard",
+        "temperature_2m_min": "standard",
+        "precipitation_sum": "box-cox",
+        "sunshine_duration": "min-max",
+        "wind_direction_10m_dominant": "sin-cos",
+        "wind_speed_10m_max": "log",
+        "wind_gusts_10m_max": "log",
+        "wind_speed_10m_mean": "log",
+        "precipitation_probability_mean": "min-max"
+    },
+    "default_feature_columns": [
+        "day_of_year",
+        "delta_days",    
+        "temperature_2m_max",
+        "temperature_2m_min",
+        "precipitation_sum",
+        "sunshine_duration",
+        "wind_direction_10m_dominant",
+        "wind_speed_10m_max",
+        "wind_gusts_10m_max",
+        "wind_speed_10m_mean",
+        "precipitation_probability_mean"
+    ],
+    "default_target_columns": [    
+        "abs_diff__temperature_2m_max",
+        "abs_diff__temperature_2m_min",
+        "abs_diff__precipitation_sum",
+        "abs_diff__sunshine_duration",
+        "abs_diff__wind_speed_10m_mean",
+        "abs_diff__precipitation_probability_mean"
+    ]
 }

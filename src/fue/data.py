@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .openmeteoclient import OpenMeteoClient  # When imported as part of package
+from .openmeteoclient import OpenMeteoClient
 
 
 class Data:
@@ -122,9 +122,12 @@ class Data:
         # Then, we're left with forecasts, for which we don't know the ground truth.
         # When there's a NAN entry for the absolute difference of a variable, then
         # this indicates an unmatched forecast.
-        some_abs_diff__weather_variable = f"abs_diff__{self.weather_variables[0]}"
-        nonNAN_indices = pd.Index.notna(dataset[some_abs_diff__weather_variable])
-        dataset = dataset[nonNAN_indices]
+        # I need to check for each weather variable, if there are any NAN entries in the
+        # corresponding absolute difference column.
+        for var in self.weather_variables:
+            abs_diff_col = f"abs_diff__{var}"
+            nonNAN_indices = pd.Index.notna(dataset[abs_diff_col])
+            dataset = dataset[nonNAN_indices]
 
         return dataset
 
@@ -142,15 +145,33 @@ class Data:
 
         return df
 
-    def fetch_and_store_forecasts(self):
-        """Uses the OpenMeteoClient to fetch current forecasts and combines
-        with historic forecasts in the corresponding .csv file.
-        """
+    def fetch_forecast(self, config=None) -> pd.DataFrame:
+        """Uses the OpenMeteoClient class to fetch current forecasts.
 
-        # Fetch new data
-        client = OpenMeteoClient()
+        Args:
+            config (_type_, optional): Optionally pass a custom config object. Defaults to None.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the fetched forecast
+        """
+        if config is None:
+            client = OpenMeteoClient()
+        else:
+            client = OpenMeteoClient(config=config)
         current_forecasts = client.fetch_forecast()
         current_forecasts = self.convert_to_best_dtypes(current_forecasts)
+        return current_forecasts
+
+    def combine_and_store_forecasts(self, current_forecasts: pd.DataFrame) -> None:
+        """Uses the OpenMeteoClient to fetch current forecasts and combines
+        with historic forecasts in the corresponding .csv file.
+
+        Args:
+            current_forecasts (pd.DataFrame): DataFrame containing the fetched forecast
+
+        Returns:
+            None
+        """
 
         # Read existing data
         if self.raw.empty:
@@ -163,9 +184,3 @@ class Data:
         self.raw.to_csv(self.PATH_TO_RAW, index=False)
 
         return None
-
-
-if __name__ == "__main__":
-    data = Data()
-    data.fetch_and_store_forecasts()
-    print(data.generate_dataset(location_name="aachen"))

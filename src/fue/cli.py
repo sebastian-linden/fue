@@ -21,36 +21,11 @@ def help() -> None:
 def download() -> None:
     """Initiates download using settings from data/config.json."""
 
-    # # Read configuration file
-    # from .utils import load_config
+    from fue import Data
 
-    # config = load_config()
-
-    # cities_dict = config["cities"]
-    # weather_metrics = config["metrics"]
-
-    # # Initiate forecast object
-    # from .forecast import Forecast
-
-    # fc = Forecast()
-
-    # # Prepare lists for batch processing
-    # city_names: list[str] = list(cities_dict.keys())
-    # latitudes: list[float] = [float(info["lat"]) for info in cities_dict.values()]
-    # longitudes: list[float] = [float(info["lon"]) for info in cities_dict.values()]
-
-    # # Set locations as lists to support batch download
-    # fc.set_location(city=city_names, lat=latitudes, lon=longitudes)
-
-    # # Set metrics
-    # fc.set_metrics(metrics=weather_metrics)
-
-    # # Download forecast data for all cities
-    # result_message = fc.download()
-
-    # print(result_message)
-
-    pass
+    D = Data()
+    D.combine_and_store_forecasts(D.fetch_forecast())
+    print("Successfully stored forecasts.")
 
 
 @app.command()

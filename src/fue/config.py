@@ -7,23 +7,43 @@ class Config:
     It also implements methods to interact with the configuration.
     """
 
-    def __init__(self):
+    def __init__(self, path: str | Path | None = None):
         """Initializes parameter dictionary and reads from config.json file"""
 
         self.params = {}
+
         # Use __file__ to create absolute path to config.json in project root
-        self.path = Path(__file__).parent.parent.parent / "config.json"
+        # If a custom path is given, use it; otherwise, fall back to default project root
+        if path is not None:
+            self.path = Path(path)
+        else:
+            self.path = Path(__file__).parent.parent.parent / "config.json"
+
         if not self.path.exists():
             raise FileNotFoundError(f"The file 'config.json' was not found at: {self.path}")
         else:
             with open(self.path) as file:
                 self.params = json.load(file)
             # Reformat dictionary to suit the format that Open-Meteo needs
-            self.city_coordinates = self.params["cities"]
-            self.cities = list(self.city_coordinates.keys())
-            del self.params["cities"]
+            self.city_coordinates = self.params.get("cities", {})
             self.params["latitude"] = [item["lat"] for item in self.city_coordinates.values()]
             self.params["longitude"] = [item["lon"] for item in self.city_coordinates.values()]
+
+            # Pull out some of the configuration variables into separate variables and delete
+            # them from the self.params dictionary, as this is the one, that will be passed to
+            # Open-Meteo API
+            if "cities" in self.params:
+                self.cities = list(self.city_coordinates.keys())
+                del self.params["cities"]
+            if "preprocessing" in self.params:
+                self.preprocessing = self.params.get("preprocessing", {})
+                del self.params["preprocessing"]
+            if "default_feature_columns" in self.params:
+                self.default_feature_columns = self.params.get("default_feature_columns", [])
+                del self.params["default_feature_columns"]
+            if "default_target_columns" in self.params:
+                self.default_target_columns = self.params.get("default_target_columns", [])
+                del self.params["default_target_columns"]
 
     def __repr__(self):
         return (
@@ -100,9 +120,14 @@ class Config:
         """Add a new city to the configuration.
 
         Args:
-            name: City name (must be unique)
-            lat: Latitude coordinate
-            lon: Longitude coordinate
+            name (str): City name (must be unique)
+            lat (float): Latitude coordinate
+            lon (float): Longitude coordinate
+
+        Raises:
+            ValueError: If city is already in the configuration
+            ValueError: If city name is not a string
+            ValueError: If latitude or longitude are not numeric values
         """
         if name in self.cities:
             raise ValueError(f"City '{name}' already exists in configuration")
@@ -136,11 +161,29 @@ class Config:
 
     def save(self) -> None:
         """Save the current configuration back to config.json."""
-        config_data = {"cities": self.city_coordinates, **self.params}
+        config_data = self.params
+        config_data["cities"] = self.city_coordinates
+        config_data["preprocessing"] = self.preprocessing
+        config_data["default_feature_columns"] = self.default_feature_columns
+        config_data["default_target_columns"] = self.default_target_columns
         del config_data["latitude"]
         del config_data["longitude"]
         with open(self.path, "w") as file:
             json.dump(config_data, file, indent=4)
+
+    def get_preprocessing_rules(self) -> dict:
+        """Returns the preprocessing dictionary from config."""
+        return self.preprocessing
+
+    def set_preprocessing_rule(self, variable: str, method: str) -> None:
+        """Sets or updates a transformation method for a specific variable.
+
+        Args:
+            variable: Weather variable name (e.g., 'temperature_2m_max')
+            method: Transformation method to apply (e.g. log, min-max, ...)
+        """
+        self.preprocessing[variable] = method
+        return None
 
 
 if __name__ == "__main__":

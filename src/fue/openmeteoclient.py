@@ -12,7 +12,7 @@ class OpenMeteoClient:
     """This class implements a client, which fetches data via the Open-Meteo API.
     It is mainly used by the Data class"""
 
-    def __init__(self):
+    def __init__(self, config: Config | None = None):
 
         # Setup the Open-Meteo API client with cache and retry on error
         self.cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
@@ -22,7 +22,10 @@ class OpenMeteoClient:
         # Make sure all required weather variables are listed here
         # The order of variables in hourly or daily is important to assign them correctly below
         self.url = "https://api.open-meteo.com/v1/forecast"
-        self.config = Config()
+        if config is not None:
+            self.config = config
+        else:
+            self.config = Config()
 
     def fetch_forecast(self) -> pd.DataFrame:
         """Fetch forecast data from Open-Meteo API and return as pandas DataFrame.
