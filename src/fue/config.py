@@ -126,15 +126,15 @@ class Config:
 
         Raises:
             ValueError: If city is already in the configuration
-            ValueError: If city name is not a string
-            ValueError: If latitude or longitude are not numeric values
+            TypeError: If city name is not a string
+            TypeError: If latitude or longitude are not numeric values
         """
         if name in self.cities:
             raise ValueError(f"City '{name}' already exists in configuration")
         if not isinstance(name, str):
-            raise ValueError("City name must be a string")
+            raise TypeError("City name must be a string")
         if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
-            raise ValueError("Latitude and longitude must be numeric values")
+            raise TypeError("Latitude and longitude must be numeric values")
 
         self.cities.append(name)
         self.city_coordinates[name] = {"lat": lat, "lon": lon}

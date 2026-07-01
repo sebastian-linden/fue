@@ -34,6 +34,8 @@ def temp_config_dir():
         "timezone": "UTC",
         "past_days": 5,
         "forecast_days": 10,
+        "default_feature_columns": ["temperature_2m_max", "humidity"],
+        "default_target_columns": ["abs_diff__temperature_2m_max", "abs_diff__humidity"],
     }
 
     config_path = temp_dir / "config.json"
@@ -284,8 +286,11 @@ class TestAddCity:
 
         config = Config(path=temp_config_dir)
 
-        with pytest.raises(ValueError):
-            config.add_city("invalid", 50.0, 4.0)
+        with pytest.raises(TypeError):
+            config.add_city("köln", 50.0, "not a number")
+
+        with pytest.raises(TypeError):
+            config.add_city("köln", "not a number", 4.0)
 
 
 class TestRemoveCity:
