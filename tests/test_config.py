@@ -287,10 +287,10 @@ class TestAddCity:
         config = Config(path=temp_config_dir)
 
         with pytest.raises(TypeError):
-            config.add_city("köln", 50.0, "not a number")
+            config.add_city("köln", 50.0, "not a number")  # ty: ignore[invalid-argument-type]
 
         with pytest.raises(TypeError):
-            config.add_city("köln", "not a number", 4.0)
+            config.add_city("köln", "not a number", 4.0)  # ty: ignore[invalid-argument-type]
 
 
 class TestRemoveCity:
