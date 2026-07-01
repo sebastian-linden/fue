@@ -58,6 +58,11 @@ data/backup
 
 # Personal notes
 my_workflow.md
+notes.md
 
 # Cache
 scripts/.cache.sqlite
+.cache.sqlite
+
+# Settings
+.vscode
