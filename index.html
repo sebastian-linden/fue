@@ -275,17 +275,38 @@ with historic forecasts in the corresponding .csv file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.Data.generate_dataset">
-<span class="sig-name descname"><span class="pre">generate_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aachen'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.generate_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.generate_dataset" title="Link to this definition"></a></dt>
-<dd><p>This method filters dataset by city, separates forecasts from
-measured data, computes uncertainty distributions from given
-data sub-set and optionally separates data into training and
-validation data.
-1. Separate data by city
-2. Separate forecasts from measurements
-.. Prepare target dataframe (add/modify columns)
-3. Match forecasts to their measurements
-4. Compute absolute differences
-5. Return DataFrame</p>
+<span class="sig-name descname"><span class="pre">generate_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aachen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.generate_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.generate_dataset" title="Link to this definition"></a></dt>
+<dd><p>Filters raw forecasting data by city, splits entries into look-ahead forecasts
+and ground-truth measurements proxies using a custom 12-hour boundary window,
+pairs them together on calendar dates to compute target absolute error metrics,
+and optionally outputs reproducible training and validation splits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>location_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the geographic city filter
+defined in the configuration file. Defaults to “aachen”.</p></li>
+<li><p><strong>val_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – The proportional fraction of the processed
+paired dataset to split off into a separate validation subset.
+Must be between 0.0 and 1.0. Defaults to 0.2.</p></li>
+<li><p><strong>random_state</strong> (<em>int</em><em>, </em><em>optional</em>) – Fixed seed value used to control the random
+shuffling permutations before splitting, ensuring reproducible datasets.
+Defaults to 42.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A two-element tuple containing:</dt><dd><ul class="simple">
+<li><p>train_df: The primary DataFrame used to train uncertainty models.</p></li>
+<li><p>val_df: The validation subset DataFrame (empty if val_fraction=0.0).</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[pd.DataFrame, pd.DataFrame]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -304,12 +325,6 @@ This indicates, that that forecast likely stems from the same weather model
 prediction cycle and is therefore a redundant data point.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="fue.Data.summarize">
-<span class="sig-name descname"><span class="pre">summarize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.summarize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.summarize" title="Link to this definition"></a></dt>
-<dd><p>This method outputs a summary of all data currently available</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -319,13 +334,37 @@ prediction cycle and is therefore a redundant data point.</p>
 <p>A class, that applies a fitted uncertainty model to a forecast, that can be either
 given or fetched from the Open-Meteo API via the OpenMeteoClient() class. This class also provides
 methods to visualize the forecast and its uncertainty predictions, if a model is given.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fue.Forecast.forecast">
+<span class="sig-name descname"><span class="pre">forecast</span></span><a class="headerlink" href="#fue.Forecast.forecast" title="Link to this definition"></a></dt>
+<dd><p>DataFrame with forecast data (set by fetch_forecast)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fue.Forecast.uncertainty_model">
+<span class="sig-name descname"><span class="pre">uncertainty_model</span></span><a class="headerlink" href="#fue.Forecast.uncertainty_model" title="Link to this definition"></a></dt>
+<dd><p>Fitted uncertainty model (set by compute_uncertainties)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fue.Forecast.uncertainty_predictions">
+<span class="sig-name descname"><span class="pre">uncertainty_predictions</span></span><a class="headerlink" href="#fue.Forecast.uncertainty_predictions" title="Link to this definition"></a></dt>
+<dd><p>DataFrame with uncertainty predictions (set by compute_uncertainties)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fue.Forecast.past_days">
+<span class="sig-name descname"><span class="pre">past_days</span></span><a class="headerlink" href="#fue.Forecast.past_days" title="Link to this definition"></a></dt>
+<dd><p>Number of past days included in forecast</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.Forecast.compute_uncertainties">
 <span class="sig-name descname"><span class="pre">compute_uncertainties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.compute_uncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.compute_uncertainties" title="Link to this definition"></a></dt>
 <dd><p>Applies a fitted uncertainty model to the forecast DataFrame to generate uncertainty predictions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>uncertainty_model</strong> – A fitted instance of an UncertaintyModel subclass.</p>
+<dd class="field-odd"><p><strong>uncertainty_model</strong> – A fitted instance of an UncertaintyModel subclass. Must have a predict method.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Sets the uncertainty predictions DataFrame directly in the class instance.</p>
@@ -333,18 +372,25 @@ methods to visualize the forecast and its uncertainty predictions, if a model is
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
 </dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If forecast has not been fetched or uncertainty_model is invalid.</p></li>
+<li><p><strong>AttributeError</strong> – If uncertainty_model does not have a predict method.</p></li>
+</ul>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.Forecast.fetch_forecast">
-<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">14</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.fetch_forecast" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.fetch_forecast" title="Link to this definition"></a></dt>
 <dd><p>Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>location_name</strong> (<em>str</em>) – The name of the location. Must be one of the cities defined in the configuration file.</p></li>
-<li><p><strong>forecast_days</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of days to fetch. Defaults to 14.</p></li>
+<li><p><strong>forecast_days</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of days to fetch. Defaults to 14. Must be &gt; 0.</p></li>
+<li><p><strong>past_days</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of past days to include. Defaults to 0. Must be &gt;= 0.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -353,13 +399,37 @@ methods to visualize the forecast and its uncertainty predictions, if a model is
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
 </dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – If location_name is not a string or forecast_days/past_days are not integers.</p></li>
+<li><p><strong>ValueError</strong> – If location_name is not in config, or forecast_days/past_days are invalid.</p></li>
+</ul>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.Forecast.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/forecast.html#Forecast.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.plot" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Visualize the forecast and its uncertainty predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_variables</strong> (<em>str</em><em> | </em><em>list</em>) – Variable name(s) to plot. Must start with ‘<a href="#id1"><span class="problematic" id="id2">abs_diff__</span></a>’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Displays matplotlib plots.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If state is invalid or variables are missing from forecast/predictions.</p></li>
+<li><p><strong>TypeError</strong> – If target_variables is not str or list.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 

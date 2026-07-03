@@ -95,7 +95,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">meta_variables</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;forecasted_on&quot;</span><span class="p">,</span> <span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">numeric_variables</span> <span class="o">=</span> <span class="p">[]</span>
-
         <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Data.read_raw">
@@ -137,85 +136,95 @@
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
-
+        <span class="c1"># Ingest units safely for both training matrices and live client responses</span>
+        <span class="k">if</span> <span class="s2">&quot;sunshine_duration&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;sunshine_duration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;sunshine_duration&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3600.0</span>
         <span class="k">return</span> <span class="n">df</span></div>
-
-
-<div class="viewcode-block" id="Data.summarize">
-<a class="viewcode-back" href="../../index.html#fue.Data.summarize">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;This method outputs a summary of all data currently available&quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="Data.generate_dataset">
 <a class="viewcode-back" href="../../index.html#fue.Data.generate_dataset">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">generate_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="o">=</span><span class="s2">&quot;aachen&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;This method filters dataset by city, separates forecasts from</span>
-<span class="sd">        measured data, computes uncertainty distributions from given</span>
-<span class="sd">        data sub-set and optionally separates data into training and</span>
-<span class="sd">        validation data.</span>
-<span class="sd">        1. Separate data by city</span>
-<span class="sd">        2. Separate forecasts from measurements</span>
-<span class="sd">        .. Prepare target dataframe (add/modify columns)</span>
-<span class="sd">        3. Match forecasts to their measurements</span>
-<span class="sd">        4. Compute absolute differences</span>
-<span class="sd">        5. Return DataFrame</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="o">=</span><span class="s2">&quot;aachen&quot;</span><span class="p">,</span> <span class="n">val_fraction</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Filters raw forecasting data by city, splits entries into look-ahead forecasts</span>
+<span class="sd">        and ground-truth measurements proxies using a custom 12-hour boundary window,</span>
+<span class="sd">        pairs them together on calendar dates to compute target absolute error metrics,</span>
+<span class="sd">        and optionally outputs reproducible training and validation splits.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            location_name (str, optional): The name of the geographic city filter</span>
+<span class="sd">                defined in the configuration file. Defaults to &quot;aachen&quot;.</span>
+<span class="sd">            val_fraction (float, optional): The proportional fraction of the processed</span>
+<span class="sd">                paired dataset to split off into a separate validation subset.</span>
+<span class="sd">                Must be between 0.0 and 1.0. Defaults to 0.2.</span>
+<span class="sd">            random_state (int, optional): Fixed seed value used to control the random</span>
+<span class="sd">                shuffling permutations before splitting, ensuring reproducible datasets.</span>
+<span class="sd">                Defaults to 42.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[pd.DataFrame, pd.DataFrame]: A two-element tuple containing:</span>
+<span class="sd">                - train_df: The primary DataFrame used to train uncertainty models.</span>
+<span class="sd">                - val_df: The validation subset DataFrame (empty if val_fraction=0.0).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># 1. Separate data by city</span>
-        <span class="n">local_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">location_name</span><span class="p">]</span>
+        <span class="n">city_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">location_name</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-        <span class="c1"># 2. Separate forecasts from measurements</span>
-        <span class="n">forecast_split</span> <span class="o">=</span> <span class="n">local_raw</span><span class="p">[</span>
-            <span class="p">(</span><span class="n">local_raw</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">local_raw</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">12</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span>
-        <span class="p">]</span>
-        <span class="n">measured_split</span> <span class="o">=</span> <span class="n">local_raw</span><span class="p">[</span>
-            <span class="p">(</span><span class="n">local_raw</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">local_raw</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">12</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span>
-        <span class="p">]</span>
+        <span class="c1"># Enforce explicit datetime tracking</span>
+        <span class="n">city_raw</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">city_raw</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">])</span>
+        <span class="n">city_raw</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">city_raw</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">])</span>
 
-        <span class="c1"># .. Prepare target dataframe (add/modify columns)</span>
-        <span class="n">dataset_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;day_of_year&quot;</span><span class="p">,</span> <span class="s2">&quot;delta_days&quot;</span><span class="p">]</span>
-        <span class="n">dataset_columns</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span>
+        <span class="c1"># 2. Separate forecasts from measurements using your custom 12-hour boundary rule</span>
+        <span class="n">delta_seconds</span> <span class="o">=</span> <span class="p">(</span><span class="n">city_raw</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">city_raw</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+        <span class="n">forecast_split</span> <span class="o">=</span> <span class="n">city_raw</span><span class="p">[</span><span class="n">delta_seconds</span> <span class="o">&gt;</span> <span class="mi">12</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">measured_split</span> <span class="o">=</span> <span class="n">city_raw</span><span class="p">[</span><span class="n">delta_seconds</span> <span class="o">&lt;=</span> <span class="mi">12</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># 3. Inject a normalized date matching key to bypass intraday timestamp mismatches</span>
+        <span class="n">forecast_split</span><span class="p">[</span><span class="s2">&quot;_match_date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forecast_split</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+        <span class="n">measured_split</span><span class="p">[</span><span class="s2">&quot;_match_date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">measured_split</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+
+        <span class="c1"># Deduplicate measurements to ensure 1 unique ground truth row per calendar day</span>
+        <span class="n">measured_split</span> <span class="o">=</span> <span class="n">measured_split</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_match_date&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Isolate the validation ground truth targets and rename to prevent column collisions</span>
+        <span class="n">measured_split</span> <span class="o">=</span> <span class="n">measured_split</span><span class="p">[[</span><span class="s2">&quot;_match_date&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">var</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;true_</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 4. Vectorized Inner Join on the normalized calendar day</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">forecast_split</span><span class="p">,</span> <span class="n">measured_split</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;_match_date&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 5. Extract engineered features and apply standard unit scaling</span>
+        <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
+        <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;delta_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+
+        <span class="c1"># 6. Calculate continuous absolute delta error matrices</span>
+        <span class="n">abs_diff_cols</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">:</span>
-            <span class="n">dataset_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;abs_diff__</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">dataset_columns</span><span class="p">)</span>
-        <span class="n">dataset</span><span class="p">[[</span><span class="s2">&quot;location_name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">forecast_split</span><span class="p">[[</span><span class="s2">&quot;location_name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]]</span>
-        <span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">]</span> <span class="o">=</span> <span class="n">forecast_split</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">]</span>
-        <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forecast_split</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
-        <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;delta_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">forecast_split</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">forecast_split</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">]</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+            <span class="n">diff_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;abs_diff__</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">dataset</span><span class="p">[</span><span class="n">diff_col</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">-</span> <span class="n">dataset</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;true_</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+            <span class="n">abs_diff_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diff_col</span><span class="p">)</span>
 
-        <span class="c1"># 3. Match forecasts to their measurements and compute absolute differences</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; For every forecast entry,</span>
-<span class="sd">                I need to find the matching measurement entry,</span>
-<span class="sd">                compute abs(forecast-measured) for every variable&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">measured_split</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="c1"># Find match(es)</span>
-            <span class="n">measurement</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">day</span> <span class="o">=</span> <span class="n">measurement</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">day_of_year</span>
-            <span class="n">match_condition</span> <span class="o">=</span> <span class="n">forecast_split</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span> <span class="o">==</span> <span class="n">day</span>
-            <span class="c1"># Compute absolute difference</span>
-            <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">:</span>
-                <span class="n">dataset</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">match_condition</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;abs_diff__</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">dataset</span><span class="p">[</span><span class="n">match_condition</span><span class="p">][</span><span class="n">var</span><span class="p">]</span> <span class="o">-</span> <span class="n">measurement</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+        <span class="c1"># 7. Drop incomplete records and clean out structural helper variables</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">abs_diff_cols</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_match_date&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;true_</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
 
-        <span class="c1"># 4. Remove unmatched forecasts</span>
-        <span class="c1"># This can happen, when in one fetches for example a 14-day forecast,</span>
-        <span class="c1"># but in the following days doesn&#39;t download all the corresponding measurements.</span>
-        <span class="c1"># Then, we&#39;re left with forecasts, for which we don&#39;t know the ground truth.</span>
-        <span class="c1"># When there&#39;s a NAN entry for the absolute difference of a variable, then</span>
-        <span class="c1"># this indicates an unmatched forecast.</span>
-        <span class="c1"># I need to check for each weather variable, if there are any NAN entries in the</span>
-        <span class="c1"># corresponding absolute difference column.</span>
-        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span><span class="p">:</span>
-            <span class="n">abs_diff_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;abs_diff__</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">nonNAN_indices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="n">abs_diff_col</span><span class="p">])</span>
-            <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">nonNAN_indices</span><span class="p">]</span>
+        <span class="c1"># Align design matrix to project layout expectations</span>
+        <span class="n">final_features</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;day_of_year&quot;</span><span class="p">,</span> <span class="s2">&quot;delta_days&quot;</span><span class="p">]</span>
+        <span class="n">final_features</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span> <span class="o">+</span> <span class="n">abs_diff_cols</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">final_features</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">dataset</span></div>
+        <span class="c1"># 8. Deterministic Validation Split Strategy</span>
+        <span class="k">if</span> <span class="n">val_fraction</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">shuffled_dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">split_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shuffled_dataset</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">val_fraction</span><span class="p">))</span>
+
+            <span class="n">train_df</span> <span class="o">=</span> <span class="n">shuffled_dataset</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">split_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">val_df</span> <span class="o">=</span> <span class="n">shuffled_dataset</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">split_idx</span><span class="p">:]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">train_df</span><span class="p">,</span> <span class="n">val_df</span>
+
+        <span class="k">return</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="Data.remove_duplicates">
@@ -226,7 +235,6 @@
 <span class="sd">        This indicates, that that forecast likely stems from the same weather model</span>
 <span class="sd">        prediction cycle and is therefore a redundant data point.&quot;&quot;&quot;</span>
 
-        <span class="c1"># MIN_FETCH_INTERVAL = pd.Timedelta(hours=3) # 3h is a common update frequency of the weather models</span>
         <span class="n">TOL_DECIMALS</span> <span class="o">=</span> <span class="mi">4</span>
 
         <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">numeric_variables</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">numeric_variables</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span><span class="o">=</span><span class="n">TOL_DECIMALS</span><span class="p">)</span>

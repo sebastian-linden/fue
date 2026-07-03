@@ -71,10 +71,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for fue.forecast</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">daylength</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Forecast">
@@ -83,41 +89,130 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A class, that applies a fitted uncertainty model to a forecast, that can be either</span>
 <span class="sd">    given or fetched from the Open-Meteo API via the OpenMeteoClient() class. This class also provides</span>
 <span class="sd">    methods to visualize the forecast and its uncertainty predictions, if a model is given.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        forecast: DataFrame with forecast data (set by fetch_forecast)</span>
+<span class="sd">        uncertainty_model: Fitted uncertainty model (set by compute_uncertainties)</span>
+<span class="sd">        uncertainty_predictions: DataFrame with uncertainty predictions (set by compute_uncertainties)</span>
+<span class="sd">        past_days: Number of past days included in forecast</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Class-level plot specifications for known variables</span>
+    <span class="n">_KNOWN_COLORS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Raw features</span>
+        <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;crimson&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;royalblue&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;teal&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;gold&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;slategray&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">,</span>
+        <span class="c1"># Target variables</span>
+        <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;darkred&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;navy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;darkcyan&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;darkorange&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;dimgray&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;mediumpurple&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">_KNOWN_UNITS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Raw features</span>
+        <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span>
+        <span class="c1"># Target variables</span>
+        <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">_KNOWN_TITLES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Raw features</span>
+        <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Maximum Temperature (2m)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Minimum Temperature (2m)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Total Daily Precipitation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;Daily Sunshine Duration&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Wind Speed (10m)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Precipitation Probability&quot;</span><span class="p">,</span>
+        <span class="c1"># Target variables</span>
+        <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Max Temperature Forecast Absolute Error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Min Temperature Forecast Absolute Error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Forecast Absolute Error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;Sunshine Duration Forecast Absolute Error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Wind Speed Forecast Absolute Error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Probability Forecast Absolute Error&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Forecast instance created&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Forecast.fetch_forecast">
 <a class="viewcode-back" href="../../index.html#fue.Forecast.fetch_forecast">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">14</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span> <span class="n">past_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            location_name (str): The name of the location. Must be one of the cities defined in the configuration file.</span>
-<span class="sd">            forecast_days (int, optional): The number of days to fetch. Defaults to 14.</span>
+<span class="sd">            forecast_days (int, optional): The number of days to fetch. Defaults to 14. Must be &gt; 0.</span>
+<span class="sd">            past_days (int, optional): The number of past days to include. Defaults to 0. Must be &gt;= 0.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None: Sets the forecast DataFrame directly in the class instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
 
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If location_name is not a string or forecast_days/past_days are not integers.</span>
+<span class="sd">            ValueError: If location_name is not in config, or forecast_days/past_days are invalid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Input validation</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">location_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;location_name must be a string, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">location_name</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">forecast_days</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;forecast_days must be an integer, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">forecast_days</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">past_days</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;past_days must be an integer, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">past_days</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">forecast_days</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;forecast_days must be &gt; 0, got </span><span class="si">{</span><span class="n">forecast_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">past_days</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;past_days must be &gt;= 0, got </span><span class="si">{</span><span class="n">past_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetching forecast for </span><span class="si">{</span><span class="n">location_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">forecast_days</span><span class="si">}</span><span class="s2"> days, </span><span class="si">{</span><span class="n">past_days</span><span class="si">}</span><span class="s2"> past days&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">=</span> <span class="n">past_days</span>
         <span class="c1"># Create a custom Config() object and fetch data using that</span>
         <span class="n">one_city_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">location_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">cities</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Location &#39;</span><span class="si">{</span><span class="n">location_name</span><span class="si">}</span><span class="s2">&#39; is not defined in the configuration file.&quot;</span><span class="p">)</span>
+            <span class="n">available_cities</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">one_city_config</span><span class="o">.</span><span class="n">cities</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Location &#39;</span><span class="si">{</span><span class="n">location_name</span><span class="si">}</span><span class="s2">&#39; is not defined in the configuration file. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Available cities: </span><span class="si">{</span><span class="n">available_cities</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
         <span class="n">one_city_config</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">city_coordinates</span><span class="p">[</span><span class="n">location_name</span><span class="p">][</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span>
         <span class="n">one_city_config</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">city_coordinates</span><span class="p">[</span><span class="n">location_name</span><span class="p">][</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span>
         <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_forecast_days</span><span class="p">(</span><span class="n">forecast_days</span><span class="p">)</span>
-        <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_past_days</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_past_days</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">past_days</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="n">Data</span><span class="p">()</span><span class="o">.</span><span class="n">fetch_forecast</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">one_city_config</span><span class="p">)</span>
+
+        <span class="c1"># Validate that forecast has required columns</span>
+        <span class="n">required_columns</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">,</span> <span class="s2">&quot;forecasted_on&quot;</span><span class="p">}</span>
+        <span class="n">missing_columns</span> <span class="o">=</span> <span class="n">required_columns</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing_columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Forecast DataFrame missing required columns: </span><span class="si">{</span><span class="n">missing_columns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Here are two lines that are copied from the Data() class:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;delta_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">]</span>
         <span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Forecast fetched with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> columns&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span></div>
 
@@ -128,19 +223,101 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Applies a fitted uncertainty model to the forecast DataFrame to generate uncertainty predictions.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            uncertainty_model: A fitted instance of an UncertaintyModel subclass.</span>
+<span class="sd">            uncertainty_model: A fitted instance of an UncertaintyModel subclass. Must have a predict method.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None: Sets the uncertainty predictions DataFrame directly in the class instance.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If forecast has not been fetched or uncertainty_model is invalid.</span>
+<span class="sd">            AttributeError: If uncertainty_model does not have a predict method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate state</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Forecast data has not been fetched. Call &#39;fetch_forecast()&#39; first.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Validate uncertainty_model</span>
+        <span class="k">if</span> <span class="n">uncertainty_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;uncertainty_model cannot be None&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;uncertainty_model must have a &#39;predict&#39; method. Got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="o">.</span><span class="n">predict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;uncertainty_model.predict must be callable. Got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">uncertainty_model</span><span class="o">.</span><span class="n">predict</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing uncertainties with provided model&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_model</span> <span class="o">=</span> <span class="n">uncertainty_model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="o">=</span> <span class="n">uncertainty_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">)</span>
+
+        <span class="c1"># Validate output</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;uncertainty_model.predict() returned None&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uncertainty predictions computed with shape </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="kc">None</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_plot_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">spec_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get plot specification (color, unit, or title) for a variable.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            variable (str): The variable name</span>
+<span class="sd">            spec_type (str): One of &#39;color&#39;, &#39;unit&#39;, or &#39;title&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The specification value</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If spec_type is invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">spec_type</span> <span class="o">==</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span>
+            <span class="n">specs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_KNOWN_COLORS</span>
+        <span class="k">elif</span> <span class="n">spec_type</span> <span class="o">==</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span>
+            <span class="n">specs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_KNOWN_UNITS</span>
+        <span class="k">elif</span> <span class="n">spec_type</span> <span class="o">==</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span>
+            <span class="n">specs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_KNOWN_TITLES</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid spec_type: </span><span class="si">{</span><span class="n">spec_type</span><span class="si">}</span><span class="s2">. Must be &#39;color&#39;, &#39;unit&#39;, or &#39;title&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">specs</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Unknown variable - warn but provide sensible default</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Variable &#39;</span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&#39; is not in predefined </span><span class="si">{</span><span class="n">spec_type</span><span class="si">}</span><span class="s2">s. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Using default value. Known variables: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">specs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="ne">UserWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown variable &#39;</span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&#39; for </span><span class="si">{</span><span class="n">spec_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Provide sensible defaults for unknown variables</span>
+            <span class="k">if</span> <span class="n">spec_type</span> <span class="o">==</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;gray&quot;</span>
+            <span class="k">elif</span> <span class="n">spec_type</span> <span class="o">==</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;[unknown]&quot;</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># title</span>
+                <span class="k">return</span> <span class="n">variable</span>
 
 <div class="viewcode-block" id="Forecast.plot">
 <a class="viewcode-back" href="../../index.html#fue.Forecast.plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_variables</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Visualize the forecast and its uncertainty predictions.</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">            target_variables (str | list): Variable name(s) to plot. Must start with &#39;abs_diff__&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None: Displays matplotlib plots.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If state is invalid or variables are missing from forecast/predictions.</span>
+<span class="sd">            TypeError: If target_variables is not str or list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Value and Type Checks</span>
         <span class="k">if</span> <span class="n">target_variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target_variables must be provided for plotting.&quot;</span><span class="p">)</span>
@@ -148,94 +325,93 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Forecast data has not been fetched. Call &#39;fetch_forecast()&#39; first.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Uncertainty predictions have not been computed. Call &#39;compute_uncertainties()&#39; first.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;past_days is not set. This should have been set during fetch_forecast().&quot;</span><span class="p">)</span>
 
         <span class="k">match</span> <span class="n">target_variables</span><span class="p">:</span>
             <span class="k">case</span> <span class="nb">str</span><span class="p">():</span>
                 <span class="n">target_variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">target_variables</span><span class="p">]</span>
             <span class="k">case</span> <span class="nb">list</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_variables</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target_variables list cannot be empty&quot;</span><span class="p">)</span>
                 <span class="k">pass</span>
             <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;target_variables must be either a string or a list of strings.&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">target_variables</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">var</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;abs_diff__&quot;</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target variables need to start with &#39;abs_diff__&#39;&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Plot specifications</span>
-        <span class="n">COLORS</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="c1"># Raw features</span>
-            <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;crimson&quot;</span><span class="p">,</span>  <span class="c1"># Warm red for maximum temperature</span>
-            <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;royalblue&quot;</span><span class="p">,</span>  <span class="c1"># Cool blue for minimum temperature</span>
-            <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;teal&quot;</span><span class="p">,</span>  <span class="c1"># Greenish-blue for rain accumulation</span>
-            <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;gold&quot;</span><span class="p">,</span>  <span class="c1"># Sunny yellow for hours of sun</span>
-            <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;slategray&quot;</span><span class="p">,</span>  <span class="c1"># Muted slate for wind speed vectors</span>
-            <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">,</span>  <span class="c1"># Soft blue for probability percentiles</span>
-            <span class="c1"># Target variables</span>
-            <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;darkred&quot;</span><span class="p">,</span>  <span class="c1"># Deep red for max temperature inaccuracy</span>
-            <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;navy&quot;</span><span class="p">,</span>  <span class="c1"># Deep navy for min temperature inaccuracy</span>
-            <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;darkcyan&quot;</span><span class="p">,</span>  <span class="c1"># Dark cyan for rain forecast error</span>
-            <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;darkorange&quot;</span><span class="p">,</span>  <span class="c1"># Rich orange for sunshine duration error</span>
-            <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;dimgray&quot;</span><span class="p">,</span>  <span class="c1"># Dark neutral gray for wind speed error</span>
-            <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;mediumpurple&quot;</span><span class="p">,</span>  <span class="c1"># Distinct purple accent for probability error</span>
-        <span class="p">}</span>
-        <span class="n">UNITS</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="c1"># Raw features</span>
-            <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span>  <span class="c1"># Seconds (or &#39;h&#39; if parsed to hours)</span>
-            <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>  <span class="c1"># Standard meteorological velocity</span>
-            <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span>
-            <span class="c1"># Target variables (same units as raw features)</span>
-            <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="n">TITLES</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="c1"># Raw features</span>
-            <span class="s2">&quot;temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Maximum Temperature (2m)&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Minimum Temperature (2m)&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Total Daily Precipitation&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;Daily Sunshine Duration&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Wind Speed (10m)&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Precipitation Probability&quot;</span><span class="p">,</span>
-            <span class="c1"># Target variables</span>
-            <span class="s2">&quot;abs_diff__temperature_2m_max&quot;</span><span class="p">:</span> <span class="s2">&quot;Max Temperature Forecast Absolute Error&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__temperature_2m_min&quot;</span><span class="p">:</span> <span class="s2">&quot;Min Temperature Forecast Absolute Error&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__precipitation_sum&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Forecast Absolute Error&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__sunshine_duration&quot;</span><span class="p">:</span> <span class="s2">&quot;Sunshine Duration Forecast Absolute Error&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__wind_speed_10m_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Mean Wind Speed Forecast Absolute Error&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Probability Forecast Absolute Error&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
+        <span class="c1"># Validate that all variables start with &#39;abs_diff__&#39;</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">target_variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All target_variables must be strings, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">var</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">var</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;abs_diff__&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; must start with &#39;abs_diff__&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plotting </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">target_variables</span><span class="p">)</span><span class="si">}</span><span class="s2"> target variable(s)&quot;</span><span class="p">)</span>
+
         <span class="n">days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="s2">, </span><span class="si">%d</span><span class="s2">-%m-%Y&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">abs_diff__var</span> <span class="ow">in</span> <span class="n">target_variables</span><span class="p">:</span>
             <span class="n">var</span> <span class="o">=</span> <span class="n">abs_diff__var</span><span class="p">[</span><span class="mi">10</span><span class="p">:]</span>  <span class="c1"># &quot;abs_diff__&quot; has 10 letters</span>
-            <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; is not present in the forecast DataFrame.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">abs_diff__var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uncertainty predictions for target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; are not available.&quot;</span><span class="p">)</span>
 
-            <span class="n">var_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
-            <span class="n">var_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">]</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">var_series</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">COLORS</span><span class="p">[</span><span class="n">var</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">TITLES</span><span class="p">[</span><span class="n">var</span><span class="p">])</span>
+            <span class="c1"># Validate that both the raw and diff variables exist</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; is not present in the forecast DataFrame. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Available columns: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">abs_diff__var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Uncertainty predictions for target variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; are not available. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Available uncertainty columns: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">var_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># Non-destructive: make a copy before modifying</span>
+            <span class="n">var_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">var_diff</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="n">ub</span> <span class="o">=</span> <span class="n">var_series</span> <span class="o">+</span> <span class="n">var_diff</span>
+            <span class="n">lb</span> <span class="o">=</span> <span class="n">var_series</span> <span class="o">-</span> <span class="n">var_diff</span>
+
+            <span class="c1"># Apply bounds based on variable type</span>
+            <span class="k">if</span> <span class="s2">&quot;temperature&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">var</span><span class="p">:</span>
+                <span class="n">ub</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">lb</span> <span class="o">=</span> <span class="n">lb</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># Handle sunshine duration specifically - validate latitude column exists</span>
+            <span class="k">if</span> <span class="s2">&quot;sunshine_duration&quot;</span> <span class="ow">in</span> <span class="n">var</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;latitude&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Forecast DataFrame is missing &#39;latitude&#39; column required for sunshine_duration bounds&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">daylengths</span> <span class="o">=</span> <span class="n">daylength</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">])</span>
+                <span class="n">ub</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="n">daylengths</span><span class="p">)</span>
+                <span class="n">lb</span> <span class="o">=</span> <span class="n">lb</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="n">daylengths</span><span class="p">)</span>
+
+            <span class="c1"># Get plot specifications with fallback for unknown variables</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">)</span>
+            <span class="n">error_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">abs_diff__var</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">)</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">)</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">)</span>
+            <span class="n">error_title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">abs_diff__var</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">)</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">var_series</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">days</span><span class="p">,</span>
-                <span class="n">y1</span><span class="o">=</span><span class="n">var_series</span> <span class="o">-</span> <span class="n">var_diff</span><span class="p">,</span>
-                <span class="n">y2</span><span class="o">=</span><span class="n">var_series</span> <span class="o">+</span> <span class="n">var_diff</span><span class="p">,</span>
+                <span class="n">y1</span><span class="o">=</span><span class="n">lb</span><span class="p">,</span>
+                <span class="n">y2</span><span class="o">=</span><span class="n">ub</span><span class="p">,</span>
                 <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-                <span class="n">color</span><span class="o">=</span><span class="n">COLORS</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">],</span>
-                <span class="n">label</span><span class="o">=</span><span class="n">TITLES</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">error_color</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">error_title</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">TITLES</span><span class="p">[</span><span class="n">var</span><span class="p">])</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TITLES</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">UNITS</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plotted </span><span class="si">{</span><span class="n">abs_diff__var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
