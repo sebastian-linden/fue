@@ -65,6 +65,11 @@ class Preprocessor:
                 _, lmbda = boxcox(shifted_data)
                 self.boxcox_lambdas[col] = {"lambda": lmbda, "shift": shift}
 
+            elif method in ["log", "square", "sqrt", "sin-cos"]:
+                pass  # These are stateless and don't need fitting, but are valid
+            else:
+                raise ValueError(f"Unknown preprocessing method '{method}' specified for column '{col}'.")
+
         return self
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -85,6 +90,13 @@ class Preprocessor:
             elif method == "log":
                 df_out[col] = np.log1p(df_out[col] + 1e-1)
 
+            elif method == "square":
+                df_out[col] = np.square(df_out[col])
+
+            elif method == "sqrt":
+                # Ensure we handle negative values gracefully if they ever slip in
+                df_out[col] = np.sqrt(np.maximum(df_out[col], 0))
+
             elif method == "box-cox":
                 params = self.boxcox_lambdas.get(col)
                 if params is None:
@@ -99,6 +111,9 @@ class Preprocessor:
                 df_out[f"{col}_cos"] = np.cos(radians)
                 # Drop original raw degrees column so models don't ingest it duplicated
                 df_out.drop(columns=[col], inplace=True)
+
+            else:
+                raise ValueError(f"Unknown preprocessing method '{method}' specified for column '{col}'.")
 
         return df_out
 
@@ -120,6 +135,14 @@ class Preprocessor:
         elif method == "log":
             return pd.Series(np.expm1(arr) - 1e-1, index=series.index, name=series.name)
 
+        elif method == "square":
+            # The inverse of squaring is taking the square root
+            return pd.Series(np.sqrt(np.maximum(arr, 0)), index=series.index, name=series.name)
+
+        elif method == "sqrt":
+            # The inverse of a square root is squaring
+            return pd.Series(np.square(arr), index=series.index, name=series.name)
+
         elif method == "box-cox":
             params = self.boxcox_lambdas.get(target_name)
             if params is None:
@@ -133,5 +156,8 @@ class Preprocessor:
                 inv_box = np.power(arr * lmbda + 1.0, 1.0 / lmbda)
 
             return pd.Series(inv_box - shift, index=series.index, name=series.name)
+
+        else:
+            raise ValueError(f"Unknown preprocessing method '{method}' specified for target '{target_name}'.")
 
         return series

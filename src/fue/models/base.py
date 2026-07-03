@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from fue.config import Config
@@ -77,6 +79,85 @@ class UncertaintyModel(ABC):
             )
 
         return inverted_predictions
+
+    def evaluate(self, df_val: pd.DataFrame) -> dict:
+        """Evaluates the model's prediction accuracy against a validation dataset.
+
+        Returns a dictionary containing MAE and RMSE for each target variable.
+        """
+        if self.target_columns is None:
+            raise RuntimeError("Model must be statefully `.fit()` before running evaluation.")
+
+        # Generate real-world inverted unit predictions
+        predictions_df = self.predict(df_val)
+
+        metrics = {}
+        for col in self.target_columns:
+            actual = df_val[col].astype(float)
+            predicted = predictions_df[col].astype(float)
+
+            mae = np.mean(np.abs(actual - predicted))
+            rmse = np.sqrt(np.mean((actual - predicted) ** 2))
+
+            metrics[col] = {"MAE": mae, "RMSE": rmse}
+
+        return metrics
+
+    def study_data_convergence(
+        self,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
+        feature_columns: list,
+        target_columns: list,
+        increments: list | None = None,
+    ) -> dict:
+        """Studies model validation error trajectories across increasing dataset sizes."""
+        history = {target: {"MAE": [], "RMSE": [], "sizes": []} for target in target_columns}
+
+        if increments is None:
+            increments = [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
+
+        for fraction in increments:
+            slice_size = int(len(train_df) * fraction)
+            if slice_size < 5:  # Skip trivial small slices
+                continue
+
+            train_slice = train_df.iloc[:slice_size]
+
+            # Reset pipeline states and fit on the subset slice
+            self.fit(train_slice, feature_columns, target_columns)
+            scores = self.evaluate(val_df)
+
+            for target in target_columns:
+                history[target]["MAE"].append(scores[target]["MAE"])
+                history[target]["RMSE"].append(scores[target]["RMSE"])
+                history[target]["sizes"].append(slice_size)
+
+        return history
+
+    def plot_learning_curve(self, convergence_history: dict, metric: str = "MAE") -> None:
+        """Generates clear diagnostic validation plots tracking convergence against sample size."""
+        if metric not in ["MAE", "RMSE"]:
+            raise ValueError("Metric variant specification must be either 'MAE' or 'RMSE'.")
+
+        plt.figure(figsize=(10, 6))
+
+        for target, data in convergence_history.items():
+            sizes = data["sizes"]
+            scores = data[metric]
+            clean_label = target.replace("abs_diff__", "").replace("_", " ").title()
+
+            plt.plot(sizes, scores, marker="o", linewidth=2, label=f"{clean_label} ({metric})")
+
+        plt.title(f"Model Convergence Analysis (Validation {metric} vs. Training Samples)")
+        plt.xlabel("Number of Processed Training Data Points")
+        plt.ylabel(f"Validation Set Error Vector ({metric})")
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.grid(True, linestyle="--", alpha=0.6)
+        plt.legend(loc="upper right")
+        plt.tight_layout()
+        plt.show()
 
     @abstractmethod
     def _fit_internal(self, X: pd.DataFrame, Y: pd.DataFrame) -> None:

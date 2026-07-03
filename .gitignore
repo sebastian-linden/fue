@@ -25,6 +25,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+
 # Environments
 .env
 .envrc

@@ -38,4 +38,4 @@ class LinearUncertaintyModel(UncertaintyModel):
         # Build the output DataFrame mapped exactly to your target columns
         output_df = pd.DataFrame(raw_predictions, columns=self.target_columns, index=X.index)
 
-        return output_df
+        return output_df.clip(lower=0)

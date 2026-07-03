@@ -401,3 +401,49 @@ class TestPreprocessing:
         # Reload a separate configuration instance referencing the same temporary path
         config2 = Config(path=temp_config_dir)
         assert config2.preprocessing.get(test_metric) == "standardize"
+
+
+class TestConfigEdgeCases:
+    """Test suite specifically targeting configuration error handling and fallback logic."""
+
+    def test_init_file_not_found(self):
+        """Test that initialization properly halts if the config file does not exist (Line 23)."""
+        with pytest.raises(FileNotFoundError, match="The file 'config.json' was not found"):
+            Config(path="fake_directory/ghost_config.json")
+
+    def test_init_missing_optional_keys(self, tmp_path):
+        """Test initialization fallback branches when the JSON is missing optional metadata keys (Lines 35-44)."""
+        # Create a barebones config missing 'cities', 'preprocessing', and 'default' columns
+        minimal_config = {"timezone": "UTC", "past_days": 5}
+
+        config_path = tmp_path / "minimal_config.json"
+        with open(config_path, "w") as f:
+            json.dump(minimal_config, f)
+
+        # Initialize with the minimal config
+        config = Config(path=config_path)
+
+        # Verify that the 'else' fallback logic executed correctly
+        assert config.preprocessing == {}
+        assert config.city_coordinates == {}
+        # Ensure it safely handled the missing default column definitions without crashing
+        assert not hasattr(config, "default_feature_columns")
+        assert not hasattr(config, "default_target_columns")
+
+    def test_remove_city_not_found_raises_error(self, temp_config_dir):
+        """Test the defensive trap when attempting to remove a non-existent city (Line 115)."""
+        config = Config(path=temp_config_dir)
+
+        with pytest.raises(ValueError, match="not found in configuration"):
+            config.remove_city("Atlantis")
+
+    def test_config_repr(self, temp_config_dir):
+        """Test that the __repr__ string formatting executes successfully (Line 191)."""
+        config = Config(path=temp_config_dir)
+
+        # Trigger the __repr__ method
+        repr_output = repr(config)
+
+        # Verify it returns a valid string and contains expected identifiers
+        assert isinstance(repr_output, str)
+        assert "Config" in repr_output

@@ -79,6 +79,126 @@
         "stockholm": {
             "lat": 59.3293,
             "lon": 18.0686
+        },
+        "marseille": {
+            "lat": 43.2965,
+            "lon": 5.3698
+        },
+        "lyon": {
+            "lat": 45.7640,
+            "lon": 4.8357
+        },
+        "bordeaux": {
+            "lat": 44.8378,
+            "lon": -0.5792
+        },
+        "brussels": {
+            "lat": 50.8503,
+            "lon": 4.3517
+        },
+        "dublin": {
+            "lat": 53.3498,
+            "lon": -6.2603
+        },
+        "edinburgh": {
+            "lat": 55.9533,
+            "lon": -3.1883
+        },
+        "milan": {
+            "lat": 45.4642,
+            "lon": 9.1900
+        },
+        "naples": {
+            "lat": 40.8518,
+            "lon": 14.2681
+        },
+        "palermo": {
+            "lat": 38.1157,
+            "lon": 13.3614
+        },
+        "barcelona": {
+            "lat": 41.3851,
+            "lon": 2.1734
+        },
+        "seville": {
+            "lat": 37.3891,
+            "lon": -5.9845
+        },
+        "porto": {
+            "lat": 41.1579,
+            "lon": -8.6291
+        },
+        "geneva": {
+            "lat": 46.2044,
+            "lon": 6.1432
+        },
+        "innsbruck": {
+            "lat": 47.2692,
+            "lon": 11.4041
+        },
+        "warsaw": {
+            "lat": 52.2297,
+            "lon": 21.0122
+        },
+        "krakow": {
+            "lat": 50.0647,
+            "lon": 19.9450
+        },
+        "budapest": {
+            "lat": 47.4979,
+            "lon": 19.0402
+        },
+        "bucharest": {
+            "lat": 44.4268,
+            "lon": 26.1025
+        },
+        "sofia": {
+            "lat": 42.6977,
+            "lon": 23.3219
+        },
+        "belgrade": {
+            "lat": 44.7866,
+            "lon": 20.4489
+        },
+        "zagreb": {
+            "lat": 45.8150,
+            "lon": 15.9819
+        },
+        "athens": {
+            "lat": 37.9838,
+            "lon": 23.7275
+        },
+        "thessaloniki": {
+            "lat": 40.6401,
+            "lon": 22.9444
+        },
+        "copenhagen": {
+            "lat": 55.6761,
+            "lon": 12.5683
+        },
+        "oslo": {
+            "lat": 59.9139,
+            "lon": 10.7522
+        },
+        "helsinki": {
+            "lat": 60.1699,
+            "lon": 24.9384
+        },
+        "tromso": {
+            "lat": 69.6492,
+            "lon": 18.9553
+        },
+        "riga": {
+            "lat": 56.9496,
+            "lon": 24.1052
+        },
+        "vilnius": {
+            "lat": 54.6872,
+            "lon": 25.2797
+        },
+        "tallinn": {
+            "lat": 59.4370,
+            "lon": 24.7536
         }
     },
     "daily": [
@@ -96,6 +216,7 @@
     "past_days": 14,
     "forecast_days": 14,
     "preprocessing": {
+        "delta_days": "sqrt",
         "temperature_2m_max": "standard",
         "temperature_2m_min": "standard",
         "precipitation_sum": "box-cox",

@@ -35,9 +35,13 @@ class Config:
             if "cities" in self.params:
                 self.cities = list(self.city_coordinates.keys())
                 del self.params["cities"]
+
             if "preprocessing" in self.params:
                 self.preprocessing = self.params.get("preprocessing", {})
                 del self.params["preprocessing"]
+            else:
+                self.preprocessing = {}
+
             if "default_feature_columns" in self.params:
                 self.default_feature_columns = self.params.get("default_feature_columns", [])
                 del self.params["default_feature_columns"]

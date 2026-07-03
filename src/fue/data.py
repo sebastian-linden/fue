@@ -20,7 +20,6 @@ class Data:
         self.meta_variables = ["location_name", "latitude", "longitude", "forecasted_on", "forecast_for"]
         self.weather_variables = []
         self.numeric_variables = []
-
         return None
 
     def read_raw(self, path=None):
@@ -57,79 +56,92 @@ class Data:
                 df[col] = pd.to_datetime(df[col])
             else:
                 df[col] = pd.to_numeric(df[col], errors="raise")
-
+        # Ingest units safely for both training matrices and live client responses
+        if "sunshine_duration" in df.columns:
+            df["sunshine_duration"] = df["sunshine_duration"] / 3600.0
         return df
 
-    def summarize(self):
-        """This method outputs a summary of all data currently available"""
-        pass
+    def generate_dataset(self, location_name="aachen", val_fraction=0.2, random_state=42):
+        """Filters raw forecasting data by city, splits entries into look-ahead forecasts
+        and ground-truth measurements proxies using a custom 12-hour boundary window,
+        pairs them together on calendar dates to compute target absolute error metrics,
+        and optionally outputs reproducible training and validation splits.
 
-    def generate_dataset(self, location_name="aachen"):
-        """This method filters dataset by city, separates forecasts from
-        measured data, computes uncertainty distributions from given
-        data sub-set and optionally separates data into training and
-        validation data.
-        1. Separate data by city
-        2. Separate forecasts from measurements
-        .. Prepare target dataframe (add/modify columns)
-        3. Match forecasts to their measurements
-        4. Compute absolute differences
-        5. Return DataFrame
+        Args:
+            location_name (str, optional): The name of the geographic city filter
+                defined in the configuration file. Defaults to "aachen".
+            val_fraction (float, optional): The proportional fraction of the processed
+                paired dataset to split off into a separate validation subset.
+                Must be between 0.0 and 1.0. Defaults to 0.2.
+            random_state (int, optional): Fixed seed value used to control the random
+                shuffling permutations before splitting, ensuring reproducible datasets.
+                Defaults to 42.
+
+        Returns:
+            tuple[pd.DataFrame, pd.DataFrame]: A two-element tuple containing:
+                - train_df: The primary DataFrame used to train uncertainty models.
+                - val_df: The validation subset DataFrame (empty if val_fraction=0.0).
         """
 
         # 1. Separate data by city
-        local_raw = self.raw[self.raw["location_name"] == location_name]
+        city_raw = self.raw[self.raw["location_name"] == location_name].copy()
 
-        # 2. Separate forecasts from measurements
-        forecast_split = local_raw[
-            (local_raw["forecast_for"] - local_raw["forecasted_on"]).dt.total_seconds() > 12 * 60 * 60
-        ]
-        measured_split = local_raw[
-            (local_raw["forecast_for"] - local_raw["forecasted_on"]).dt.total_seconds() <= 12 * 60 * 60
-        ]
+        # Enforce explicit datetime tracking
+        city_raw["forecast_for"] = pd.to_datetime(city_raw["forecast_for"])
+        city_raw["forecasted_on"] = pd.to_datetime(city_raw["forecasted_on"])
 
-        # .. Prepare target dataframe (add/modify columns)
-        dataset_columns = ["location_name", "latitude", "longitude", "day_of_year", "delta_days"]
-        dataset_columns += self.weather_variables
+        # 2. Separate forecasts from measurements using your custom 12-hour boundary rule
+        delta_seconds = (city_raw["forecast_for"] - city_raw["forecasted_on"]).dt.total_seconds()
+        forecast_split = city_raw[delta_seconds > 12 * 60 * 60].copy()
+        measured_split = city_raw[delta_seconds <= 12 * 60 * 60].copy()
+
+        # 3. Inject a normalized date matching key to bypass intraday timestamp mismatches
+        forecast_split["_match_date"] = forecast_split["forecast_for"].dt.normalize()
+        measured_split["_match_date"] = measured_split["forecast_for"].dt.normalize()
+
+        # Deduplicate measurements to ensure 1 unique ground truth row per calendar day
+        measured_split = measured_split.drop_duplicates(subset=["_match_date"])
+
+        # Isolate the validation ground truth targets and rename to prevent column collisions
+        measured_split = measured_split[["_match_date"] + self.weather_variables].rename(
+            columns={var: f"true_{var}" for var in self.weather_variables}
+        )
+
+        # 4. Vectorized Inner Join on the normalized calendar day
+        dataset = pd.merge(forecast_split, measured_split, on="_match_date", how="inner")
+
+        # 5. Extract engineered features and apply standard unit scaling
+        dataset["day_of_year"] = dataset["forecast_for"].dt.day_of_year
+        dataset["delta_days"] = (dataset["forecast_for"] - dataset["forecasted_on"]).dt.total_seconds() / (60 * 60 * 24)
+
+        # 6. Calculate continuous absolute delta error matrices
+        abs_diff_cols = []
         for var in self.weather_variables:
-            dataset_columns.append(f"abs_diff__{var}")
-        dataset = pd.DataFrame(columns=dataset_columns)
-        dataset[["location_name", "latitude", "longitude"]] = forecast_split[["location_name", "latitude", "longitude"]]
-        dataset[self.weather_variables] = forecast_split[self.weather_variables]
-        dataset["day_of_year"] = forecast_split["forecast_for"].dt.day_of_year
-        dataset["delta_days"] = (
-            forecast_split["forecast_for"] - forecast_split["forecasted_on"]
-        ).dt.total_seconds() / (60 * 60 * 24)
+            diff_col = f"abs_diff__{var}"
+            dataset[diff_col] = (dataset[var] - dataset[f"true_{var}"]).abs()
+            abs_diff_cols.append(diff_col)
 
-        # 3. Match forecasts to their measurements and compute absolute differences
-        """ For every forecast entry,
-                I need to find the matching measurement entry,
-                compute abs(forecast-measured) for every variable"""
-        for row in measured_split.iterrows():
-            # Find match(es)
-            measurement = row[1]
-            day = measurement["forecast_for"].day_of_year
-            match_condition = forecast_split["forecast_for"].dt.day_of_year == day
-            # Compute absolute difference
-            for var in self.weather_variables:
-                dataset.loc[match_condition, f"abs_diff__{var}"] = (
-                    dataset[match_condition][var] - measurement[var]
-                ).abs()
+        # 7. Drop incomplete records and clean out structural helper variables
+        dataset.dropna(subset=abs_diff_cols, inplace=True)
+        dataset.drop(
+            columns=["_match_date"] + [f"true_{var}" for var in self.weather_variables], errors="ignore", inplace=True
+        )
 
-        # 4. Remove unmatched forecasts
-        # This can happen, when in one fetches for example a 14-day forecast,
-        # but in the following days doesn't download all the corresponding measurements.
-        # Then, we're left with forecasts, for which we don't know the ground truth.
-        # When there's a NAN entry for the absolute difference of a variable, then
-        # this indicates an unmatched forecast.
-        # I need to check for each weather variable, if there are any NAN entries in the
-        # corresponding absolute difference column.
-        for var in self.weather_variables:
-            abs_diff_col = f"abs_diff__{var}"
-            nonNAN_indices = pd.Index.notna(dataset[abs_diff_col])
-            dataset = dataset[nonNAN_indices]
+        # Align design matrix to project layout expectations
+        final_features = ["location_name", "latitude", "longitude", "day_of_year", "delta_days"]
+        final_features += self.weather_variables + abs_diff_cols
+        dataset = dataset[final_features].reset_index(drop=True)
 
-        return dataset
+        # 8. Deterministic Validation Split Strategy
+        if val_fraction > 0:
+            shuffled_dataset = dataset.sample(frac=1.0, random_state=random_state).reset_index(drop=True)
+            split_idx = int(len(shuffled_dataset) * (1.0 - val_fraction))
+
+            train_df = shuffled_dataset.iloc[:split_idx].reset_index(drop=True)
+            val_df = shuffled_dataset.iloc[split_idx:].reset_index(drop=True)
+            return train_df, val_df
+
+        return dataset, pd.DataFrame()
 
     def remove_duplicates(self, df):
         """This method removes redundant data entries. This might happen when two
@@ -137,7 +149,6 @@ class Data:
         This indicates, that that forecast likely stems from the same weather model
         prediction cycle and is therefore a redundant data point."""
 
-        # MIN_FETCH_INTERVAL = pd.Timedelta(hours=3) # 3h is a common update frequency of the weather models
         TOL_DECIMALS = 4
 
         df[self.numeric_variables] = df[self.numeric_variables].round(decimals=TOL_DECIMALS)
