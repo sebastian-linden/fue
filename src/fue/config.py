@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Config:
     """This class handles writing to and reading from the configuration file.
@@ -49,6 +51,8 @@ class Config:
                 self.default_target_columns = self.params.get("default_target_columns", [])
                 del self.params["default_target_columns"]
 
+        logger.info(f"Configuration loaded from {self.path}")
+
     def __repr__(self):
         return (
             f"Config(\n"
@@ -68,6 +72,7 @@ class Config:
             timezone: Timezone string (e.g., 'Europe/Berlin')
         """
         self.params["timezone"] = timezone
+        logger.info(f"Timezone set to {timezone}")
 
     def set_past_days(self, past_days: int) -> None:
         """Set the number of past days for historical data.
@@ -78,6 +83,7 @@ class Config:
         if not isinstance(past_days, int) or past_days < 0:
             raise ValueError(f"past_days must be a non-negative integer, got {past_days}")
         self.params["past_days"] = past_days
+        logger.info(f"Past days set to {past_days}")
 
     def set_forecast_days(self, forecast_days: int) -> None:
         """Set the number of forecast days.
@@ -88,6 +94,7 @@ class Config:
         if not isinstance(forecast_days, int) or forecast_days < 0:
             raise ValueError(f"forecast_days must be a non-negative integer, got {forecast_days}")
         self.params["forecast_days"] = forecast_days
+        logger.info(f"Forecast days set to {forecast_days}")
 
     def set_daily_variables(self, daily: list) -> None:
         """Set the daily weather variables to fetch.
@@ -98,6 +105,7 @@ class Config:
         if not isinstance(daily, list):
             raise ValueError(f"daily must be a list, got {type(daily)}")
         self.params["daily"] = daily
+        logger.info(f"Daily variables set to {daily}")
 
     def update(self, **kwargs) -> None:
         """Update multiple configuration parameters at once.
@@ -108,6 +116,8 @@ class Config:
             forecast_days: Number of forecast days
             daily: List of daily variables
         """
+        # No logger is needed, because each individual setter method 
+        # already logs the changes made to the configuration.
         for key, value in kwargs.items():
             if key == "timezone":
                 self.set_timezone(value)
@@ -144,6 +154,7 @@ class Config:
         self.city_coordinates[name] = {"lat": lat, "lon": lon}
         self.params["latitude"].append(lat)
         self.params["longitude"].append(lon)
+        logger.info(f"City '{name}' added with coordinates (lat: {lat}, lon: {lon})")
 
     def remove_city(self, name: str) -> None:
         """Remove a city from the configuration.
@@ -162,6 +173,7 @@ class Config:
         del self.city_coordinates[name]
         self.params["latitude"].pop(index)
         self.params["longitude"].pop(index)
+        logger.info(f"City '{name}' removed from configuration.")
 
     def save(self) -> None:
         """Save the current configuration back to config.json."""
@@ -174,6 +186,7 @@ class Config:
         del config_data["longitude"]
         with open(self.path, "w") as file:
             json.dump(config_data, file, indent=4)
+        logger.info(f"Configuration saved to {self.path}")
 
     def get_preprocessing_rules(self) -> dict:
         """Returns the preprocessing dictionary from config."""
@@ -187,6 +200,7 @@ class Config:
             method: Transformation method to apply (e.g. log, min-max, ...)
         """
         self.preprocessing[variable] = method
+        logger.info(f"Preprocessing rule set for '{variable}' to '{method}'")
         return None
 
 

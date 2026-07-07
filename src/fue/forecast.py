@@ -77,7 +77,6 @@ class Forecast:
         self.uncertainty_model = None
         self.uncertainty_predictions = None
         self.past_days = None
-        logger.debug("Forecast instance created")
 
     def fetch_forecast(self, location_name: str, forecast_days: int = 14, past_days: int = 0) -> None:
         """Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.
@@ -106,7 +105,7 @@ class Forecast:
         if past_days < 0:
             raise ValueError(f"past_days must be >= 0, got {past_days}")
 
-        logger.info(f"Fetching forecast for {location_name}: {forecast_days} days, {past_days} past days")
+        logger.info("Fetching forecast for %s", location_name)
 
         self.past_days = past_days
         # Create a custom Config() object and fetch data using that
@@ -135,7 +134,11 @@ class Forecast:
             self.forecast["forecast_for"] - self.forecast["forecasted_on"]
         ).dt.total_seconds() / (60 * 60 * 24)
 
-        logger.debug(f"Forecast fetched with {len(self.forecast)} rows and {len(self.forecast.columns)} columns")
+        logger.debug(
+            "Forecast fetched with %d rows and %d columns",
+            len(self.forecast),
+            len(self.forecast.columns),
+        )
 
         return None
 
@@ -168,7 +171,7 @@ class Forecast:
                 f"uncertainty_model.predict must be callable. Got {type(uncertainty_model.predict).__name__}"
             )
 
-        logger.info("Computing uncertainties with provided model")
+        logger.info("Computing uncertainty predictions")
         self.uncertainty_model = uncertainty_model
         self.uncertainty_predictions = uncertainty_model.predict(self.forecast)
 
@@ -176,7 +179,7 @@ class Forecast:
         if self.uncertainty_predictions is None:
             raise ValueError("uncertainty_model.predict() returned None")
 
-        logger.debug(f"Uncertainty predictions computed with shape {self.uncertainty_predictions.shape}")
+        logger.debug("Uncertainty predictions computed with shape %s", self.uncertainty_predictions.shape)
 
         return None
 
@@ -207,12 +210,12 @@ class Forecast:
         else:
             # Unknown variable - warn but provide sensible default
             warnings.warn(
-                f"Variable '{variable}' is not in predefined {spec_type}s. "
-                f"Using default value. Known variables: {sorted(specs.keys())}",
+                "Variable '%s' is not in predefined %ss. Using default value. Known variables: %s"
+                % (variable, spec_type, sorted(specs.keys())),
                 UserWarning,
                 stacklevel=3,
             )
-            logger.warning(f"Unknown variable '{variable}' for {spec_type}")
+            logger.warning("Unknown variable '%s' for %s", variable, spec_type)
 
             # Provide sensible defaults for unknown variables
             if spec_type == "color":
@@ -262,7 +265,7 @@ class Forecast:
             if not var.startswith("abs_diff__"):
                 raise ValueError(f"Target variable '{var}' must start with 'abs_diff__'")
 
-        logger.info(f"Plotting {len(target_variables)} target variable(s)")
+        logger.info("Plotting %d target variable(s)", len(target_variables))
 
         days = self.forecast["forecast_for"].dt.strftime("%a, %d-%m-%Y")
 
@@ -328,4 +331,4 @@ class Forecast:
             plt.tight_layout()
             plt.show()
 
-            logger.debug(f"Plotted {abs_diff__var}")
+            logger.debug("Plotted %s", abs_diff__var)
