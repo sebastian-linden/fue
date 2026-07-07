@@ -78,8 +78,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">retry_requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>  <span class="c1"># When imported as part of package</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="OpenMeteoClient">
 <a class="viewcode-back" href="../../index.html#fue.OpenMeteoClient">[docs]</a>
@@ -101,6 +104,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;OpenMeteoClient initialized with configuration.&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="OpenMeteoClient.fetch_forecast">
 <a class="viewcode-back" href="../../index.html#fue.OpenMeteoClient.fetch_forecast">[docs]</a>
@@ -149,6 +153,10 @@
             <span class="c1"># Concatenate DataFrames</span>
             <span class="n">location_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">location_dict</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
             <span class="n">forecast_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">forecast_data</span><span class="p">,</span> <span class="n">location_data</span><span class="p">])</span>
+        
+        <span class="n">n_cities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">cities</span><span class="p">)</span>
+        <span class="n">n_forecast_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;forecast_days&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Forecasting data fetched for </span><span class="si">{</span><span class="n">n_cities</span><span class="si">}</span><span class="s2"> cities. Total forecasts: </span><span class="si">{</span><span class="n">n_cities</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_forecast_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">forecast_data</span></div>
 </div>

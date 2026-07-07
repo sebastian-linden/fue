@@ -227,16 +227,7 @@ It also implements methods to interact with the configuration.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.Data.combine_and_store_forecasts">
 <span class="sig-name descname"><span class="pre">combine_and_store_forecasts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/data.html#Data.combine_and_store_forecasts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.combine_and_store_forecasts" title="Link to this definition"></a></dt>
-<dd><p>Uses the OpenMeteoClient to fetch current forecasts and combines
-with historic forecasts in the corresponding .csv file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>current_forecasts</strong> (<em>pd.DataFrame</em>) – DataFrame containing the fetched forecast</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
+<dd><p>Combine newly fetched forecasts with historic forecasts and store the result.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -275,7 +266,7 @@ with historic forecasts in the corresponding .csv file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.Data.generate_dataset">
-<span class="sig-name descname"><span class="pre">generate_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aachen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.generate_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.generate_dataset" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">generate_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.generate_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.generate_dataset" title="Link to this definition"></a></dt>
 <dd><p>Filters raw forecasting data by city, splits entries into look-ahead forecasts
 and ground-truth measurements proxies using a custom 12-hour boundary window,
 pairs them together on calendar dates to compute target absolute error metrics,
@@ -310,6 +301,24 @@ Defaults to 42.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.get_collection_summary">
+<span class="sig-name descname"><span class="pre">get_collection_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/fue/data.html#Data.get_collection_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.get_collection_summary" title="Link to this definition"></a></dt>
+<dd><p>Computes a statistical breakdown of the collected weather records per city,
+identifying which locations have crossed the training threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>threshold</strong> (<em>int</em>) – Minimum rows required for active status. Defaults to 100.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A sorted summary DataFrame containing record counts and readiness status.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fue.Data.read_raw">
 <span class="sig-name descname"><span class="pre">read_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/data.html#Data.read_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.read_raw" title="Link to this definition"></a></dt>
 <dd><p>This method reads the raw data available in the directory:
@@ -323,6 +332,33 @@ data/raw/</p>
 forecasts are fetched which contain identical forecasts in all variables.
 This indicates, that that forecast likely stems from the same weather model
 prediction cycle and is therefore a redundant data point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.split_dataset">
+<span class="sig-name descname"><span class="pre">split_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_fraction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_entries_per_city</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/fue/data.html#Data.split_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.split_dataset" title="Link to this definition"></a></dt>
+<dd><p>Splits a unified dataframe into training and validation subsets using an
+adaptive, completely dynamic Stratified Climatic Block strategy.</p>
+<p>Deduces available locations and coordinates entirely from the unique combinations
+found in the input dataset. Filters out cities with insufficient historical
+records to prevent severe volumetric imbalance during cross-validation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>pd.DataFrame</em>) – The pooled data containing ‘location_name’, ‘latitude’,
+and ‘longitude’ tracking columns.</p></li>
+<li><p><strong>val_fraction</strong> (<em>float</em>) – The targeted ratio of total data assigned to validation. Defaults to 0.2.</p></li>
+<li><p><strong>random_state</strong> (<em>int</em>) – Seed used to guarantee reproducible split logic. Defaults to 42.</p></li>
+<li><p><strong>min_entries_per_city</strong> (<em>int</em>) – Minimum rows required for a city to be included in the split. Defaults to 100.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(train_df, val_df) split structures.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[pd.DataFrame, pd.DataFrame]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
