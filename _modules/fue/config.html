@@ -72,10 +72,11 @@
              
   <h1>Source code for fue.config</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="Config">
 <a class="viewcode-back" href="../../index.html#fue.Config">[docs]</a>
@@ -205,7 +206,7 @@
 <span class="sd">            forecast_days: Number of forecast days</span>
 <span class="sd">            daily: List of daily variables</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># No logger is needed, because each individual setter method </span>
+        <span class="c1"># No logger is needed, because each individual setter method</span>
         <span class="c1"># already logs the changes made to the configuration.</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;timezone&quot;</span><span class="p">:</span>

@@ -291,8 +291,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Unknown variable - warn but provide sensible default</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;Variable &#39;</span><span class="si">%s</span><span class="s2">&#39; is not in predefined </span><span class="si">%s</span><span class="s2">s. Using default value. Known variables: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">spec_type</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">specs</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span>
+                <span class="sa">f</span><span class="s2">&quot;Variable &#39;</span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&#39; is not in predefined </span><span class="si">{</span><span class="n">spec_type</span><span class="si">}</span><span class="s2">s. </span><span class="se">\</span>
+<span class="s2">                    Using default value. Known variables: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">specs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                 <span class="ne">UserWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
             <span class="p">)</span>

@@ -75,8 +75,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.openmeteoclient</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenMeteoClient</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">pair_cities_by_proximity</span>
@@ -115,7 +115,7 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PATH_TO_RAW</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">,</span> <span class="n">sun_duration_to_hours</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_variables</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">numeric_variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_variables</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -128,7 +128,7 @@
 
 <div class="viewcode-block" id="Data.convert_to_best_dtypes">
 <a class="viewcode-back" href="../../index.html#fue.Data.convert_to_best_dtypes">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">sun_duration_to_hours</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
 
 <span class="sd">        Args:</span>
@@ -147,7 +147,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
         <span class="c1"># Ingest units safely for both training matrices and live client responses</span>
-        <span class="k">if</span> <span class="s2">&quot;sunshine_duration&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">sun_duration_to_hours</span> <span class="ow">and</span> <span class="s2">&quot;sunshine_duration&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">df</span><span class="p">[</span><span class="s2">&quot;sunshine_duration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;sunshine_duration&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3600.0</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
@@ -216,9 +217,7 @@
 
         <span class="c1"># 5. Extract engineered features and apply standard unit scaling</span>
         <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
-        <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;delta_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">]</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+        <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;delta_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;forecasted_on&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
 
         <span class="c1"># 6. Calculate continuous absolute delta error matrices</span>
         <span class="n">abs_diff_cols</span> <span class="o">=</span> <span class="p">[]</span>
@@ -241,25 +240,21 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dataset generation completed with </span><span class="si">%d</span><span class="s2"> rows and </span><span class="si">%d</span><span class="s2"> columns&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dataset</span></div>
 
-    
+
 <div class="viewcode-block" id="Data.split_dataset">
 <a class="viewcode-back" href="../../index.html#fue.Data.split_dataset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">split_dataset</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> 
-        <span class="n">dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> 
-        <span class="n">val_fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> 
-        <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
-        <span class="n">min_entries_per_city</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">val_fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span> <span class="n">min_entries_per_city</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits a unified dataframe into training and validation subsets using an</span>
 <span class="sd">        adaptive, completely dynamic Stratified Climatic Block strategy.</span>
 
-<span class="sd">        Deduces available locations and coordinates entirely from the unique combinations </span>
-<span class="sd">        found in the input dataset. Filters out cities with insufficient historical </span>
+<span class="sd">        Deduces available locations and coordinates entirely from the unique combinations</span>
+<span class="sd">        found in the input dataset. Filters out cities with insufficient historical</span>
 <span class="sd">        records to prevent severe volumetric imbalance during cross-validation.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            dataset (pd.DataFrame): The pooled data containing &#39;location_name&#39;, &#39;latitude&#39;, </span>
+<span class="sd">            dataset (pd.DataFrame): The pooled data containing &#39;location_name&#39;, &#39;latitude&#39;,</span>
 <span class="sd">                                    and &#39;longitude&#39; tracking columns.</span>
 <span class="sd">            val_fraction (float): The targeted ratio of total data assigned to validation. Defaults to 0.2.</span>
 <span class="sd">            random_state (int): Seed used to guarantee reproducible split logic. Defaults to 42.</span>
@@ -268,8 +263,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple[pd.DataFrame, pd.DataFrame]: (train_df, val_df) split structures.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">pair_cities_by_proximity</span>
 
         <span class="c1"># 0. Filter out cities with insufficient data records</span>
         <span class="n">city_counts</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
@@ -287,8 +280,7 @@
         <span class="c1"># 1. Deduce city coordinate mappings directly from the filtered DataFrame rows</span>
         <span class="n">coord_df</span> <span class="o">=</span> <span class="n">filtered_dataset</span><span class="p">[[</span><span class="s2">&quot;location_name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
         <span class="n">city_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">row</span><span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">]:</span> <span class="p">{</span><span class="s2">&quot;lat&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]}</span>
-            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">coord_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
+            <span class="n">row</span><span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">]:</span> <span class="p">{</span><span class="s2">&quot;lat&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]}</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">coord_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
         <span class="p">}</span>
 
         <span class="c1"># 2. DYNAMIC SPATIAL PAIRING (Delegated to utils using deduced mapping dictionary)</span>
@@ -300,7 +292,7 @@
         <span class="n">target_val_rows</span> <span class="o">=</span> <span class="n">total_rows_in_data</span> <span class="o">*</span> <span class="n">val_fraction</span>
 
         <span class="n">valid_paired_groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">g_id</span> <span class="k">for</span> <span class="n">g_id</span><span class="p">,</span> <span class="n">c_list</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">]</span>
-        
+
         <span class="c1"># Instantiate localized generator for strict workflow tracking</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
         <span class="n">rng</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">valid_paired_groups</span><span class="p">)</span>
@@ -312,7 +304,7 @@
         <span class="c1"># 4. Incrementally fulfill split fraction using the dynamically generated pairs</span>
         <span class="k">for</span> <span class="n">g_id</span> <span class="ow">in</span> <span class="n">valid_paired_groups</span><span class="p">:</span>
             <span class="n">pair_cities</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="n">g_id</span><span class="p">]</span>
-            
+
             <span class="c1"># If target threshold reached, remaining groups fall back entirely to training</span>
             <span class="k">if</span> <span class="n">current_val_rows</span> <span class="o">&gt;=</span> <span class="n">target_val_rows</span> <span class="ow">or</span> <span class="n">val_fraction</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
                 <span class="n">train_cities</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pair_cities</span><span class="p">)</span>
@@ -429,19 +421,15 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Generating collection summary with threshold </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
         <span class="c1"># Generate the unified dataset to get final valid target pairings</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_dataset</span><span class="p">()</span>
-        
+
         <span class="c1"># Calculate counts and build the summary structure</span>
         <span class="n">counts</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;location_name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-        
+
         <span class="n">summary_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">city</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;ACTIVE&quot;</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="n">threshold</span> <span class="k">else</span> <span class="s2">&quot;WAITING&quot;</span>
-            <span class="n">summary_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s2">&quot;location_name&quot;</span><span class="p">:</span> <span class="n">city</span><span class="p">,</span>
-                <span class="s2">&quot;valid_records&quot;</span><span class="p">:</span> <span class="n">count</span><span class="p">,</span>
-                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span>
-            <span class="p">})</span>
-            
+            <span class="n">summary_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;location_name&quot;</span><span class="p">:</span> <span class="n">city</span><span class="p">,</span> <span class="s2">&quot;valid_records&quot;</span><span class="p">:</span> <span class="n">count</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">})</span>
+
         <span class="c1"># Return as a DataFrame for maximum downstream flexibility</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">summary_data</span><span class="p">)</span></div>
 </div>
