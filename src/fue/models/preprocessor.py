@@ -1,4 +1,5 @@
 import logging
+
 import numpy as np
 import pandas as pd
 from scipy.stats import boxcox
@@ -6,6 +7,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 # Initialize the module-level logger
 logger = logging.getLogger(__name__)
+
 
 class Preprocessor:
     """Stateful preprocessor that learns transformations on training data,
@@ -35,7 +37,7 @@ class Preprocessor:
         """
         logger.debug("Mapping feature names for %s raw features.", len(raw_features))
         processed_features = []
-        
+
         for col in raw_features:
             method = self.rules.get(col)
             if method == "sin-cos":
@@ -45,8 +47,10 @@ class Preprocessor:
             else:
                 # All other transformations stay in-place to preserve name tracking
                 processed_features.append(col)
-                
-        logger.debug("Feature mapping complete. Expanded dimension from %s to %s.", len(raw_features), len(processed_features))
+
+        logger.debug(
+            "Feature mapping complete. Expanded dimension from %s to %s.", len(raw_features), len(processed_features)
+        )
         return processed_features
 
     def fit(self, df: pd.DataFrame) -> "Preprocessor":
@@ -95,14 +99,16 @@ class Preprocessor:
         """Apply transformations and structural column expansions. Returns a new DataFrame."""
         logger.info("Executing preprocessing transform routine.")
         logger.debug("Input DataFrame shape for transform: %s.", df.shape)
-        
+
         df_out = df.copy()
 
         for col, method in self.rules.items():
             if col not in df_out.columns:
-                logger.warning("Target column '%s' defined in rules is missing from DataFrame. Skipping transform.", col)
+                logger.warning(
+                    "Target column '%s' defined in rules is missing from DataFrame. Skipping transform.", col
+                )
                 continue
-                
+
             logger.debug("Applying '%s' transformation to column '%s'.", method, col)
 
             if method == "standard" or method == "min-max":
@@ -126,7 +132,9 @@ class Preprocessor:
             elif method == "box-cox":
                 params = self.boxcox_lambdas.get(col)
                 if params is None:
-                    logger.error("Transform sequence aborted: Preprocessor lacks fitted Box-Cox parameters for '%s'.", col)
+                    logger.error(
+                        "Transform sequence aborted: Preprocessor lacks fitted Box-Cox parameters for '%s'.", col
+                    )
                     raise RuntimeError(f"Preprocessor must be fitted before transforming: {col}")
                 shifted_data = df_out[col] + params["shift"]
                 df_out[col] = boxcox(shifted_data, lmbda=params["lambda"])
@@ -141,7 +149,9 @@ class Preprocessor:
                 logger.debug("Dropped original circular column '%s' after sin-cos expansion.", col)
 
             else:
-                logger.error("Transform sequence aborted: unhandled transformation method '%s' for column '%s'.", method, col)
+                logger.error(
+                    "Transform sequence aborted: unhandled transformation method '%s' for column '%s'.", method, col
+                )
                 raise ValueError(f"Unknown preprocessing method '{method}' specified for column '{col}'.")
 
         logger.info("Preprocessing transform routine completed successfully. Output shape: %s.", df_out.shape)
@@ -151,17 +161,22 @@ class Preprocessor:
         """Reverses the transformation for predictions or uncertainty metrics back to real units."""
         arr = series.to_numpy()
         method = self.rules.get(target_name)
-        
+
         logger.debug("Executing inverse transform for target '%s' using method '%s'.", target_name, method)
 
         if not method or method == "sin-cos":
-            logger.debug("No valid inverse mathematical transformation required for target '%s'. Returning raw series.", target_name)
+            logger.debug(
+                "No valid inverse mathematical transformation required for target '%s'. Returning raw series.",
+                target_name,
+            )
             return series  # sin-cos is lossy/periodic and shouldn't ever be a target model output
 
         if method == "standard" or method == "min-max":
             scaler = self.scalers.get(target_name)
             if scaler is None:
-                logger.error("Inverse transform aborted: Preprocessor lacks fitted scaler state for target '%s'.", target_name)
+                logger.error(
+                    "Inverse transform aborted: Preprocessor lacks fitted scaler state for target '%s'.", target_name
+                )
                 raise RuntimeError(f"Preprocessor not fitted for target column: {target_name}")
             arr_rescaled = scaler.inverse_transform(arr.reshape(-1, 1))
             return pd.Series(arr_rescaled.flatten(), index=series.index, name=series.name)
@@ -180,7 +195,9 @@ class Preprocessor:
         elif method == "box-cox":
             params = self.boxcox_lambdas.get(target_name)
             if params is None:
-                logger.error("Inverse transform aborted: Preprocessor lacks Box-Cox parameters for target '%s'.", target_name)
+                logger.error(
+                    "Inverse transform aborted: Preprocessor lacks Box-Cox parameters for target '%s'.", target_name
+                )
                 raise RuntimeError(f"Preprocessor not fitted for target column: {target_name}")
             lmbda = params["lambda"]
             shift = params["shift"]
@@ -193,7 +210,7 @@ class Preprocessor:
             return pd.Series(inv_box - shift, index=series.index, name=series.name)
 
         else:
-            logger.error("Inverse transform aborted: unhandled preprocessing method '%s' for target '%s'.", method, target_name)
+            logger.error(
+                "Inverse transform aborted: unhandled preprocessing method '%s' for target '%s'.", method, target_name
+            )
             raise ValueError(f"Unknown preprocessing method '{method}' specified for target '{target_name}'.")
-
-        return series

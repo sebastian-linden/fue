@@ -2,8 +2,8 @@ import logging
 import os
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from .openmeteoclient import OpenMeteoClient
 from .utils import pair_cities_by_proximity
@@ -134,9 +134,7 @@ class Data:
 
         # 5. Extract engineered features and apply standard unit scaling
         dataset["day_of_year"] = dataset["forecast_for"].dt.day_of_year
-        dataset["delta_days"] = (
-            dataset["forecast_for"] - dataset["forecasted_on"]
-        ).dt.total_seconds() / (60 * 60 * 24)
+        dataset["delta_days"] = (dataset["forecast_for"] - dataset["forecasted_on"]).dt.total_seconds() / (60 * 60 * 24)
 
         # 6. Calculate continuous absolute delta error matrices
         abs_diff_cols = []
@@ -158,23 +156,19 @@ class Data:
 
         logger.info("Dataset generation completed with %d rows and %d columns", len(dataset), len(dataset.columns))
         return dataset
-    
+
     def split_dataset(
-        self, 
-        dataset: pd.DataFrame, 
-        val_fraction: float = 0.2, 
-        random_state: int = 42,
-        min_entries_per_city: int = 100
+        self, dataset: pd.DataFrame, val_fraction: float = 0.2, random_state: int = 42, min_entries_per_city: int = 100
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Splits a unified dataframe into training and validation subsets using an
         adaptive, completely dynamic Stratified Climatic Block strategy.
 
-        Deduces available locations and coordinates entirely from the unique combinations 
-        found in the input dataset. Filters out cities with insufficient historical 
+        Deduces available locations and coordinates entirely from the unique combinations
+        found in the input dataset. Filters out cities with insufficient historical
         records to prevent severe volumetric imbalance during cross-validation.
 
         Args:
-            dataset (pd.DataFrame): The pooled data containing 'location_name', 'latitude', 
+            dataset (pd.DataFrame): The pooled data containing 'location_name', 'latitude',
                                     and 'longitude' tracking columns.
             val_fraction (float): The targeted ratio of total data assigned to validation. Defaults to 0.2.
             random_state (int): Seed used to guarantee reproducible split logic. Defaults to 42.
@@ -183,8 +177,6 @@ class Data:
         Returns:
             tuple[pd.DataFrame, pd.DataFrame]: (train_df, val_df) split structures.
         """
-        import numpy as np
-        from .utils import pair_cities_by_proximity
 
         # 0. Filter out cities with insufficient data records
         city_counts = dataset["location_name"].value_counts()
@@ -202,8 +194,7 @@ class Data:
         # 1. Deduce city coordinate mappings directly from the filtered DataFrame rows
         coord_df = filtered_dataset[["location_name", "latitude", "longitude"]].drop_duplicates()
         city_dict = {
-            row["location_name"]: {"lat": row["latitude"], "lon": row["longitude"]}
-            for _, row in coord_df.iterrows()
+            row["location_name"]: {"lat": row["latitude"], "lon": row["longitude"]} for _, row in coord_df.iterrows()
         }
 
         # 2. DYNAMIC SPATIAL PAIRING (Delegated to utils using deduced mapping dictionary)
@@ -215,7 +206,7 @@ class Data:
         target_val_rows = total_rows_in_data * val_fraction
 
         valid_paired_groups = [g_id for g_id, c_list in groups.items() if len(c_list) >= 2]
-        
+
         # Instantiate localized generator for strict workflow tracking
         rng = np.random.default_rng(random_state)
         rng.shuffle(valid_paired_groups)
@@ -227,7 +218,7 @@ class Data:
         # 4. Incrementally fulfill split fraction using the dynamically generated pairs
         for g_id in valid_paired_groups:
             pair_cities = groups[g_id]
-            
+
             # If target threshold reached, remaining groups fall back entirely to training
             if current_val_rows >= target_val_rows or val_fraction <= 0.0:
                 train_cities.extend(pair_cities)
@@ -332,18 +323,14 @@ class Data:
         logger.debug("Generating collection summary with threshold %d", threshold)
         # Generate the unified dataset to get final valid target pairings
         dataset = self.generate_dataset()
-        
+
         # Calculate counts and build the summary structure
         counts = dataset["location_name"].value_counts()
-        
+
         summary_data = []
         for city, count in counts.items():
             status = "ACTIVE" if count >= threshold else "WAITING"
-            summary_data.append({
-                "location_name": city,
-                "valid_records": count,
-                "status": status
-            })
-            
+            summary_data.append({"location_name": city, "valid_records": count, "status": status})
+
         # Return as a DataFrame for maximum downstream flexibility
         return pd.DataFrame(summary_data)

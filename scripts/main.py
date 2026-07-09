@@ -9,9 +9,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s - (%(name)s)",
     handlers=[
-        logging.StreamHandler(),                  # Outputs clean logs to the terminal console
-        logging.FileHandler("fue_pipeline.log")    # Continuously appends execution traces to a local disk file
-    ]
+        logging.StreamHandler(),  # Outputs clean logs to the terminal console
+        logging.FileHandler("fue_pipeline.log"),  # Continuously appends execution traces to a local disk file
+    ],
 )
 
 # Run pipeline execution safely tracked by the system

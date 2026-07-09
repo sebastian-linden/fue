@@ -1,4 +1,5 @@
 import logging
+
 import numpy as np
 import pandas as pd
 from sklearn.neural_network import MLPRegressor
@@ -37,7 +38,7 @@ class MLUncertaintyModel(UncertaintyModel):
         self.seed = seed
 
         self.models = []
-        
+
         logger.debug(
             "Initialized MLUncertaintyModel: hidden_layers=%s, max_iter=%d, alpha=%s, ensemble_size=%d",
             hidden_layer_sizes,
@@ -50,7 +51,7 @@ class MLUncertaintyModel(UncertaintyModel):
         """Trains multiple independent MLPs with distinct initializations."""
         logger.info("Training an Ensemble of %d MLP Regressors...", self.ensemble_size)
         logger.debug("Training features shape: %s, targets shape: %s", X.shape, Y.shape)
-        
+
         self.models = []
 
         for i in range(self.ensemble_size):
@@ -68,11 +69,10 @@ class MLUncertaintyModel(UncertaintyModel):
                 random_state=member_seed,
             )
             model.fit(X, Y)
-            
+
             # Log individual sub-model convergence metrics if early stopping triggered
             logger.debug(
-                "Sub-model %d converged after %d iterations. Final loss: %.4f", 
-                i + 1, model.n_iter_, model.loss_
+                "Sub-model %d converged after %d iterations. Final loss: %.4f", i + 1, model.n_iter_, model.loss_
             )
             self.models.append(model)
 
@@ -86,7 +86,7 @@ class MLUncertaintyModel(UncertaintyModel):
             raise ValueError(error_msg)
 
         logger.info("Generating ensemble predictions for %d records...", len(X))
-        
+
         # Collect predictions from all sub-models
         ensemble_predictions = []
         for i, model in enumerate(self.models):
@@ -97,10 +97,12 @@ class MLUncertaintyModel(UncertaintyModel):
         mean_predictions = np.mean(ensemble_predictions, axis=0)
 
         output_df = pd.DataFrame(mean_predictions, columns=self.target_columns, index=X.index)
-        
+
         # Monitor structural adjustments (e.g., physical target lower bounding adjustments)
         clipped_values = (output_df < 0.0).sum().sum()
         if clipped_values > 0:
-            logger.debug("Enforced physical constraint boundary: Clipped %d negative predictions to 0.0", clipped_values)
+            logger.debug(
+                "Enforced physical constraint boundary: Clipped %d negative predictions to 0.0", clipped_values
+            )
 
         return output_df.clip(lower=0.0)

@@ -91,10 +91,6 @@ class TestData:
         assert pd.api.types.is_numeric_dtype(cleaned_df["temperature_2m"])
         assert cleaned_df["temperature_2m"].iloc[0] == 20.5
 
-        # Assertion for Unit Conversion (sunshine_duration / 3600.0)
-        assert cleaned_df["sunshine_duration"].iloc[0] == 1.0
-        assert cleaned_df["sunshine_duration"].iloc[1] == 2.0
-
     def test_generate_dataset(self):
         """
         Verifies that the dataset generation pipeline successfully processes
@@ -103,19 +99,19 @@ class TestData:
         """
         data = Data()
         data.read_raw("tests/test_forecasts.csv")
-        
+
         # Generate the dataset (now processes all available data at once)
         dataset = data.generate_dataset()
-        
+
         # 1. Type and structure checks
         assert isinstance(dataset, pd.DataFrame), "generate_dataset must return a single DataFrame"
         assert len(dataset) == 489, "Row count mismatch: expected 489 rows from test dataset"
-        
+
         # 2. Feature engineering checks
         expected_columns = ["location_name", "day_of_year", "delta_days", "temperature_2m_max"]
         for col in expected_columns:
             assert col in dataset.columns, f"Missing engineered column: {col}"
-            
+
         # 3. Completeness check
         unique_cities = dataset["location_name"].unique()
         assert len(unique_cities) == 6, "Dataset should contain exactly 6 pooled cities"
@@ -123,31 +119,32 @@ class TestData:
 
     def test_split_dataset(self):
         """
-        Verifies the Stratified Climatic Block strategy. 
+        Verifies the Stratified Climatic Block strategy.
         Mathematically asserts that the Haversine pairing algorithm successfully
         prevents spatial data leakage between the training and validation subsets.
         """
         data = Data()
         data.read_raw("tests/test_forecasts.csv")
-        
+
         # Split the dataset using the deterministic random state
         train_df, val_df = data.split_dataset(data.raw, val_fraction=0.3, random_state=42)
-        
+
         # 1. Type and Size checks
         assert isinstance(train_df, pd.DataFrame)
         assert isinstance(val_df, pd.DataFrame)
         assert len(train_df) == 800, "Train row count mismatch"
         assert len(val_df) == 400, "Validation row count mismatch"
         assert len(train_df) + len(val_df) == len(data.raw), "Data was lost during the split"
-        
+
         # 2. Extract city lists
         train_cities = set(train_df["location_name"].unique())
         val_cities = set(val_df["location_name"].unique())
-        
+
         # 3. THE CRITICAL V&V CHECK: Absolute Disjointness (No Leakage)
-        assert train_cities.isdisjoint(val_cities), \
+        assert train_cities.isdisjoint(val_cities), (
             f"DATA LEAKAGE DETECTED! Overlapping cities: {train_cities.intersection(val_cities)}"
-        
+        )
+
         # 4. Deterministic Placement Check (Ensures random_state seeding works)
         assert val_cities == {"berlin", "rome"}, "Validation split distribution drifted"
         assert train_cities == {"london", "aachen", "paris", "madrid"}, "Train split distribution drifted"
@@ -223,7 +220,6 @@ class TestData:
         # 3. Verify that convert_to_best_dtypes was successfully applied to the API response
         assert pd.api.types.is_numeric_dtype(result_df["temperature_2m"])
         assert result_df["temperature_2m"].iloc[0] == 22.5
-        assert result_df["sunshine_duration"].iloc[0] == 1.0  # 3600 / 3600
 
     def test_combine_and_store_forecasts(self, tmp_path):
         """

@@ -210,8 +210,8 @@ class Forecast:
         else:
             # Unknown variable - warn but provide sensible default
             warnings.warn(
-                "Variable '%s' is not in predefined %ss. Using default value. Known variables: %s"
-                % (variable, spec_type, sorted(specs.keys())),
+                f"Variable '{variable}' is not in predefined {spec_type}s. \
+                    Using default value. Known variables: {sorted(specs.keys())}",
                 UserWarning,
                 stacklevel=3,
             )

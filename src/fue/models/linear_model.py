@@ -1,4 +1,5 @@
 import logging
+
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
@@ -26,7 +27,7 @@ class LinearUncertaintyModel(UncertaintyModel):
         # Instantiate and fit the scikit-learn multi-output linear model
         self.model = LinearRegression()
         self.model.fit(X, Y)
-        
+
         logger.debug("Linear regression model fitting completed.")
 
     def _predict_internal(self, X: pd.DataFrame) -> pd.DataFrame:

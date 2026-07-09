@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 import openmeteo_requests
@@ -5,11 +6,10 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
-import logging
-
 from .config import Config  # When imported as part of package
 
 logger = logging.getLogger(__name__)
+
 
 class OpenMeteoClient:
     """This class implements a client, which fetches data via the Open-Meteo API.
@@ -76,7 +76,7 @@ class OpenMeteoClient:
             # Concatenate DataFrames
             location_data = pd.DataFrame(location_dict, columns=columns)
             forecast_data = pd.concat([forecast_data, location_data])
-        
+
         n_cities = len(self.config.cities)
         n_forecast_days = self.config.params.get("forecast_days", 0)
         logger.debug(f"Forecasting data fetched for {n_cities} cities. Total forecasts: {n_cities * n_forecast_days}")

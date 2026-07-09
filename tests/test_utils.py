@@ -1,8 +1,8 @@
+from datetime import datetime
+from unittest.mock import patch
+
 import numpy as np
 import pandas as pd
-from datetime import datetime
-
-from unittest.mock import patch
 
 from fue.utils import daylength, generate_run_id
 
@@ -63,31 +63,29 @@ class TestUtils:
         np.testing.assert_allclose(result.iloc[2], 24.0, atol=1e-5)
 
 
-
-
 def test_generate_run_id_with_purpose():
     """Test that a purpose label is cleanly sanitized and prepended to the timestamp."""
     # Freeze the clock deterministically using standard standard library patch tools
     fixed_time = datetime(2026, 7, 7, 10, 15, 30)
-    
+
     with patch("fue.utils.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_time
         mock_datetime.strftime = datetime.strftime  # Keep string formatting intact
-        
+
         # Test custom case strings with mixed casing and structural spacing
         run_id = generate_run_id(purpose="HPO Sweep")
-        
+
     assert run_id == "run_20260707_101530_hpo_sweep"
 
 
 def test_generate_run_id_default_fallback():
     """Test that omitting a purpose falls back smoothly to a standard prefix structure."""
     fixed_time = datetime(2026, 7, 7, 10, 15, 30)
-    
+
     with patch("fue.utils.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_time
         mock_datetime.strftime = datetime.strftime
-        
+
         run_id = generate_run_id()
-        
+
     assert run_id == "run_20260707_101530"

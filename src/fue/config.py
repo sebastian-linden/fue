@@ -1,8 +1,9 @@
 import json
-from pathlib import Path
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
 
 class Config:
     """This class handles writing to and reading from the configuration file.
@@ -116,7 +117,7 @@ class Config:
             forecast_days: Number of forecast days
             daily: List of daily variables
         """
-        # No logger is needed, because each individual setter method 
+        # No logger is needed, because each individual setter method
         # already logs the changes made to the configuration.
         for key, value in kwargs.items():
             if key == "timezone":

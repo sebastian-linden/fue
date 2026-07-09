@@ -1,10 +1,10 @@
-from abc import ABC, abstractmethod
-import logging
-from pathlib import Path
-import joblib
 import json
+import logging
+from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
 
+import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -62,7 +62,10 @@ class UncertaintyModel(ABC):
 
         # 2. ASK the preprocessor what the true final feature column layout is
         self.processed_feature_columns = self.preprocessor.map_feature_names(self.raw_feature_columns)
-        logger.debug("Mapped raw features to processed feature column layout. Final count: %s.", len(self.processed_feature_columns))
+        logger.debug(
+            "Mapped raw features to processed feature column layout. Final count: %s.",
+            len(self.processed_feature_columns),
+        )
 
         # 3. Segregate clean feature arrays and multi-target vectors
         self.X = scaled_df[self.processed_feature_columns]
@@ -117,7 +120,7 @@ class UncertaintyModel(ABC):
             raise RuntimeError("Model must be statefully `.fit()` before running evaluation.")
 
         logger.info("Executing model validation evaluation.")
-        
+
         # Generate real-world inverted unit predictions
         predictions_df = self.predict(df_val)
 
@@ -154,7 +157,9 @@ class UncertaintyModel(ABC):
         for fraction in increments:
             slice_size = int(len(train_df) * fraction)
             if slice_size < 5:  # Skip trivial small slices
-                logger.warning("Convergence training slice critically small (size %s < 5). Skipping increment.", slice_size)
+                logger.warning(
+                    "Convergence training slice critically small (size %s < 5). Skipping increment.", slice_size
+                )
                 continue
 
             logger.info("Evaluating convergence data slice: %s samples (fraction %s).", slice_size, fraction)
@@ -197,16 +202,16 @@ class UncertaintyModel(ABC):
         plt.grid(True, linestyle="--", alpha=0.6)
         plt.legend(loc="upper right")
         plt.tight_layout()
-        
+
         logger.info("Learning curve visualization rendered and dispatched to graphical backend.")
         plt.show()
 
-    def save(self, run_id: str = None, metrics: dict = None, runs_dir: str = "runs") -> Path:
-        """Persists the complete state of the UncertaintyModel wrapper along with 
+    def save(self, run_id: str = None, metrics: dict = None, runs_dir: str = "runs") -> Path:  # ty: ignore [invalid-parameter-default]
+        """Persists the complete state of the UncertaintyModel wrapper along with
         runtime tracking metrics to a predictable filesystem sandbox.
 
         Args:
-            run_id: Unique string key for this train path. If None, generates a 
+            run_id: Unique string key for this train path. If None, generates a
                 timestamped tracker key automatically.
             metrics: Validation error performance scores (e.g., MAE, RMSE values).
             runs_dir: Path string where the nested directory trees are constructed.
@@ -243,13 +248,13 @@ class UncertaintyModel(ABC):
                     "targets_tracked": self.target_columns,
                     "metrics": metrics,
                 }
-                
+
                 logger.debug("Writing validation metric norms to tracking manifest...")
                 with open(meta_file, "w") as f:
                     json.dump(metadata, f, indent=4)
                 logger.info("Successfully documented validation performance run sheets in %s", meta_file.name)
 
-            return run_path, run_id
+            return run_path, run_id  # ty: ignore [invalid-return-type]
 
         except Exception as e:
             logger.error("Failed to commit run directory tracking for run_id %s. Trace error: %s", run_id, e)
@@ -266,19 +271,19 @@ class UncertaintyModel(ABC):
         Returns:
             Fitted instance ready for out-of-sample inference.
         """
-        # 1. Establish an absolute anchor path back to your project root folder 
+        # 1. Establish an absolute anchor path back to your project root folder
         # (src/fue/models/base.py is 3 levels deep from the package root directory)
-        package_src_dir = Path(__file__).resolve().parents[3] 
-        
+        package_src_dir = Path(__file__).resolve().parents[3]
+
         # 2. Build absolute paths to avoid context breaks in Jupyter Notebooks
         model_file = package_src_dir / runs_dir / run_id / "model.joblib"
-        
+
         # Fallback check for hidden folder structures if written by an alternative tuner layer
         if not model_file.exists():
             alternative_path = package_src_dir / ".fue" / "runs" / run_id / "model.joblib"
             if alternative_path.exists():
                 model_file = alternative_path
-        
+
         logger.info("Attempting to restore model checkpoint state for run tracking key: %s", run_id)
         logger.debug("Target file lookup path resolved to: %s", model_file)
 
@@ -292,10 +297,10 @@ class UncertaintyModel(ABC):
             logger.info(
                 "Restoration complete. Successfully loaded instance type: %s (Fitted state: %s)",
                 loaded_model.__class__.__name__,
-                getattr(loaded_model, "_is_fitted", "Unknown")
+                getattr(loaded_model, "_is_fitted", "Unknown"),
             )
             return loaded_model
-            
+
         except Exception as e:
             logger.error("Binary deserialization error encountered during joblib parsing of %s: %s", model_file, e)
             raise
