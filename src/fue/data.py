@@ -38,7 +38,7 @@ class Data:
 
         try:
             self.raw = pd.read_csv(self.PATH_TO_RAW)
-            self.raw = self.convert_to_best_dtypes(self.raw)
+            self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=True)
             self.weather_variables = [c for c in self.raw.columns if c not in self.meta_variables]
             self.numeric_variables = self.weather_variables + ["latitude", "longitude"]
         except Exception as exc:
@@ -48,7 +48,7 @@ class Data:
         logger.info(f"Raw data read from {self.PATH_TO_RAW}. Total records: {len(self.raw)}")
         return None
 
-    def convert_to_best_dtypes(self, df: pd.DataFrame) -> pd.DataFrame:
+    def convert_to_best_dtypes(self, df: pd.DataFrame, sun_duration_to_hours: bool = False) -> pd.DataFrame:
         """_summary_
 
         Args:
@@ -67,7 +67,8 @@ class Data:
             else:
                 df[col] = pd.to_numeric(df[col], errors="raise")
         # Ingest units safely for both training matrices and live client responses
-        if "sunshine_duration" in df.columns:
+
+        if sun_duration_to_hours and "sunshine_duration" in df.columns:
             df["sunshine_duration"] = df["sunshine_duration"] / 3600.0
 
         logger.debug(

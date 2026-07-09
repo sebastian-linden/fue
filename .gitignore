@@ -67,3 +67,8 @@ scripts/.cache.sqlite
 
 # Settings
 .vscode
+
+# Runs
+runs/
+scripts/runs/
+/runs/

@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
 import logging
+from pathlib import Path
+import joblib
+import json
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from fue.config import Config
+from fue.utils import generate_run_id
 
 from .preprocessor import Preprocessor
 
@@ -30,6 +35,7 @@ class UncertaintyModel(ABC):
         self.target_columns = None
         self.X = None
         self.Y = None
+        self._is_fitted = False
 
     def fit(self, df: pd.DataFrame, feature_columns: list, target_columns: list) -> "UncertaintyModel":
         """Fits preprocessor metadata, maps dynamic layout adjustments,
@@ -194,6 +200,105 @@ class UncertaintyModel(ABC):
         
         logger.info("Learning curve visualization rendered and dispatched to graphical backend.")
         plt.show()
+
+    def save(self, run_id: str = None, metrics: dict = None, runs_dir: str = "runs") -> Path:
+        """Persists the complete state of the UncertaintyModel wrapper along with 
+        runtime tracking metrics to a predictable filesystem sandbox.
+
+        Args:
+            run_id: Unique string key for this train path. If None, generates a 
+                timestamped tracker key automatically.
+            metrics: Validation error performance scores (e.g., MAE, RMSE values).
+            runs_dir: Path string where the nested directory trees are constructed.
+
+        Returns:
+            Path object mapping to the individual directory containing the run artifacts.
+        """
+        # 1. Fallback to automatic timestamped naming if no ID is passed explicitly
+        if not run_id:
+            run_id = generate_run_id()
+            logger.debug("No explicit run_id provided. Auto-generated identifier: %s", run_id)
+
+        run_path = Path(runs_dir) / run_id
+
+        try:
+            # 2. Synchronize directory generation
+            run_path.mkdir(parents=True, exist_ok=True)
+            logger.info("Tracking experiment artifacts in run directory: %s", run_path)
+
+            # 3. Dump the complete stateful wrapper object via joblib
+            model_file = run_path / "model.joblib"
+            logger.debug("Serializing complete wrapper instance structure via joblib...")
+            joblib.dump(self, model_file)
+            logger.info("Successfully serialized model state to %s", model_file.name)
+
+            # 4. Process tracking metrics to a structured json file
+            if metrics is not None:
+                meta_file = run_path / "meta.json"
+                metadata = {
+                    "run_id": run_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "model_type": self.__class__.__name__,
+                    "features_used": self.processed_feature_columns,
+                    "targets_tracked": self.target_columns,
+                    "metrics": metrics,
+                }
+                
+                logger.debug("Writing validation metric norms to tracking manifest...")
+                with open(meta_file, "w") as f:
+                    json.dump(metadata, f, indent=4)
+                logger.info("Successfully documented validation performance run sheets in %s", meta_file.name)
+
+            return run_path, run_id
+
+        except Exception as e:
+            logger.error("Failed to commit run directory tracking for run_id %s. Trace error: %s", run_id, e)
+            raise
+
+    @classmethod
+    def load(cls, run_id: str, runs_dir: str = "runs") -> "UncertaintyModel":
+        """Reconstructs a fully fitted UncertaintyModel instance back from a stored tracking directory.
+
+        Args:
+            run_id: Unique identifying folder token to restore.
+            runs_dir: Target upper directory lookup route.
+
+        Returns:
+            Fitted instance ready for out-of-sample inference.
+        """
+        # 1. Establish an absolute anchor path back to your project root folder 
+        # (src/fue/models/base.py is 3 levels deep from the package root directory)
+        package_src_dir = Path(__file__).resolve().parents[3] 
+        
+        # 2. Build absolute paths to avoid context breaks in Jupyter Notebooks
+        model_file = package_src_dir / runs_dir / run_id / "model.joblib"
+        
+        # Fallback check for hidden folder structures if written by an alternative tuner layer
+        if not model_file.exists():
+            alternative_path = package_src_dir / ".fue" / "runs" / run_id / "model.joblib"
+            if alternative_path.exists():
+                model_file = alternative_path
+        
+        logger.info("Attempting to restore model checkpoint state for run tracking key: %s", run_id)
+        logger.debug("Target file lookup path resolved to: %s", model_file)
+
+        if not model_file.exists():
+            error_msg = f"Reconstruction failed. No binary checkpoint file found at location: {model_file}"
+            logger.error(error_msg)
+            raise FileNotFoundError(error_msg)
+
+        try:
+            loaded_model = joblib.load(model_file)
+            logger.info(
+                "Restoration complete. Successfully loaded instance type: %s (Fitted state: %s)",
+                loaded_model.__class__.__name__,
+                getattr(loaded_model, "_is_fitted", "Unknown")
+            )
+            return loaded_model
+            
+        except Exception as e:
+            logger.error("Binary deserialization error encountered during joblib parsing of %s: %s", model_file, e)
+            raise
 
     @abstractmethod
     def _fit_internal(self, X: pd.DataFrame, Y: pd.DataFrame) -> None:

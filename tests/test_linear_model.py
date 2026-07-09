@@ -316,3 +316,63 @@ class TestLinearUncertaintyModel:
 
         # The expected label: "abs_diff__temperature_2m" -> "temperature 2m" -> "Temperature 2M"
         assert first_plot_kwargs["label"] == "Temperature 2M (MAE)"
+
+    def test_save_with_explicit_id(self, tmp_path):
+        """Test saving a model and its metrics using an explicit run_id in a temporary directory."""
+        model = LinearUncertaintyModel()
+        
+        # Initialize attributes exactly as they exist in your updated class layout
+        model.raw_feature_columns = ["delta_days", "day_of_year"]
+        model.processed_feature_columns = ["delta_days_sqrt", "sin_day_of_year", "cos_day_of_year"]
+        model.target_columns = ["abs_diff__temperature_2m_max"]
+        
+        explicit_id = "test_run_linear_01"
+        metrics = {"abs_diff__temperature_2m_max": {"MAE": 0.45, "RMSE": 0.58}}
+        
+        # Act: Execute save inside the safe temp sandbox
+        run_path, run_id = model.save(run_id=explicit_id, metrics=metrics, runs_dir=str(tmp_path))
+        
+        # Assertions
+        assert run_path == tmp_path / explicit_id
+        assert (run_path / "model.joblib").exists()
+        assert (run_path / "meta.json").exists()
+        
+        # Verify the meta format fields match your internal instance dictionaries
+        import json
+        with open(run_path / "meta.json", "r") as f:
+            metadata = json.load(f)
+            
+        assert metadata["run_id"] == explicit_id
+        assert metadata["model_type"] == "LinearUncertaintyModel"
+        assert metadata["metrics"] == metrics
+        assert metadata["features_used"] == model.processed_feature_columns
+
+    def test_save_with_auto_generated_id(self, tmp_path):
+        """Test that leaving run_id empty fallback generates a timestamped alternative."""
+        model = LinearUncertaintyModel()
+        model.raw_feature_columns = ["delta_days"]
+        
+        # Act: Pass run_id=None to trigger automatic identification flow
+        run_path, run_id = model.save(run_id=None, metrics=None, runs_dir=str(tmp_path))
+        
+        # Assertions
+        assert run_path.exists()
+        assert (run_path / "model.joblib").exists()
+        assert not (run_path / "meta.json").exists()
+
+    def test_load_successful(self, tmp_path):
+        """Test round-trip state reconstruction using base wrapper load classmethod."""
+        original_model = LinearUncertaintyModel()
+        original_model.target_columns = ["abs_diff__precipitation_sum"]
+        original_model.processed_feature_columns = ["delta_days_sqrt"]
+        
+        run_id = "roundtrip_test_id"
+        original_model.save(run_id=run_id, runs_dir=str(tmp_path))
+        
+        # Act: Call class method restoration pathway
+        loaded_model = LinearUncertaintyModel.load(run_id=run_id, runs_dir=str(tmp_path))
+        
+        # Assertions
+        assert loaded_model.__class__.__name__ == "LinearUncertaintyModel"
+        assert loaded_model.target_columns == ["abs_diff__precipitation_sum"]
+        assert loaded_model.processed_feature_columns == ["delta_days_sqrt"]

@@ -97,46 +97,60 @@ class TestData:
 
     def test_generate_dataset(self):
         """
-        Test the generate_dataset method against known snapshots to ensure
-        reproducibility and prevent regressions in the data pipeline.
+        Verifies that the dataset generation pipeline successfully processes
+        multi-city raw data into a single, unified DataFrame with the correct
+        tracking and feature columns.
         """
         data = Data()
-        data.read_raw(path="tests/test_forecasts.csv")
+        data.read_raw("tests/test_forecasts.csv")
+        
+        # Generate the dataset (now processes all available data at once)
+        dataset = data.generate_dataset()
+        
+        # 1. Type and structure checks
+        assert isinstance(dataset, pd.DataFrame), "generate_dataset must return a single DataFrame"
+        assert len(dataset) == 489, "Row count mismatch: expected 489 rows from test dataset"
+        
+        # 2. Feature engineering checks
+        expected_columns = ["location_name", "day_of_year", "delta_days", "temperature_2m_max"]
+        for col in expected_columns:
+            assert col in dataset.columns, f"Missing engineered column: {col}"
+            
+        # 3. Completeness check
+        unique_cities = dataset["location_name"].unique()
+        assert len(unique_cities) == 6, "Dataset should contain exactly 6 pooled cities"
+        assert set(unique_cities) == {"london", "berlin", "aachen", "paris", "rome", "madrid"}
 
-        #  1: Baseline Default Parameters
-        train_df, val_df = data.generate_dataset(location_name="london", val_fraction=0.2, random_state=42)
-        assert train_df.shape == (336, 23)
-        assert val_df.shape == (85, 23)
-
-        # Verify exact row permutations to ensure random_state is respected
-        assert train_df.iloc[0]["day_of_year"] == 146
-        assert train_df.iloc[0]["delta_days"] == pytest.approx(5.50, abs=0.01)
-        assert val_df.iloc[0]["day_of_year"] == 175
-        assert val_df.iloc[0]["delta_days"] == pytest.approx(2.21, abs=0.01)
-
-        # TEST 2: No Validation Split
-        train_df_no_val, val_df_no_val = data.generate_dataset(
-            location_name="london", val_fraction=0.0, random_state=42
-        )
-        assert train_df_no_val.shape == (421, 23)
-        assert val_df_no_val.empty
-
-        # TEST 3: Reproducibility via Different Random State
-        train_df_rs, val_df_rs = data.generate_dataset(location_name="london", val_fraction=0.2, random_state=99)
-        assert train_df_rs.shape == (336, 23)
-        assert val_df_rs.shape == (85, 23)
-
-        # The top row should be different due to the new seed
-        assert train_df_rs.iloc[0]["day_of_year"] == 183
-        assert train_df_rs.iloc[0]["delta_days"] == pytest.approx(6.61, abs=0.01)
-
-        # TEST 4: Edge Case - Missing City
-        train_df_missing, val_df_missing = data.generate_dataset(
-            location_name="unknown_city", val_fraction=0.2, random_state=42
-        )
-        # Should return safely without errors, yielding empty sets
-        assert train_df_missing.empty
-        assert val_df_missing.empty
+    def test_split_dataset(self):
+        """
+        Verifies the Stratified Climatic Block strategy. 
+        Mathematically asserts that the Haversine pairing algorithm successfully
+        prevents spatial data leakage between the training and validation subsets.
+        """
+        data = Data()
+        data.read_raw("tests/test_forecasts.csv")
+        
+        # Split the dataset using the deterministic random state
+        train_df, val_df = data.split_dataset(data.raw, val_fraction=0.3, random_state=42)
+        
+        # 1. Type and Size checks
+        assert isinstance(train_df, pd.DataFrame)
+        assert isinstance(val_df, pd.DataFrame)
+        assert len(train_df) == 800, "Train row count mismatch"
+        assert len(val_df) == 400, "Validation row count mismatch"
+        assert len(train_df) + len(val_df) == len(data.raw), "Data was lost during the split"
+        
+        # 2. Extract city lists
+        train_cities = set(train_df["location_name"].unique())
+        val_cities = set(val_df["location_name"].unique())
+        
+        # 3. THE CRITICAL V&V CHECK: Absolute Disjointness (No Leakage)
+        assert train_cities.isdisjoint(val_cities), \
+            f"DATA LEAKAGE DETECTED! Overlapping cities: {train_cities.intersection(val_cities)}"
+        
+        # 4. Deterministic Placement Check (Ensures random_state seeding works)
+        assert val_cities == {"berlin", "rome"}, "Validation split distribution drifted"
+        assert train_cities == {"london", "aachen", "paris", "madrid"}, "Train split distribution drifted"
 
     def test_remove_duplicates(self):
         """

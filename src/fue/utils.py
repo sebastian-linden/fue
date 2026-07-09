@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 
 def daylength(dayOfYear: pd.Series, lat: pd.Series | float) -> pd.Series:
@@ -72,3 +73,41 @@ def pair_cities_by_proximity(city_dict: dict) -> dict:
         groups[group_id] = [unpaired[0]]
 
     return groups
+
+
+def generate_run_id(purpose: str | None = None) -> str:
+    """
+    Generates a unique, standardized, timestamped identifier for tracking runs.
+
+    Parameters
+    ----------
+    purpose : str, optional
+        An optional string detailing the scope, intent, or model variation 
+        (e.g., 'hpo', 'linear', 'mlp'). Spaces will be replaced with underscores.
+
+    Returns
+    -------
+    str
+        A formatted string combination of the sanitized purpose and a high-resolution 
+        timestamp window (e.g., 'hpo_20260707_101530').
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    if purpose:
+        # Sanitize spaces and ensure uniform lowercasing for file path safety
+        sanitized_purpose = purpose.strip().replace(" ", "_").lower()
+        return f"run_{timestamp}_{sanitized_purpose}"
+        
+    return f"run_{timestamp}"
+
+
+
+"""
+===================================================================
+Format should be "timestamp_string"!!!
+===================================================================
+Also fix the test for this function
+Then actually implement the use of this generation in the tuner and 
+model save methods so that they use this function to generate run 
+IDs when none are provided.
+"""
