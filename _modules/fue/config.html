@@ -46,6 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../data/index.html">Forecast Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../model/index.html">Mathematical Background</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/fue.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/models.html">Models API Reference</a></li>
+</ul>
 
         </div>
       </div>
@@ -88,7 +93,7 @@
 
 
 <div class="viewcode-block" id="Config">
-<a class="viewcode-back" href="../../index.html#fue.Config">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Manages reading, modifying, and saving the project&#39;s settings.</span>
@@ -181,7 +186,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="Config.set_timezone">
-<a class="viewcode-back" href="../../index.html#fue.Config.set_timezone">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.set_timezone">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_timezone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timezone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the target timezone parameter in our settings.</span>
@@ -200,7 +205,7 @@
 
 
 <div class="viewcode-block" id="Config.set_past_days">
-<a class="viewcode-back" href="../../index.html#fue.Config.set_past_days">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.set_past_days">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_past_days</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">past_days</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets how many days of past historical weather data we want to request.</span>
@@ -226,7 +231,7 @@
 
 
 <div class="viewcode-block" id="Config.set_forecast_days">
-<a class="viewcode-back" href="../../index.html#fue.Config.set_forecast_days">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.set_forecast_days">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_forecast_days</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets how many days into the future our weather forecasts should reach.</span>
@@ -252,7 +257,7 @@
 
 
 <div class="viewcode-block" id="Config.set_daily_variables">
-<a class="viewcode-back" href="../../index.html#fue.Config.set_daily_variables">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.set_daily_variables">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_daily_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daily</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the list of specific weather variables we want to pull from the API.</span>
@@ -278,7 +283,7 @@
 
 
 <div class="viewcode-block" id="Config.update">
-<a class="viewcode-back" href="../../index.html#fue.Config.update">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates multiple configuration parameters at the same time.</span>
@@ -314,7 +319,7 @@
 
 
 <div class="viewcode-block" id="Config.add_city">
-<a class="viewcode-back" href="../../index.html#fue.Config.add_city">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.add_city">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_city</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a new city and its coordinates to our tracking list.</span>
@@ -357,7 +362,7 @@
 
 
 <div class="viewcode-block" id="Config.remove_city">
-<a class="viewcode-back" href="../../index.html#fue.Config.remove_city">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.remove_city">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_city</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes a city and its coordinates from our tracking list.</span>
@@ -394,7 +399,7 @@
 
 
 <div class="viewcode-block" id="Config.save">
-<a class="viewcode-back" href="../../index.html#fue.Config.save">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes all current setting variables back into our config.json file on disk.</span>
@@ -419,7 +424,7 @@
 
 
 <div class="viewcode-block" id="Config.get_preprocessing_rules">
-<a class="viewcode-back" href="../../index.html#fue.Config.get_preprocessing_rules">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.get_preprocessing_rules">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_preprocessing_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the data transformation rules currently configured in our settings.</span>
@@ -434,7 +439,7 @@
 
 
 <div class="viewcode-block" id="Config.set_preprocessing_rule">
-<a class="viewcode-back" href="../../index.html#fue.Config.set_preprocessing_rule">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Config.set_preprocessing_rule">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_preprocessing_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets or changes a data cleaning/transformation rule for a specific weather variable.</span>

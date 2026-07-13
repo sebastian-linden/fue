@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core API Reference &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Models API Reference" href="models.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="../configuration/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Forecast Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fue.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.add_city"><code class="docutils literal notranslate"><span class="pre">Config.add_city()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.get_preprocessing_rules"><code class="docutils literal notranslate"><span class="pre">Config.get_preprocessing_rules()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.remove_city"><code class="docutils literal notranslate"><span class="pre">Config.remove_city()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.save"><code class="docutils literal notranslate"><span class="pre">Config.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.set_daily_variables"><code class="docutils literal notranslate"><span class="pre">Config.set_daily_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.set_forecast_days"><code class="docutils literal notranslate"><span class="pre">Config.set_forecast_days()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.set_past_days"><code class="docutils literal notranslate"><span class="pre">Config.set_past_days()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.set_preprocessing_rule"><code class="docutils literal notranslate"><span class="pre">Config.set_preprocessing_rule()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.set_timezone"><code class="docutils literal notranslate"><span class="pre">Config.set_timezone()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Config.update"><code class="docutils literal notranslate"><span class="pre">Config.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fue.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.combine_and_store_forecasts"><code class="docutils literal notranslate"><span class="pre">Data.combine_and_store_forecasts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.convert_to_best_dtypes"><code class="docutils literal notranslate"><span class="pre">Data.convert_to_best_dtypes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.fetch_forecast"><code class="docutils literal notranslate"><span class="pre">Data.fetch_forecast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.generate_dataset"><code class="docutils literal notranslate"><span class="pre">Data.generate_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.get_collection_summary"><code class="docutils literal notranslate"><span class="pre">Data.get_collection_summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.read_raw"><code class="docutils literal notranslate"><span class="pre">Data.read_raw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.remove_duplicates"><code class="docutils literal notranslate"><span class="pre">Data.remove_duplicates()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Data.split_dataset"><code class="docutils literal notranslate"><span class="pre">Data.split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fue.Forecast"><code class="docutils literal notranslate"><span class="pre">Forecast</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Forecast.compute_uncertainties"><code class="docutils literal notranslate"><span class="pre">Forecast.compute_uncertainties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Forecast.fetch_forecast"><code class="docutils literal notranslate"><span class="pre">Forecast.fetch_forecast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fue.Forecast.plot"><code class="docutils literal notranslate"><span class="pre">Forecast.plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fue.HyperparameterTuner"><code class="docutils literal notranslate"><span class="pre">HyperparameterTuner</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fue.HyperparameterTuner.search"><code class="docutils literal notranslate"><span class="pre">HyperparameterTuner.search()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fue.OpenMeteoClient"><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fue.OpenMeteoClient.fetch_forecast"><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient.fetch_forecast()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Core API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/fue.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="core-api-reference">
+<h1>Core API Reference<a class="headerlink" href="#core-api-reference" title="Link to this heading"></a></h1>
+<p>This section covers the primary data orchestration and pipeline classes used
+to interface with weather configurations, pull live data feeds, and format metrics.</p>
+<p id="module-fue">Top-level package for fue.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.Config">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fue/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Manages reading, modifying, and saving the project’s settings.</p>
+<p>This class loads settings from config.json, structures city coordinates for
+the weather API client, and provides simple methods to add or remove cities,
+change timezones, or adjust forecasting time windows.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.add_city">
+<span class="sig-name descname"><span class="pre">add_city</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.add_city"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.add_city" title="Link to this definition"></a></dt>
+<dd><p>Adds a new city and its coordinates to our tracking list.</p>
+<p>This method verifies that the city doesn’t already exist and that coordinates
+are valid numbers before appending them to the configuration lists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the city (e.g., ‘aachen’). Must be unique.</p></li>
+<li><p><strong>lat</strong> (<em>float</em>) – The latitude value of the city location.</p></li>
+<li><p><strong>lon</strong> (<em>float</em>) – The longitude value of the city location.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the city name already exists in the current settings.</p></li>
+<li><p><strong>TypeError</strong> – If the city name is not a string, or if coordinates are not numbers.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.get_preprocessing_rules">
+<span class="sig-name descname"><span class="pre">get_preprocessing_rules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.get_preprocessing_rules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.get_preprocessing_rules" title="Link to this definition"></a></dt>
+<dd><p>Returns the data transformation rules currently configured in our settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary mapping weather variables directly to their transformation
+methods (for example: <cite>{‘abs_diff__precipitation_sum’: ‘log’}</cite>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.remove_city">
+<span class="sig-name descname"><span class="pre">remove_city</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.remove_city"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.remove_city" title="Link to this definition"></a></dt>
+<dd><p>Removes a city and its coordinates from our tracking list.</p>
+<p>It finds the position of the city in our internal variables and removes it
+completely so that our parallel list dimensions stay lined up.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name string of the city to delete.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the specified city name cannot be found in our settings.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.save" title="Link to this definition"></a></dt>
+<dd><p>Writes all current setting variables back into our config.json file on disk.</p>
+<p>This re-assembles the dictionary elements, strips out temporary processing lists
+like latitudes and longitudes, and saves a clean formatted JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.set_daily_variables">
+<span class="sig-name descname"><span class="pre">set_daily_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">daily</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.set_daily_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_daily_variables" title="Link to this definition"></a></dt>
+<dd><p>Updates the list of specific weather variables we want to pull from the API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>daily</strong> (<em>list</em>) – A list of weather variable strings (like <cite>[‘temperature_2m_max’, ‘precipitation_sum’]</cite>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the provided value is not structured as a Python list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.set_forecast_days">
+<span class="sig-name descname"><span class="pre">set_forecast_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecast_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.set_forecast_days"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_forecast_days" title="Link to this definition"></a></dt>
+<dd><p>Sets how many days into the future our weather forecasts should reach.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>forecast_days</strong> (<em>int</em>) – The length of the forecast window in days. Must be 0 or a positive integer.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the value provided is negative or not a whole number.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.set_past_days">
+<span class="sig-name descname"><span class="pre">set_past_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.set_past_days"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_past_days" title="Link to this definition"></a></dt>
+<dd><p>Sets how many days of past historical weather data we want to request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>past_days</strong> (<em>int</em>) – The number of history days to request. Must be 0 or a positive integer.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the value provided is negative or not a whole number.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.set_preprocessing_rule">
+<span class="sig-name descname"><span class="pre">set_preprocessing_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.set_preprocessing_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_preprocessing_rule" title="Link to this definition"></a></dt>
+<dd><p>Sets or changes a data cleaning/transformation rule for a specific weather variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (<em>str</em>) – The specific weather column or target variable name.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – The name of the scaling method to apply (such as ‘min-max’, ‘standard’, or ‘log’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.set_timezone">
+<span class="sig-name descname"><span class="pre">set_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timezone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.set_timezone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.set_timezone" title="Link to this definition"></a></dt>
+<dd><p>Updates the target timezone parameter in our settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>timezone</strong> (<em>str</em>) – A standard timezone name string (for example, ‘Europe/Berlin’).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Config.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/config.html#Config.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Config.update" title="Link to this definition"></a></dt>
+<dd><p>Updates multiple configuration parameters at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> (<em>dict</em>) – Named arguments matching existing parameters (<cite>timezone</cite>, <cite>past_days</cite>,
+<cite>forecast_days</cite>, or <cite>daily</cite>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>KeyError</strong> – If you pass a setting name that the configuration class doesn’t recognize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.Data">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><a class="reference internal" href="../_modules/fue/data.html#Data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Manages loading, cleaning, assembling, and splitting our project’s weather datasets.</p>
+<p>This class coordinates the data-shaping pipeline. It reads from local storage files,
+calculates physical absolute forecast error columns, handles temporal-safe data partitions,
+and packages data frames so they are structured perfectly for downstream training models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.combine_and_store_forecasts">
+<span class="sig-name descname"><span class="pre">combine_and_store_forecasts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.combine_and_store_forecasts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.combine_and_store_forecasts" title="Link to this definition"></a></dt>
+<dd><p>Merges newly scraped forecast entries into our main persistent CSV archive file.</p>
+<p>Loads your existing baseline historical rows, glues the fresh API scrape rows
+directly to the bottom, applies automatic duplicate row removal rules, and
+re-saves the structured updates back to disk storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>current_forecasts</strong> (<em>pd.DataFrame</em>) – Fresh weather predictions scraped directly from the current API download session.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.convert_to_best_dtypes">
+<span class="sig-name descname"><span class="pre">convert_to_best_dtypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sun_duration_to_hours</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.convert_to_best_dtypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.convert_to_best_dtypes" title="Link to this definition"></a></dt>
+<dd><p>Ensures columns use optimal pandas types and converts metrics to correct units.</p>
+<p>Forces city strings, timestamps, and numbers into their proper pandas formats.
+It also scales raw sunshine seconds into hours to maintain mathematical sanity
+across model boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The input weather records needing column type adjustments.</p></li>
+<li><p><strong>sun_duration_to_hours</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, converts ‘sunshine_duration’ from raw seconds to hours.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The freshly typed data frame with identical rows.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.fetch_forecast">
+<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#fue.Config" title="fue.config.Config"><span class="pre">Config</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.fetch_forecast" title="Link to this definition"></a></dt>
+<dd><p>Uses the internal OpenMeteoClient to download live forward-looking forecasts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#fue.Config" title="fue.Config"><em>Config</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – An active Config instance holding coordinate keys. If None, builds a
+fresh internal client defaults instance.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Live weather point predictions structured into typed pandas rows.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.generate_dataset">
+<span class="sig-name descname"><span class="pre">generate_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.generate_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.generate_dataset" title="Link to this definition"></a></dt>
+<dd><p>assembles our target training matrix by matching forecasts against ground truth.</p>
+<p>This method executes several steps:
+1. Splits chronological rows using a 12-hour lead window (older rows become</p>
+<blockquote>
+<div><p>forecast entries, while immediate horizons act as actual observation proxies).</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Deduplicates matched dates to secure exactly one true target per calendar day.</p></li>
+<li><p>Runs an inner merge, extracts seasonal timelines, and evaluates the absolute
+residual differences (<a href="#id1"><span class="problematic" id="id2">|predicted - observed|</span></a>) to create our final training targets.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The consolidated design matrix containing core feature columns, lead timelines,
+and target absolute difference values.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.get_collection_summary">
+<span class="sig-name descname"><span class="pre">get_collection_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.get_collection_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.get_collection_summary" title="Link to this definition"></a></dt>
+<dd><p>Generates a quick diagnostic status report for all our monitored cities.</p>
+<p>Evaluates rows through our active dataset assembly engine, counts valid
+completed pairings per town, and tags each city name as ‘ACTIVE’ or ‘WAITING’
+based on your custom validation threshold length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>threshold</strong> (<em>int</em><em>, </em><em>default=100</em>) – The line count limit required for a city to graduate to active model training.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tabular summary tracking three columns: ‘location_name’, ‘valid_records’,
+and ‘status’. Ideal for displaying a clean report inside our terminal interface.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.read_raw">
+<span class="sig-name descname"><span class="pre">read_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.read_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.read_raw" title="Link to this definition"></a></dt>
+<dd><p>Reads the local raw forecast CSV file from disk into memory.</p>
+<p>After loading the file, it cleans up types, automatically parses units,
+and updates list indices containing column headers for meta and weather parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em><em> or </em><em>pathlib.Path</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Custom path pointing to a raw forecast file. If None, uses the
+default location folder inside your project workspace root.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>FileNotFoundError</strong> – If no forecast csv source matches the determined path target.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.remove_duplicates">
+<span class="sig-name descname"><span class="pre">remove_duplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.remove_duplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.remove_duplicates" title="Link to this definition"></a></dt>
+<dd><p>Purges matching overlapping data entries based on weather metric states.</p>
+<p>Rounds the position data down to a tiny decimal tolerance limit, identifies exact
+duplicate weather attribute rows, and preserves the first occurrence while popping out
+the trailing duplicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – The target data frame tracking rows that might possess duplicates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A duplicate-free row-subset of our original input frame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Data.split_dataset">
+<span class="sig-name descname"><span class="pre">split_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_fraction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_entries_per_city</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fue/data.html#Data.split_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Data.split_dataset" title="Link to this definition"></a></dt>
+<dd><p>Splits data chronologically and geographically for training &amp; validation.</p>
+<p>First, drops rows belonging to newer cities that haven’t collected enough
+records. Next, pairs remaining cities using spatial distance metrics.
+It randomly assigns one city from each pair to training and the other to
+validation, ensuring an entire regional microclimate is fully quarantined
+from the training group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>pd.DataFrame</em>) – The raw constructed input dataset from our pipeline layer.</p></li>
+<li><p><strong>val_fraction</strong> (<em>float</em><em>, </em><em>default=0.2</em>) – The target percentage size of our validation dataset chunk (e.g. 0.2 for 20%).</p></li>
+<li><p><strong>random_state</strong> (<em>int</em><em>, </em><em>default=42</em>) – The initialization token to ensure repeatable city-flipping choices.</p></li>
+<li><p><strong>min_entries_per_city</strong> (<em>int</em><em>, </em><em>default=100</em>) – The minimum row cut-off length required for a city to join the active pipeline.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A two-element tuple containing our (train_df, val_df) split subsets.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.Forecast">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">Forecast</span></span><a class="reference internal" href="../_modules/fue/forecast.html#Forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Applies trained error-prediction models to weather forecasts and handles plotting.</p>
+<p>This class tracks live point predictions alongside their calculated error ranges,
+manages lookup dictionaries for plot labels, units, and colors, and overlays
+shaded confidence bands ($pm       ext{error}$) on meteorological lines.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Forecast.compute_uncertainties">
+<span class="sig-name descname"><span class="pre">compute_uncertainties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/forecast.html#Forecast.compute_uncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.compute_uncertainties" title="Link to this definition"></a></dt>
+<dd><p>Runs the active weather forecast through our estimator to predict absolute error margins.</p>
+<p>Checks that our forecast lines are loaded and that the selected model possesses
+a callable predict method before populating our data frame arrays with raw calculated deviations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>uncertainty_model</strong> (<em>object</em>) – A statefully trained uncertainty estimator model subclass instance containing a <cite>.predict()</cite> method.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If forecast rows haven’t been pulled yet, or if the model predictions come back empty.</p></li>
+<li><p><strong>AttributeError</strong> – If the supplied model lacks a callable predict function interface.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Forecast.fetch_forecast">
+<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/forecast.html#Forecast.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.fetch_forecast" title="Link to this definition"></a></dt>
+<dd><p>Downloads a fresh forecast profile for a single city from the data client layer.</p>
+<p>Validates user-supplied timing bounds, creates a localized temporary city config,
+fetches raw predictive rows, and appends structural index features such as
+seasonal times and ahead-horizon day fractions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>location_name</strong> (<em>str</em>) – The name string matching a tracked target city in our coordinates configurations.</p></li>
+<li><p><strong>forecast_days</strong> (<em>int</em><em>, </em><em>default=14</em>) – The total look-ahead horizon window length to download, specified in full days.</p></li>
+<li><p><strong>past_days</strong> (<em>int</em><em>, </em><em>default=0</em>) – The number of back-dated historical timeline records to include alongside the forecast.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – If any passed argument fails basic validation check rules for matching data types.</p></li>
+<li><p><strong>ValueError</strong> – If timing bounds fall into negative counts or if the city name is not registered.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.Forecast.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fue/forecast.html#Forecast.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.Forecast.plot" title="Link to this definition"></a></dt>
+<dd><p>Renders line plots showing forecast tracks with shaded error ranges.</p>
+<p>Extracts matching data paths for each requested column, shifts back-dated records
+down to zero variance bounds, and builds upper and lower bounds. It also
+clips values at zero for non-negative tracks and implements physics-based caps on
+sunshine parameters based on geographical day lengths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_variables</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em>) – A single metric key or group list of error keys to draw (must begin with ‘<a href="#id3"><span class="problematic" id="id4">abs_diff__</span></a>’).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If data elements are uninitialized or missing, or if variable string layouts match poorly.</p></li>
+<li><p><strong>TypeError</strong> – If target inputs use container forms other than strings or string lists.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.HyperparameterTuner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">HyperparameterTuner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="models.html#fue.models.UncertaintyModel" title="fue.models.base.UncertaintyModel"><span class="pre">UncertaintyModel</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'global'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_metric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RMSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fue/tuner.html#HyperparameterTuner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.HyperparameterTuner" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Automates the process of finding the best settings for our uncertainty models.</p>
+<p>This class loops through a grid of possible hyperparameter values, runs training
+and evaluation iterations for each setting combination, collapses multi-target
+error scores down to a single optimization value, and selects the champion model.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.HyperparameterTuner.search">
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="models.html#fue.models.MLUncertaintyModel" title="fue.models.ml_model.MLUncertaintyModel"><span class="pre">MLUncertaintyModel</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fue/tuner.html#HyperparameterTuner.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.HyperparameterTuner.search" title="Link to this definition"></a></dt>
+<dd><p>Runs the grid search sweep across all setting combinations to find the best model.</p>
+<p>Generates all hyperparameter combinations, trains a model candidate on the training pool,
+evaluates performance against validation records, and prints an updated leaderboard
+status to the console. The overall best model is then automatically saved to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_df</strong> (<em>pd.DataFrame</em>) – The data frame holding historical training records.</p></li>
+<li><p><strong>val_df</strong> (<em>pd.DataFrame</em>) – The out-of-sample data frame used for validation testing.</p></li>
+<li><p><strong>feature_columns</strong> (<em>list</em>) – List of column names used as model inputs.</p></li>
+<li><p><strong>target_columns</strong> (<em>list</em>) – List of absolute error column names the model aims to predict.</p></li>
+<li><p><strong>run_id</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – A custom directory name for storing the results. If None, an ID is generated
+automatically using the project’s timestamp utilities.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A two-element tuple containing:
+- The optimal trained model instance (the champion).
+- A list of dictionary records mapping out the parameter states and scoring</p>
+<blockquote>
+<div><p>history for every iteration.</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of (<a class="reference internal" href="models.html#fue.models.UncertaintyModel" title="fue.models.UncertaintyModel">UncertaintyModel</a>, list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.OpenMeteoClient">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">OpenMeteoClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#fue.Config" title="fue.config.Config"><span class="pre">Config</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fue/openmeteoclient.html#OpenMeteoClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.OpenMeteoClient" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A client used to fetch and format weather data from the Open-Meteo API.</p>
+<p>This class handles the underlying network connection, sessions, and data caching.
+It downloads weather metrics for all tracked cities simultaneously and maps the
+raw API responses directly into pandas DataFrames for our pipeline.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.OpenMeteoClient.fetch_forecast">
+<span class="sig-name descname"><span class="pre">fetch_forecast</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/fue/openmeteoclient.html#OpenMeteoClient.fetch_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.OpenMeteoClient.fetch_forecast" title="Link to this definition"></a></dt>
+<dd><p>Downloads forward-looking weather forecast values for all target cities.</p>
+<p>Queries the Open-Meteo endpoint using parameters from our configuration file,
+loops over each city’s geographic response, aligns the time indices to
+the final second of the day, and aggregates everything into a single
+unified data frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A stacked data frame containing forecast records for all cities.
+Columns include: ‘location_name’, ‘latitude’, ‘longitude’,
+‘forecasted_on’, ‘forecast_for’, and the specific weather variables.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../configuration/index.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="models.html" class="btn btn-neutral float-right" title="Models API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

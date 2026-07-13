@@ -46,6 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../data/index.html">Forecast Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../model/index.html">Mathematical Background</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/fue.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models.html">Models API Reference</a></li>
+</ul>
 
         </div>
       </div>
@@ -101,7 +106,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">UncertaintyModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets up the baseline variables, configuration properties, and preprocessor hooks.</span>
@@ -149,7 +154,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_fitted</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="UncertaintyModel.fit">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.fit">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.fit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">feature_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepares features statefully and triggers the submodel training calculations.</span>
@@ -212,7 +217,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel.predict">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.predict">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.predict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates error magnitude inferences and transforms variables back to normal units.</span>
@@ -262,7 +267,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel.evaluate">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.evaluate">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_val</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validates model accuracy against standalone validation data rows.</span>
@@ -307,7 +312,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel.study_data_convergence">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.study_data_convergence">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.study_data_convergence">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">study_data_convergence</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
@@ -374,7 +379,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel.plot_learning_curve">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.plot_learning_curve">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.plot_learning_curve">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_learning_curve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convergence_history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;MAE&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Draws a diagnostic learning curve plot using your convergence data results.</span>
@@ -422,7 +427,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel.save">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.save">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">runs_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;runs&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Serializes the active model instance state and tracks metrics inside a run folder.</span>
@@ -490,7 +495,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyModel.load">
-<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.load">[docs]</a>
+<a class="viewcode-back" href="../../../api/models.html#fue.models.UncertaintyModel.load">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">runs_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;runs&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

@@ -46,6 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../data/index.html">Forecast Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../model/index.html">Mathematical Background</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/fue.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/models.html">Models API Reference</a></li>
+</ul>
 
         </div>
       </div>
@@ -95,7 +100,7 @@
 
 
 <div class="viewcode-block" id="Data">
-<a class="viewcode-back" href="../../index.html#fue.Data">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Data</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Manages loading, cleaning, assembling, and splitting our project&#39;s weather datasets.</span>
@@ -123,7 +128,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Data.read_raw">
-<a class="viewcode-back" href="../../index.html#fue.Data.read_raw">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.read_raw">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">read_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads the local raw forecast CSV file from disk into memory.</span>
@@ -164,7 +169,7 @@
 
 
 <div class="viewcode-block" id="Data.convert_to_best_dtypes">
-<a class="viewcode-back" href="../../index.html#fue.Data.convert_to_best_dtypes">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.convert_to_best_dtypes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_best_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">sun_duration_to_hours</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensures columns use optimal pandas types and converts metrics to correct units.</span>
@@ -207,7 +212,7 @@
 
 
 <div class="viewcode-block" id="Data.generate_dataset">
-<a class="viewcode-back" href="../../index.html#fue.Data.generate_dataset">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.generate_dataset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        assembles our target training matrix by matching forecasts against ground truth.</span>
@@ -284,7 +289,7 @@
 
 
 <div class="viewcode-block" id="Data.split_dataset">
-<a class="viewcode-back" href="../../index.html#fue.Data.split_dataset">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.split_dataset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">split_dataset</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">val_fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span> <span class="n">min_entries_per_city</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
@@ -386,7 +391,7 @@
 
 
 <div class="viewcode-block" id="Data.remove_duplicates">
-<a class="viewcode-back" href="../../index.html#fue.Data.remove_duplicates">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.remove_duplicates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Purges matching overlapping data entries based on weather metric states.</span>
@@ -416,7 +421,7 @@
 
 
 <div class="viewcode-block" id="Data.fetch_forecast">
-<a class="viewcode-back" href="../../index.html#fue.Data.fetch_forecast">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.fetch_forecast">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Uses the internal OpenMeteoClient to download live forward-looking forecasts.</span>
@@ -449,7 +454,7 @@
 
 
 <div class="viewcode-block" id="Data.combine_and_store_forecasts">
-<a class="viewcode-back" href="../../index.html#fue.Data.combine_and_store_forecasts">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.combine_and_store_forecasts">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">combine_and_store_forecasts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_forecasts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Merges newly scraped forecast entries into our main persistent CSV archive file.</span>
@@ -489,7 +494,7 @@
 
 
 <div class="viewcode-block" id="Data.get_collection_summary">
-<a class="viewcode-back" href="../../index.html#fue.Data.get_collection_summary">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#fue.Data.get_collection_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_collection_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a quick diagnostic status report for all our monitored cities.</span>
