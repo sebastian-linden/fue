@@ -543,7 +543,7 @@ sunshine parameters based on geographical day lengths.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="fue.HyperparameterTuner">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">HyperparameterTuner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">UncertaintyModel</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'global'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_metric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RMSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/tuner.html#HyperparameterTuner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.HyperparameterTuner" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.</span></span><span class="sig-name descname"><span class="pre">HyperparameterTuner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.base.UncertaintyModel"><span class="pre">UncertaintyModel</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'global'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_metric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RMSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/tuner.html#HyperparameterTuner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.HyperparameterTuner" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Automates the process of finding the best settings for our uncertainty models.</p>
 <p>This class loops through a grid of possible hyperparameter values, runs training
@@ -551,7 +551,7 @@ and evaluation iterations for each setting combination, collapses multi-target
 error scores down to a single optimization value, and selects the champion model.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fue.HyperparameterTuner.search">
-<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">MLUncertaintyModel</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/fue/tuner.html#HyperparameterTuner.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.HyperparameterTuner.search" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#fue.models.MLUncertaintyModel" title="fue.models.ml_model.MLUncertaintyModel"><span class="pre">MLUncertaintyModel</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/fue/tuner.html#HyperparameterTuner.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.HyperparameterTuner.search" title="Link to this definition"></a></dt>
 <dd><p>Runs the grid search sweep across all setting combinations to find the best model.</p>
 <p>Generates all hyperparameter combinations, trains a model candidate on the training pool,
 evaluates performance against validation records, and prints an updated leaderboard
@@ -577,7 +577,7 @@ automatically using the project’s timestamp utilities.</p></li>
 </p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>tuple of (UncertaintyModel, list of dict)</p>
+<dd class="field-odd"><p>tuple of (<a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.UncertaintyModel">UncertaintyModel</a>, list of dict)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -608,6 +608,200 @@ Columns include: ‘location_name’, ‘latitude’, ‘longitude’,
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-fue.models">
+<dt class="sig sig-object py" id="fue.models.LinearUncertaintyModel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.models.</span></span><span class="sig-name descname"><span class="pre">LinearUncertaintyModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#fue.Config" title="fue.config.Config"><span class="pre">Config</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/models/linear_model.html#LinearUncertaintyModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.LinearUncertaintyModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.base.UncertaintyModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">UncertaintyModel</span></code></a></p>
+<p>A baseline linear regression model used to estimate forecast error bounds.</p>
+<p>This model inherits from the base UncertaintyModel. It uses scikit-learn’s
+standard linear regression to find straight-line trends between our preprocessed
+weather features and historical forecast error scales.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.models.MLUncertaintyModel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.models.</span></span><span class="sig-name descname"><span class="pre">MLUncertaintyModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layer_sizes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(32,</span> <span class="pre">16)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/models/ml_model.html#MLUncertaintyModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.MLUncertaintyModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.base.UncertaintyModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">UncertaintyModel</span></code></a></p>
+<p>A machine learning neural network ensemble used to estimate forecast error bounds.</p>
+<p>This model inherits from the base UncertaintyModel. Instead of relying on a single
+neural network, it trains an ensemble of multiple Multi-Layer Perceptrons (MLPs).
+Averaging predictions across this group helps smooth out random variations caused
+by network weight initialization, delivering reliable, non-linear error ceiling estimates.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.models.</span></span><span class="sig-name descname"><span class="pre">UncertaintyModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#fue.Config" title="fue.config.Config"><span class="pre">Config</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Sets up the baseline variables, configuration properties, and preprocessor hooks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#fue.Config" title="fue.Config"><em>Config</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – The global settings mapping object. If None is provided, a fresh
+internal configuration default mapping is created.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Validates model accuracy against standalone validation data rows.</p>
+<p>Generates real-world error predictions on a test frame and evaluates
+accuracy scores, saving Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE)
+per column parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df_val</strong> (<em>pd.DataFrame</em>) – The out-of-sample data frame slice used for verification.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A summary dictionary mapping target column titles directly to nested
+MAE and RMSE float validation values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.base.UncertaintyModel"><span class="pre">UncertaintyModel</span></a></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.fit" title="Link to this definition"></a></dt>
+<dd><p>Prepares features statefully and triggers the submodel training calculations.</p>
+<p>Verifies that your target outputs include the explicit absolute difference prefix,
+learns and applies adjustments using the data preprocessor, builds input
+design data frames, and forwards the cleaned states down to your chosen submodel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – The input weather training lines pooled from local source storage.</p></li>
+<li><p><strong>feature_columns</strong> (<em>list</em><em> of </em><em>str</em>) – The explicit names of rows used as features for the models.</p></li>
+<li><p><strong>target_columns</strong> (<em>list</em><em> of </em><em>str</em>) – The calculated forecast deviation columns we want to estimate (must begin with ‘<a href="#id3"><span class="problematic" id="id5">abs_diff__</span></a>’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The current class instance with trained tracking weights.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.UncertaintyModel">UncertaintyModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.load">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'runs'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.base.UncertaintyModel"><span class="pre">UncertaintyModel</span></a></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.load" title="Link to this definition"></a></dt>
+<dd><p>Restores a trained estimator model from a persistent binary checkpoint file.</p>
+<p>Climbs structural parent folders to anchor an absolute look-up reference
+and reconstructs the joblib model state safely. This bypasses folder breaks
+caused by moving between notebook spaces and terminal folders.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_id</strong> (<em>str</em>) – The tracking string folder label name to restore.</p></li>
+<li><p><strong>runs_dir</strong> (<em>str</em><em>, </em><em>default=&quot;runs&quot;</em>) – The repository destination folder name where experiment assets are stored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The restored instance, ready to generate forward inferences immediately.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fue.models.UncertaintyModel" title="fue.models.UncertaintyModel">UncertaintyModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.plot_learning_curve">
+<span class="sig-name descname"><span class="pre">plot_learning_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">convergence_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'MAE'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.plot_learning_curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.plot_learning_curve" title="Link to this definition"></a></dt>
+<dd><p>Draws a diagnostic learning curve plot using your convergence data results.</p>
+<p>Plots validation error rates against training row counts on a log-log axis system.
+This graph helps confirm if your model scales effectively with additional rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>convergence_history</strong> (<em>dict</em>) – The multi-target validation summary dictionary generated by your tuner class layers.</p></li>
+<li><p><strong>metric</strong> (<em>str</em><em>, </em><em>default=&quot;MAE&quot;</em>) – The specific score variable line you want to visualize (‘MAE’ or ‘RMSE’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.predict" title="Link to this definition"></a></dt>
+<dd><p>Generates error magnitude inferences and transforms variables back to normal units.</p>
+<p>Applies the training scaling rules to incoming test metrics, requests the raw
+estimated targets from your submodel calculation layer, and performs exponential
+re-scaling to restore real-world weather units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – Fresh forecast records requiring uncertainty predictions.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A clean data frame holding the final estimated absolute error bounds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'runs'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.save" title="Link to this definition"></a></dt>
+<dd><p>Serializes the active model instance state and tracks metrics inside a run folder.</p>
+<p>Dumps the entire pipeline structure via joblib and exports an auxiliary <cite>meta.json</cite>
+manifest capturing timing attributes, target names, feature sets, and scoring matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_id</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – A custom experiment tracking label token name. If None, resolves a token
+dynamically via generation hooks.</p></li>
+<li><p><strong>metrics</strong> (<em>dict</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Leaderboard error values to save inside the metadata file sheet.</p></li>
+<li><p><strong>runs_dir</strong> (<em>str</em><em>, </em><em>default=&quot;runs&quot;</em>) – The base directory location name on your filesystem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A two-element tuple containing:
+- The full absolute path pointing to the created run folder on disk.
+- The tracking run string token name.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of (pathlib.Path, str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fue.models.UncertaintyModel.study_data_convergence">
+<span class="sig-name descname"><span class="pre">study_data_convergence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/fue/models/base.html#UncertaintyModel.study_data_convergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.UncertaintyModel.study_data_convergence" title="Link to this definition"></a></dt>
+<dd><p>Evaluates model skill improvements over expanding sample size slices.</p>
+<p>Repeatedly trains the model on increasing fractions of your data pool
+and evaluates skill against validation rows. This records how error metrics
+evolve as the model receives more training rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_df</strong> (<em>pd.DataFrame</em>) – The clean training data footprint.</p></li>
+<li><p><strong>val_df</strong> (<em>pd.DataFrame</em>) – The unseen validation split used for tracking convergence scores.</p></li>
+<li><p><strong>feature_columns</strong> (<em>list</em><em> of </em><em>str</em>) – List of tracking elements to use as inputs.</p></li>
+<li><p><strong>target_columns</strong> (<em>list</em><em> of </em><em>str</em>) – List of forecast difference vectors to calculate.</p></li>
+<li><p><strong>increments</strong> (<em>list</em><em> of </em><em>float</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – A series of sample size percentages to check (for example: <cite>[0.1, 0.5, 1.0]</cite>).
+If None, applies the default schedule.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary structure tracking MAE, RMSE, and row counts over every iteration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>

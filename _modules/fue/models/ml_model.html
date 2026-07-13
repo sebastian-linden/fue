@@ -1,0 +1,282 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fue.models.ml_model &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data/index.html">Forecast Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../model/index.html">Mathematical Background</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">fue.models.ml_model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for fue.models.ml_model</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Ensemble Multi-Layer Perceptron (MLP) network model implementation for the fue package.</span>
+
+<span class="sd">This module provides a concrete subclass that fits an ensemble of neural network</span>
+<span class="sd">regressors to estimate non-linear absolute deviations of forecast weather parameters</span>
+<span class="sd">while minimizing random initialization variance.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.neural_network</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLPRegressor</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">UncertaintyModel</span>
+
+<span class="c1"># Initialize module-scoped logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MLUncertaintyModel">
+<a class="viewcode-back" href="../../../index.html#fue.models.MLUncertaintyModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MLUncertaintyModel</span><span class="p">(</span><span class="n">UncertaintyModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A machine learning neural network ensemble used to estimate forecast error bounds.</span>
+
+<span class="sd">    This model inherits from the base UncertaintyModel. Instead of relying on a single</span>
+<span class="sd">    neural network, it trains an ensemble of multiple Multi-Layer Perceptrons (MLPs).</span>
+<span class="sd">    Averaging predictions across this group helps smooth out random variations caused</span>
+<span class="sd">    by network weight initialization, delivering reliable, non-linear error ceiling estimates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hidden_layer_sizes</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">ensemble_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the neural network ensemble model with custom training parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config : Config or None, default=None</span>
+<span class="sd">            The global settings mapping object. If None, resolves a default pipeline setup.</span>
+<span class="sd">        hidden_layer_sizes : tuple of int, default=(32, 16)</span>
+<span class="sd">            The structural configuration mapping hidden layers and node counts.</span>
+<span class="sd">        max_iter : int, default=500</span>
+<span class="sd">            The maximum number of training epochs allowed during backpropagation sweeps.</span>
+<span class="sd">        alpha : float, default=0.01</span>
+<span class="sd">            L2 regularization penalty value to protect network weights from overfitting.</span>
+<span class="sd">        ensemble_size : int, default=5</span>
+<span class="sd">            The total number of individual neural network models to train inside the ensemble pool.</span>
+<span class="sd">        seed : int, default=42</span>
+<span class="sd">            The starting random seed used to generate unique, reproducible states for each member.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_layer_sizes</span> <span class="o">=</span> <span class="n">hidden_layer_sizes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_size</span> <span class="o">=</span> <span class="n">ensemble_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Initialized MLUncertaintyModel: hidden_layers=</span><span class="si">%s</span><span class="s2">, max_iter=</span><span class="si">%d</span><span class="s2">, alpha=</span><span class="si">%s</span><span class="s2">, ensemble_size=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">hidden_layer_sizes</span><span class="p">,</span>
+            <span class="n">max_iter</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="p">,</span>
+            <span class="n">ensemble_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Trains each Multi-Layer Perceptron member inside the model ensemble.</span>
+
+<span class="sd">        Loops through the configured ensemble size, sets a unique random seed for each submodel,</span>
+<span class="sd">        initializes scikit-learn MLP Regressors with early stopping to prevent overfitting,</span>
+<span class="sd">        and statefully tracks the completed sub-models in memory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame</span>
+<span class="sd">            The preprocessed and scaled design matrix containing feature values.</span>
+<span class="sd">        Y : pd.DataFrame</span>
+<span class="sd">            The target data frame containing true historical absolute deviations.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Training an Ensemble of </span><span class="si">%d</span><span class="s2"> MLP Regressors...&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_size</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Training features shape: </span><span class="si">%s</span><span class="s2">, targets shape: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ensemble_size</span><span class="p">):</span>
+            <span class="n">member_seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">+</span> <span class="n">i</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Training ensemble sub-model </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> with seed </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_size</span><span class="p">,</span> <span class="n">member_seed</span><span class="p">)</span>
+
+            <span class="n">model</span> <span class="o">=</span> <span class="n">MLPRegressor</span><span class="p">(</span>
+                <span class="n">hidden_layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_layer_sizes</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span>
+                <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">max_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span>
+                <span class="n">early_stopping</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">validation_fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">random_state</span><span class="o">=</span><span class="n">member_seed</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+
+            <span class="c1"># Log individual sub-model convergence metrics if early stopping triggered</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Sub-model </span><span class="si">%d</span><span class="s2"> converged after </span><span class="si">%d</span><span class="s2"> iterations. Final loss: </span><span class="si">%.4f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">n_iter_</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">loss_</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully trained all </span><span class="si">%d</span><span class="s2"> models in the ensemble.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_size</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_predict_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates aggregated error scale predictions from all trained neural networks.</span>
+
+<span class="sd">        Gathers individual predictions from every submodel in our ensemble pool, computes</span>
+<span class="sd">        their arithmetic mean, maps the results to your target labels, and clips any final</span>
+<span class="sd">        negative values to 0.0 to respect real-world physical boundaries.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame</span>
+<span class="sd">            The design matrix holding preprocessed inputs for our prediction tracking.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A data frame containing the averaged absolute deviation predictions, with all</span>
+<span class="sd">            values guaranteed to be 0 or higher.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If you try to run predictions before the model ensemble has been trained.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;Model ensemble must be statefully trained via .fit() before prediction.&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating ensemble predictions for </span><span class="si">%d</span><span class="s2"> records...&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+
+        <span class="c1"># Collect predictions from all sub-models</span>
+        <span class="n">ensemble_predictions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Computing inference path for ensemble sub-model </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">))</span>
+            <span class="n">ensemble_predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+
+        <span class="c1"># Average predictions across the 3D array axis</span>
+        <span class="n">mean_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ensemble_predictions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mean_predictions</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># Monitor structural adjustments (e.g., physical target lower bounding adjustments)</span>
+        <span class="n">clipped_values</span> <span class="o">=</span> <span class="p">(</span><span class="n">output_df</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">clipped_values</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Enforced physical constraint boundary: Clipped </span><span class="si">%d</span><span class="s2"> negative predictions to 0.0&quot;</span><span class="p">,</span> <span class="n">clipped_values</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output_df</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

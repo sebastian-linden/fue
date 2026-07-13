@@ -1,0 +1,593 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fue.models.base &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data/index.html">Forecast Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../model/index.html">Mathematical Background</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">fue.models.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for fue.models.base</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Abstract base class definition for models within the fue package.</span>
+
+<span class="sd">This module defines the skeleton and shared workflows for all uncertainty</span>
+<span class="sd">estimators. It manages feature preprocessing, coordinate scaling, prediction mapping,</span>
+<span class="sd">and validation tools like model training convergence checks.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">joblib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fue.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fue.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_run_id</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.preprocessor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Preprocessor</span>
+
+<span class="c1"># Initialize the module-level logger using lazy formatting conventions</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="UncertaintyModel">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UncertaintyModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets up the baseline variables, configuration properties, and preprocessor hooks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : Config or None, default=None</span>
+<span class="sd">        The global settings mapping object. If None is provided, a fresh</span>
+<span class="sd">        internal configuration default mapping is created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prepares features statefully and triggers the submodel training calculations.</span>
+
+<span class="sd">        Verifies that your target outputs include the explicit absolute difference prefix,</span>
+<span class="sd">        learns and applies adjustments using the data preprocessor, builds input</span>
+<span class="sd">        design data frames, and forwards the cleaned states down to your chosen submodel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            The input weather training lines pooled from local source storage.</span>
+<span class="sd">        feature_columns : list of str</span>
+<span class="sd">            The explicit names of rows used as features for the models.</span>
+<span class="sd">        target_columns : list of str</span>
+<span class="sd">            The calculated forecast deviation columns we want to estimate (must begin with &#39;abs_diff__&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        UncertaintyModel</span>
+<span class="sd">            The current class instance with trained tracking weights.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No configuration provided; initializing default Config object.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="o">=</span> <span class="n">Preprocessor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_preprocessing_rules</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_feature_columns</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_fitted</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="UncertaintyModel.fit">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.fit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">feature_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prepares features statefully and triggers the submodel training calculations.</span>
+
+<span class="sd">        Verifies that your target outputs include the explicit absolute difference prefix,</span>
+<span class="sd">        learns and applies adjustments using the data preprocessor, builds input</span>
+<span class="sd">        design data frames, and forwards the cleaned states down to your chosen submodel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            The input weather training lines pooled from local source storage.</span>
+<span class="sd">        feature_columns : list of str</span>
+<span class="sd">            The explicit names of rows used as features for the models.</span>
+<span class="sd">        target_columns : list of str</span>
+<span class="sd">            The calculated forecast deviation columns we want to estimate (must begin with &#39;abs_diff__&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        UncertaintyModel</span>
+<span class="sd">            The current class instance with trained tracking weights.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing uncertainty model fitting sequence.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Input DataFrame shape: </span><span class="si">%s</span><span class="s2">. Raw feature column count: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_columns</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_feature_columns</span> <span class="o">=</span> <span class="n">feature_columns</span>
+        <span class="c1"># The target columns are pre-fixed with &quot;abs_diff__&quot; indicating that they refer</span>
+        <span class="c1"># to the absolute difference between the forecast and the actual observation.</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">target_columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">col</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;abs_diff__&quot;</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Validation failed: target column &#39;</span><span class="si">%s</span><span class="s2">&#39; missing required &#39;abs_diff__&#39; prefix.&quot;</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Target column &#39;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&#39; must be prefixed with &#39;abs_diff__&#39; to indicate absolute difference.&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span> <span class="o">=</span> <span class="n">target_columns</span>
+
+        <span class="c1"># 1. Statefully evaluate data and output completed arrays</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing preprocessing pipeline (fit and transform).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">scaled_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+        <span class="c1"># 2. ASK the preprocessor what the true final feature column layout is</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span><span class="o">.</span><span class="n">map_feature_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_feature_columns</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Mapped raw features to processed feature column layout. Final count: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 3. Segregate clean feature arrays and multi-target vectors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">scaled_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">scaled_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Segregated matrices created. X shape: </span><span class="si">%s</span><span class="s2">, Y shape: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># 4. Pass matrices down to subclass calculations</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Passing matrices down to concrete subclass mathematical operations.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_internal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uncertainty model fitting sequence successfully completed.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="UncertaintyModel.predict">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates error magnitude inferences and transforms variables back to normal units.</span>
+
+<span class="sd">        Applies the training scaling rules to incoming test metrics, requests the raw</span>
+<span class="sd">        estimated targets from your submodel calculation layer, and performs exponential</span>
+<span class="sd">        re-scaling to restore real-world weather units.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            Fresh forecast records requiring uncertainty predictions.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A clean data frame holding the final estimated absolute error bounds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Prediction sequence aborted: model pipeline lacks stateful fit.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Model pipeline must be statefully `.fit()` before generating inferences.&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initiating inference pipeline.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Inference DataFrame dimensions: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># 1. Transform inference features identically</span>
+        <span class="n">scaled_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">scaled_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span><span class="p">]</span>
+
+        <span class="c1"># 2. Get raw transformed model output arrays from subclass</span>
+        <span class="n">raw_predictions_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_internal</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Generated raw internal predictions. Output shape: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">raw_predictions_df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># 3. Symmetrically iterate through target variables and back-scale them to real world units</span>
+        <span class="n">inverted_predictions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">raw_predictions_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">raw_predictions_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="c1"># We map back matching rules using the base target column string names</span>
+            <span class="c1"># (Subclasses must name output metrics to match target_columns strings)</span>
+            <span class="n">base_target_name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">col</span><span class="p">),</span> <span class="n">col</span><span class="p">)</span>
+            <span class="n">inverted_predictions</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span><span class="o">.</span><span class="n">inverse_transform_target</span><span class="p">(</span>
+                <span class="n">raw_predictions_df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">target_name</span><span class="o">=</span><span class="n">base_target_name</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Applied inverse data transformation for prediction target: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">base_target_name</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inference pipeline successfully completed.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">inverted_predictions</span></div>
+
+
+<div class="viewcode-block" id="UncertaintyModel.evaluate">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_val</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates model accuracy against standalone validation data rows.</span>
+
+<span class="sd">        Generates real-world error predictions on a test frame and evaluates</span>
+<span class="sd">        accuracy scores, saving Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE)</span>
+<span class="sd">        per column parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df_val : pd.DataFrame</span>
+<span class="sd">            The out-of-sample data frame slice used for verification.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A summary dictionary mapping target column titles directly to nested</span>
+<span class="sd">            MAE and RMSE float validation values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Evaluation sequence aborted: model lacks target column state.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Model must be statefully `.fit()` before running evaluation.&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing model validation evaluation.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Generate real-world inverted unit predictions</span>
+        <span class="n">predictions_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df_val</span><span class="p">)</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span><span class="p">:</span>
+            <span class="n">actual</span> <span class="o">=</span> <span class="n">df_val</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">predictions_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="n">mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">predicted</span><span class="p">))</span>
+            <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">predicted</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+            <span class="n">metrics</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;MAE&quot;</span><span class="p">:</span> <span class="n">mae</span><span class="p">,</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">:</span> <span class="n">rmse</span><span class="p">}</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Computed validation metrics for target </span><span class="si">%s</span><span class="s2"> - MAE: </span><span class="si">%s</span><span class="s2">, RMSE: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">mae</span><span class="p">,</span> <span class="n">rmse</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model validation completed across </span><span class="si">%s</span><span class="s2"> target(s).&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">metrics</span></div>
+
+
+<div class="viewcode-block" id="UncertaintyModel.study_data_convergence">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.study_data_convergence">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">study_data_convergence</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">train_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">val_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">feature_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">target_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">increments</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates model skill improvements over expanding sample size slices.</span>
+
+<span class="sd">        Repeatedly trains the model on increasing fractions of your data pool</span>
+<span class="sd">        and evaluates skill against validation rows. This records how error metrics</span>
+<span class="sd">        evolve as the model receives more training rows.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_df : pd.DataFrame</span>
+<span class="sd">            The clean training data footprint.</span>
+<span class="sd">        val_df : pd.DataFrame</span>
+<span class="sd">            The unseen validation split used for tracking convergence scores.</span>
+<span class="sd">        feature_columns : list of str</span>
+<span class="sd">            List of tracking elements to use as inputs.</span>
+<span class="sd">        target_columns : list of str</span>
+<span class="sd">            List of forecast difference vectors to calculate.</span>
+<span class="sd">        increments : list of float or None, default=None</span>
+<span class="sd">            A series of sample size percentages to check (for example: `[0.1, 0.5, 1.0]`).</span>
+<span class="sd">            If None, applies the default schedule.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary structure tracking MAE, RMSE, and row counts over every iteration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting data convergence study over fractional sample increments.&quot;</span><span class="p">)</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="p">{</span><span class="n">target</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MAE&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;sizes&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">target_columns</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">increments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">increments</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No fractional increments provided. Applying default schedule: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">increments</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fraction</span> <span class="ow">in</span> <span class="n">increments</span><span class="p">:</span>
+            <span class="n">slice_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_df</span><span class="p">)</span> <span class="o">*</span> <span class="n">fraction</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">slice_size</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>  <span class="c1"># Skip trivial small slices</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Convergence training slice critically small (size </span><span class="si">%s</span><span class="s2"> &lt; 5). Skipping increment.&quot;</span><span class="p">,</span> <span class="n">slice_size</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Evaluating convergence data slice: </span><span class="si">%s</span><span class="s2"> samples (fraction </span><span class="si">%s</span><span class="s2">).&quot;</span><span class="p">,</span> <span class="n">slice_size</span><span class="p">,</span> <span class="n">fraction</span><span class="p">)</span>
+            <span class="n">train_slice</span> <span class="o">=</span> <span class="n">train_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">slice_size</span><span class="p">]</span>
+
+            <span class="c1"># Reset pipeline states and fit on the subset slice</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_slice</span><span class="p">,</span> <span class="n">feature_columns</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">)</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">val_df</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">target_columns</span><span class="p">:</span>
+                <span class="n">history</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="s2">&quot;MAE&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="s2">&quot;MAE&quot;</span><span class="p">])</span>
+                <span class="n">history</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="s2">&quot;RMSE&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="s2">&quot;RMSE&quot;</span><span class="p">])</span>
+                <span class="n">history</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="s2">&quot;sizes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slice_size</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data convergence study successfully concluded.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">history</span></div>
+
+
+<div class="viewcode-block" id="UncertaintyModel.plot_learning_curve">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.plot_learning_curve">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_learning_curve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convergence_history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;MAE&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Draws a diagnostic learning curve plot using your convergence data results.</span>
+
+<span class="sd">        Plots validation error rates against training row counts on a log-log axis system.</span>
+<span class="sd">        This graph helps confirm if your model scales effectively with additional rows.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        convergence_history : dict</span>
+<span class="sd">            The multi-target validation summary dictionary generated by your tuner class layers.</span>
+<span class="sd">        metric : str, default=&quot;MAE&quot;</span>
+<span class="sd">            The specific score variable line you want to visualize (&#39;MAE&#39; or &#39;RMSE&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;MAE&quot;</span><span class="p">,</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Plot generation aborted: incompatible metric variant &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Metric variant specification must be either &#39;MAE&#39; or &#39;RMSE&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Compiling learning curve plot for diagnostic metric: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">target</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">convergence_history</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">sizes</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;sizes&quot;</span><span class="p">]</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span>
+            <span class="n">clean_label</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;abs_diff__&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Plotting </span><span class="si">%s</span><span class="s2"> data points for target label: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizes</span><span class="p">),</span> <span class="n">clean_label</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">clean_label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model Convergence Analysis (Validation </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2"> vs. Training Samples)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Number of Processed Training Data Points&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation Set Error Vector (</span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Learning curve visualization rendered and dispatched to graphical backend.&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="UncertaintyModel.save">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">runs_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;runs&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializes the active model instance state and tracks metrics inside a run folder.</span>
+
+<span class="sd">        Dumps the entire pipeline structure via joblib and exports an auxiliary `meta.json`</span>
+<span class="sd">        manifest capturing timing attributes, target names, feature sets, and scoring matrices.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        run_id : str or None, default=None</span>
+<span class="sd">            A custom experiment tracking label token name. If None, resolves a token</span>
+<span class="sd">            dynamically via generation hooks.</span>
+<span class="sd">        metrics : dict or None, default=None</span>
+<span class="sd">            Leaderboard error values to save inside the metadata file sheet.</span>
+<span class="sd">        runs_dir : str, default=&quot;runs&quot;</span>
+<span class="sd">            The base directory location name on your filesystem.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of (pathlib.Path, str)</span>
+<span class="sd">            A two-element tuple containing:</span>
+<span class="sd">            - The full absolute path pointing to the created run folder on disk.</span>
+<span class="sd">            - The tracking run string token name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Fallback to automatic timestamped naming if no ID is passed explicitly</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">run_id</span><span class="p">:</span>
+            <span class="n">run_id</span> <span class="o">=</span> <span class="n">generate_run_id</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No explicit run_id provided. Auto-generated identifier: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+
+        <span class="n">run_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">runs_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">run_id</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># 2. Synchronize directory generation</span>
+            <span class="n">run_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Tracking experiment artifacts in run directory: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_path</span><span class="p">)</span>
+
+            <span class="c1"># 3. Dump the complete stateful wrapper object via joblib</span>
+            <span class="n">model_file</span> <span class="o">=</span> <span class="n">run_path</span> <span class="o">/</span> <span class="s2">&quot;model.joblib&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Serializing complete wrapper instance structure via joblib...&quot;</span><span class="p">)</span>
+            <span class="n">joblib</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_file</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully serialized model state to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="c1"># 4. Process tracking metrics to a structured json file</span>
+            <span class="k">if</span> <span class="n">metrics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">meta_file</span> <span class="o">=</span> <span class="n">run_path</span> <span class="o">/</span> <span class="s2">&quot;meta.json&quot;</span>
+                <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;run_id&quot;</span><span class="p">:</span> <span class="n">run_id</span><span class="p">,</span>
+                    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                    <span class="s2">&quot;model_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                    <span class="s2">&quot;features_used&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span><span class="p">,</span>
+                    <span class="s2">&quot;targets_tracked&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_columns</span><span class="p">,</span>
+                    <span class="s2">&quot;metrics&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">,</span>
+                <span class="p">}</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Writing validation metric norms to tracking manifest...&quot;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">meta_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully documented validation performance run sheets in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">meta_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">run_path</span><span class="p">,</span> <span class="n">run_id</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to commit run directory tracking for run_id </span><span class="si">%s</span><span class="s2">. Trace error: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="UncertaintyModel.load">
+<a class="viewcode-back" href="../../../index.html#fue.models.UncertaintyModel.load">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">runs_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;runs&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Restores a trained estimator model from a persistent binary checkpoint file.</span>
+
+<span class="sd">        Climbs structural parent folders to anchor an absolute look-up reference</span>
+<span class="sd">        and reconstructs the joblib model state safely. This bypasses folder breaks</span>
+<span class="sd">        caused by moving between notebook spaces and terminal folders.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        run_id : str</span>
+<span class="sd">            The tracking string folder label name to restore.</span>
+<span class="sd">        runs_dir : str, default=&quot;runs&quot;</span>
+<span class="sd">            The repository destination folder name where experiment assets are stored.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        UncertaintyModel</span>
+<span class="sd">            The restored instance, ready to generate forward inferences immediately.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Establish an absolute anchor path back to your project root folder</span>
+        <span class="c1"># (src/fue/models/base.py is 3 levels deep from the package root directory)</span>
+        <span class="n">package_src_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="c1"># 2. Build absolute paths to avoid context breaks in Jupyter Notebooks</span>
+        <span class="n">model_file</span> <span class="o">=</span> <span class="n">package_src_dir</span> <span class="o">/</span> <span class="n">runs_dir</span> <span class="o">/</span> <span class="n">run_id</span> <span class="o">/</span> <span class="s2">&quot;model.joblib&quot;</span>
+
+        <span class="c1"># Fallback check for hidden folder structures if written by an alternative tuner layer</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">alternative_path</span> <span class="o">=</span> <span class="n">package_src_dir</span> <span class="o">/</span> <span class="s2">&quot;.fue&quot;</span> <span class="o">/</span> <span class="s2">&quot;runs&quot;</span> <span class="o">/</span> <span class="n">run_id</span> <span class="o">/</span> <span class="s2">&quot;model.joblib&quot;</span>
+            <span class="k">if</span> <span class="n">alternative_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">model_file</span> <span class="o">=</span> <span class="n">alternative_path</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to restore model checkpoint state for run tracking key: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target file lookup path resolved to: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Reconstruction failed. No binary checkpoint file found at location: </span><span class="si">{</span><span class="n">model_file</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loaded_model</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_file</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Restoration complete. Successfully loaded instance type: </span><span class="si">%s</span><span class="s2"> (Fitted state: </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">loaded_model</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">loaded_model</span><span class="p">,</span> <span class="s2">&quot;_is_fitted&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">loaded_model</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Binary deserialization error encountered during joblib parsing of </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_file</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subclass calculation hook to fit the underlying model algorithm parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_predict_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subclass calculation hook to compute point predictions from input features.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
