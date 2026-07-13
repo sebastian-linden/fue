@@ -28,3 +28,9 @@ Autodoc API Reference
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+.. automodule:: fue.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
