@@ -1,3 +1,11 @@
+"""
+Abstract base class definition for models within the fue package.
+
+This module defines the skeleton and shared workflows for all uncertainty
+estimators. It manages feature preprocessing, coordinate scaling, prediction mapping,
+and validation tools like model training convergence checks.
+"""
+
 import json
 import logging
 from abc import ABC, abstractmethod
@@ -19,11 +27,38 @@ logger = logging.getLogger(__name__)
 
 
 class UncertaintyModel(ABC):
-    """Abstract Base Class orchestrating data preprocessing, pipeline coordination,
-    and inverse metric mapping for multi-target forecast uncertainty estimation models.
+    """
+    Sets up the baseline variables, configuration properties, and preprocessor hooks.
+
+    Parameters
+    ----------
+    config : Config or None, default=None
+        The global settings mapping object. If None is provided, a fresh
+        internal configuration default mapping is created.
     """
 
-    def __init__(self, config: Config | None = None):
+    def __init__(self, config: Config | None = None) -> None:
+        """
+        Prepares features statefully and triggers the submodel training calculations.
+
+        Verifies that your target outputs include the explicit absolute difference prefix,
+        learns and applies adjustments using the data preprocessor, builds input
+        design data frames, and forwards the cleaned states down to your chosen submodel.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The input weather training lines pooled from local source storage.
+        feature_columns : list of str
+            The explicit names of rows used as features for the models.
+        target_columns : list of str
+            The calculated forecast deviation columns we want to estimate (must begin with 'abs_diff__').
+
+        Returns
+        -------
+        UncertaintyModel
+            The current class instance with trained tracking weights.
+        """
         if config is None:
             logger.debug("No configuration provided; initializing default Config object.")
             self.config = Config()
@@ -38,8 +73,26 @@ class UncertaintyModel(ABC):
         self._is_fitted = False
 
     def fit(self, df: pd.DataFrame, feature_columns: list, target_columns: list) -> "UncertaintyModel":
-        """Fits preprocessor metadata, maps dynamic layout adjustments,
-        and trains concrete multi-target subclasses.
+        """
+        Prepares features statefully and triggers the submodel training calculations.
+
+        Verifies that your target outputs include the explicit absolute difference prefix,
+        learns and applies adjustments using the data preprocessor, builds input
+        design data frames, and forwards the cleaned states down to your chosen submodel.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The input weather training lines pooled from local source storage.
+        feature_columns : list of str
+            The explicit names of rows used as features for the models.
+        target_columns : list of str
+            The calculated forecast deviation columns we want to estimate (must begin with 'abs_diff__').
+
+        Returns
+        -------
+        UncertaintyModel
+            The current class instance with trained tracking weights.
         """
         logger.info("Initializing uncertainty model fitting sequence.")
         logger.debug("Input DataFrame shape: %s. Raw feature column count: %s.", df.shape, len(feature_columns))
@@ -80,7 +133,23 @@ class UncertaintyModel(ABC):
         return self
 
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Applies learned feature transformations and automatically rescales predictions."""
+        """
+        Generates error magnitude inferences and transforms variables back to normal units.
+
+        Applies the training scaling rules to incoming test metrics, requests the raw
+        estimated targets from your submodel calculation layer, and performs exponential
+        re-scaling to restore real-world weather units.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Fresh forecast records requiring uncertainty predictions.
+
+        Returns
+        -------
+        pd.DataFrame
+            A clean data frame holding the final estimated absolute error bounds.
+        """
         if self.processed_feature_columns is None or self.target_columns is None:
             logger.error("Prediction sequence aborted: model pipeline lacks stateful fit.")
             raise RuntimeError("Model pipeline must be statefully `.fit()` before generating inferences.")
@@ -111,9 +180,23 @@ class UncertaintyModel(ABC):
         return inverted_predictions
 
     def evaluate(self, df_val: pd.DataFrame) -> dict:
-        """Evaluates the model's prediction accuracy against a validation dataset.
+        """
+        Validates model accuracy against standalone validation data rows.
 
-        Returns a dictionary containing MAE and RMSE for each target variable.
+        Generates real-world error predictions on a test frame and evaluates
+        accuracy scores, saving Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE)
+        per column parameter.
+
+        Parameters
+        ----------
+        df_val : pd.DataFrame
+            The out-of-sample data frame slice used for verification.
+
+        Returns
+        -------
+        dict
+            A summary dictionary mapping target column titles directly to nested
+            MAE and RMSE float validation values.
         """
         if self.target_columns is None:
             logger.error("Evaluation sequence aborted: model lacks target column state.")
@@ -146,7 +229,32 @@ class UncertaintyModel(ABC):
         target_columns: list,
         increments: list | None = None,
     ) -> dict:
-        """Studies model validation error trajectories across increasing dataset sizes."""
+        """
+        Evaluates model skill improvements over expanding sample size slices.
+
+        Repeatedly trains the model on increasing fractions of your data pool
+        and evaluates skill against validation rows. This records how error metrics
+        evolve as the model receives more training rows.
+
+        Parameters
+        ----------
+        train_df : pd.DataFrame
+            The clean training data footprint.
+        val_df : pd.DataFrame
+            The unseen validation split used for tracking convergence scores.
+        feature_columns : list of str
+            List of tracking elements to use as inputs.
+        target_columns : list of str
+            List of forecast difference vectors to calculate.
+        increments : list of float or None, default=None
+            A series of sample size percentages to check (for example: `[0.1, 0.5, 1.0]`).
+            If None, applies the default schedule.
+
+        Returns
+        -------
+        dict
+            A dictionary structure tracking MAE, RMSE, and row counts over every iteration.
+        """
         logger.info("Starting data convergence study over fractional sample increments.")
         history = {target: {"MAE": [], "RMSE": [], "sizes": []} for target in target_columns}
 
@@ -178,7 +286,23 @@ class UncertaintyModel(ABC):
         return history
 
     def plot_learning_curve(self, convergence_history: dict, metric: str = "MAE") -> None:
-        """Generates clear diagnostic validation plots tracking convergence against sample size."""
+        """
+        Draws a diagnostic learning curve plot using your convergence data results.
+
+        Plots validation error rates against training row counts on a log-log axis system.
+        This graph helps confirm if your model scales effectively with additional rows.
+
+        Parameters
+        ----------
+        convergence_history : dict
+            The multi-target validation summary dictionary generated by your tuner class layers.
+        metric : str, default="MAE"
+            The specific score variable line you want to visualize ('MAE' or 'RMSE').
+
+        Returns
+        -------
+        None
+        """
         if metric not in ["MAE", "RMSE"]:
             logger.error("Plot generation aborted: incompatible metric variant '%s'.", metric)
             raise ValueError("Metric variant specification must be either 'MAE' or 'RMSE'.")
@@ -206,18 +330,29 @@ class UncertaintyModel(ABC):
         logger.info("Learning curve visualization rendered and dispatched to graphical backend.")
         plt.show()
 
-    def save(self, run_id: str = None, metrics: dict = None, runs_dir: str = "runs") -> Path:  # ty: ignore [invalid-parameter-default]
-        """Persists the complete state of the UncertaintyModel wrapper along with
-        runtime tracking metrics to a predictable filesystem sandbox.
+    def save(self, run_id: str | None = None, metrics: dict | None = None, runs_dir: str = "runs") -> tuple[Path, str]:
+        """
+        Serializes the active model instance state and tracks metrics inside a run folder.
 
-        Args:
-            run_id: Unique string key for this train path. If None, generates a
-                timestamped tracker key automatically.
-            metrics: Validation error performance scores (e.g., MAE, RMSE values).
-            runs_dir: Path string where the nested directory trees are constructed.
+        Dumps the entire pipeline structure via joblib and exports an auxiliary `meta.json`
+        manifest capturing timing attributes, target names, feature sets, and scoring matrices.
 
-        Returns:
-            Path object mapping to the individual directory containing the run artifacts.
+        Parameters
+        ----------
+        run_id : str or None, default=None
+            A custom experiment tracking label token name. If None, resolves a token
+            dynamically via generation hooks.
+        metrics : dict or None, default=None
+            Leaderboard error values to save inside the metadata file sheet.
+        runs_dir : str, default="runs"
+            The base directory location name on your filesystem.
+
+        Returns
+        -------
+        tuple of (pathlib.Path, str)
+            A two-element tuple containing:
+            - The full absolute path pointing to the created run folder on disk.
+            - The tracking run string token name.
         """
         # 1. Fallback to automatic timestamped naming if no ID is passed explicitly
         if not run_id:
@@ -254,7 +389,7 @@ class UncertaintyModel(ABC):
                     json.dump(metadata, f, indent=4)
                 logger.info("Successfully documented validation performance run sheets in %s", meta_file.name)
 
-            return run_path, run_id  # ty: ignore [invalid-return-type]
+            return run_path, run_id
 
         except Exception as e:
             logger.error("Failed to commit run directory tracking for run_id %s. Trace error: %s", run_id, e)
@@ -262,14 +397,24 @@ class UncertaintyModel(ABC):
 
     @classmethod
     def load(cls, run_id: str, runs_dir: str = "runs") -> "UncertaintyModel":
-        """Reconstructs a fully fitted UncertaintyModel instance back from a stored tracking directory.
+        """
+        Restores a trained estimator model from a persistent binary checkpoint file.
 
-        Args:
-            run_id: Unique identifying folder token to restore.
-            runs_dir: Target upper directory lookup route.
+        Climbs structural parent folders to anchor an absolute look-up reference
+        and reconstructs the joblib model state safely. This bypasses folder breaks
+        caused by moving between notebook spaces and terminal folders.
 
-        Returns:
-            Fitted instance ready for out-of-sample inference.
+        Parameters
+        ----------
+        run_id : str
+            The tracking string folder label name to restore.
+        runs_dir : str, default="runs"
+            The repository destination folder name where experiment assets are stored.
+
+        Returns
+        -------
+        UncertaintyModel
+            The restored instance, ready to generate forward inferences immediately.
         """
         # 1. Establish an absolute anchor path back to your project root folder
         # (src/fue/models/base.py is 3 levels deep from the package root directory)
@@ -307,8 +452,14 @@ class UncertaintyModel(ABC):
 
     @abstractmethod
     def _fit_internal(self, X: pd.DataFrame, Y: pd.DataFrame) -> None:
+        """
+        Subclass calculation hook to fit the underlying model algorithm parameters.
+        """
         pass
 
     @abstractmethod
     def _predict_internal(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Subclass calculation hook to compute point predictions from input features.
+        """
         pass

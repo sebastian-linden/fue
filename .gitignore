@@ -60,6 +60,8 @@ data/backup
 # Personal notes
 my_workflow.md
 notes.md
+documentation_workflow.md
+roadmap.md
 
 # Cache
 scripts/.cache.sqlite

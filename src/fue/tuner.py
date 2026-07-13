@@ -1,3 +1,11 @@
+"""
+Hyperparameter optimization (HPO) engine for the fue package.
+
+This module provides grid-search capabilities to sweep through various model
+configurations, evaluate performance on out-of-sample validation data, and
+identify the optimal configuration for uncertainty estimation.
+"""
+
 import logging
 import warnings
 from typing import Any
@@ -16,12 +24,11 @@ logger = logging.getLogger(__name__)
 
 class HyperparameterTuner:
     """
-    Orchestrates in-memory hyperparameter optimization for FUE Uncertainty Models.
+    Automates the process of finding the best settings for our uncertainty models.
 
-    This tuner safely respects temporal data splits by taking pre-separated
-    training and validation dataframes. It performs an exhaustive grid search
-    in memory, tracks validation metrics for all configurations, and writes
-    only the highest-performing model to disk.
+    This class loops through a grid of possible hyperparameter values, runs training
+    and evaluation iterations for each setting combination, collapses multi-target
+    error scores down to a single optimization value, and selects the champion model.
     """
 
     def __init__(
@@ -32,20 +39,20 @@ class HyperparameterTuner:
         optimization_metric: str = "RMSE",
     ):
         """
-        Initializes the tuner with a model class and a search space.
+        Initializes the tuner with a target model type, parameters grid, and scoring metrics.
 
         Parameters
         ----------
-        model_class : Type[UncertaintyModel]
-            The uninstantiated class of the model to tune (e.g., MLUncertaintyModel).
-        param_grid : Dict[str, list]
-            Dictionary with parameters names (`str`) as keys and lists of parameter
-            settings to try as values.
-        optimization_target : str, optional
-            The specific target column to optimize for (e.g., 'abs_diff__temperature_2m_max').
-            If set to "global" (default), minimizes the average error across all targets.
-        optimization_metric : str, optional
-            The metric key to minimize. Usually "RMSE" (default) or "MAE".
+        model_class : type[UncertaintyModel]
+            The uninstantiated class type of the model you want to tune (for example, MLUncertaintyModel).
+        param_grid : dict of (str, list)
+            A dictionary where keys match the model's setup argument names and values are
+            lists of settings options to try.
+        optimization_target : str, default="global"
+            The target column to optimize for. If set to 'global', the tuner averages scores
+            across all weather variables.
+        optimization_metric : str, default="RMSE"
+            The name of the evaluation error metric to track (for example, 'RMSE' or 'MAE').
         """
         self.model_class = model_class
         self.param_grid = param_grid
@@ -54,17 +61,20 @@ class HyperparameterTuner:
 
     def _compute_objective(self, metrics_dict: dict[str, dict[str, float]]) -> float:
         """
-        Collapses a multi-target validation metrics dictionary into a single float scalar.
+        Flattens multi-target error scores into a single number for tracking comparisons.
+
+        If configured for global optimization, it averages the chosen metric across all
+        tracked columns. Otherwise, it extracts the score for a single priority target variable.
 
         Parameters
         ----------
-        metrics_dict : Dict[str, Dict[str, float]]
-            The nested dictionary returned by the `evaluate()` method.
+        metrics_dict : dict
+            A nested dictionary of evaluation results returned by the model class.
 
         Returns
         -------
         float
-            The scalar value to be minimized.
+            The calculated scalar summary score used to evaluate this parameter combination.
         """
         if self.optimization_target == "global":
             # Extract the specific metric (e.g., RMSE) for every target variable and average it
@@ -83,26 +93,33 @@ class HyperparameterTuner:
         run_id: str | None = None,
     ) -> tuple[MLUncertaintyModel, list[dict[str, Any]]]:
         """
-        Executes the grid search loop, tracking configurations in memory.
+        Runs the grid search sweep across all setting combinations to find the best model.
+
+        Generates all hyperparameter combinations, trains a model candidate on the training pool,
+        evaluates performance against validation records, and prints an updated leaderboard
+        status to the console. The overall best model is then automatically saved to disk.
 
         Parameters
         ----------
         train_df : pd.DataFrame
-            The chronologically split training dataset.
+            The data frame holding historical training records.
         val_df : pd.DataFrame
-            The chronologically split validation dataset.
+            The out-of-sample data frame used for validation testing.
         feature_columns : list
-            List of raw feature column names to feed to the model.
+            List of column names used as model inputs.
         target_columns : list
-            List of absolute difference target column names to predict.
-        save_run_id : str, optional
-            The tracker key under which the champion model will be persisted.
+            List of absolute error column names the model aims to predict.
+        run_id : str or None, default=None
+            A custom directory name for storing the results. If None, an ID is generated
+            automatically using the project's timestamp utilities.
 
         Returns
         -------
-        Tuple[UncertaintyModel, List[Dict[str, Any]]]
-            A tuple containing the fitted champion model object and the complete
-            history of all evaluated configurations and their scores.
+        tuple of (UncertaintyModel, list of dict)
+            A two-element tuple containing:
+            - The optimal trained model instance (the champion).
+            - A list of dictionary records mapping out the parameter states and scoring
+              history for every iteration.
         """
         grid = list(ParameterGrid(self.param_grid))
         total_runs = len(grid)

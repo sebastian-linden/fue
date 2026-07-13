@@ -1,3 +1,11 @@
+"""
+Multi-output linear regression model implementation for the fue package.
+
+This module provides a concrete subclass that fits a standard multi-output
+linear regression to estimate the absolute prediction deviations of target
+meteorological variables.
+"""
+
 import logging
 
 import pandas as pd
@@ -10,17 +18,30 @@ logger = logging.getLogger(__name__)
 
 
 class LinearUncertaintyModel(UncertaintyModel):
-    """Concrete subclass implementing a Multi-Output Linear Regression model
+    """
+    A baseline linear regression model used to estimate forecast error bounds.
 
-    to directly predict the absolute deviations (real-world uncertainty scale)
-    of numerical weather forecasts.
+    This model inherits from the base UncertaintyModel. It uses scikit-learn's
+    standard linear regression to find straight-line trends between our preprocessed
+    weather features and historical forecast error scales.
     """
 
     def _fit_internal(self, X: pd.DataFrame, Y: pd.DataFrame) -> None:
-        """Fits the underlying linear regression model directly to the
-
-        pre-computed absolute deviation targets.
         """
+        Fits the scikit-learn multi-output linear model on the provided data matrices.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            The cleaned and scaled design matrix containing feature values.
+        Y : pd.DataFrame
+            The target data frame containing true historical absolute deviations.
+
+        Returns
+        -------
+        None
+        """
+
         logger.info("Training linear regression model to predict absolute deviations...")
         logger.debug("Linear regression fit initiated with X shape: %s and Y shape: %s.", X.shape, Y.shape)
 
@@ -31,10 +52,30 @@ class LinearUncertaintyModel(UncertaintyModel):
         logger.debug("Linear regression model fitting completed.")
 
     def _predict_internal(self, X: pd.DataFrame) -> pd.DataFrame:
-        """Generates point predictions representing the expected physical error
-
-        magnitude for each weather variable.
         """
+        Generates error scale predictions and maps them to a formatted data frame.
+
+        Calculates straight-line trends from the input features and crops any
+        resulting negative predictions at zero to prevent physically impossible
+        uncertainty ranges.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            The design matrix holding preprocessed inputs for our prediction tracking.
+
+        Returns
+        -------
+        pd.DataFrame
+            A data frame containing the predicted absolute deviations, with all values
+            guaranteed to be 0 or higher.
+
+        Raises
+        ------
+        ValueError
+            If you try to run predictions before the model has been trained.
+        """
+
         if not hasattr(self, "model"):
             logger.error("Prediction sequence aborted: internal linear model is not trained.")
             raise ValueError("Model must be trained via .fit() before making predictions.")

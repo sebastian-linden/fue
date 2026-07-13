@@ -330,7 +330,7 @@ class TestLinearUncertaintyModel:
         metrics = {"abs_diff__temperature_2m_max": {"MAE": 0.45, "RMSE": 0.58}}
 
         # Act: Execute save inside the safe temp sandbox
-        run_path, run_id = model.save(run_id=explicit_id, metrics=metrics, runs_dir=str(tmp_path))  # ty: ignore [not-iterable]
+        run_path, run_id = model.save(run_id=explicit_id, metrics=metrics, runs_dir=str(tmp_path))
 
         # Assertions
         assert run_path == tmp_path / explicit_id
@@ -354,7 +354,7 @@ class TestLinearUncertaintyModel:
         model.raw_feature_columns = ["delta_days"]
 
         # Act: Pass run_id=None to trigger automatic identification flow
-        run_path, run_id = model.save(run_id=None, metrics=None, runs_dir=str(tmp_path))  # ty: ignore [invalid-argument-type, not-iterable]
+        run_path, run_id = model.save(run_id=None, metrics=None, runs_dir=str(tmp_path))
 
         # Assertions
         assert run_path.exists()

@@ -1,3 +1,11 @@
+"""
+Data pipeline management system for the fue package.
+
+This module handles reading raw forecast csv files, sorting incoming data, parsing
+units, applying our custom 12-hour boundary rule to separate predictions from ground-truth
+measurements, and splitting data cleanly by city proximity groups for machine learning.
+"""
+
 import logging
 import os
 from pathlib import Path
@@ -5,6 +13,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .config import Config
 from .openmeteoclient import OpenMeteoClient
 from .utils import pair_cities_by_proximity
 
@@ -12,9 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 class Data:
-    """This class manages all of the data related operations."""
+    """
+    Manages loading, cleaning, assembling, and splitting our project's weather datasets.
 
-    def __init__(self):
+    This class coordinates the data-shaping pipeline. It reads from local storage files,
+    calculates physical absolute forecast error columns, handles temporal-safe data partitions,
+    and packages data frames so they are structured perfectly for downstream training models.
+    """
+
+    def __init__(self) -> None:
+        """
+        Sets up default file paths and tracking names for different categories of variables.
+        """
         self.PATH_TO_DATA = Path(__file__).resolve().parent.parent.parent / "data"
         self.PATH_TO_RAW = os.path.join(self.PATH_TO_DATA, "raw", "forecasts.csv")
 
@@ -28,9 +46,27 @@ class Data:
         logger.debug("Initialized Data handler with raw data path %s", self.PATH_TO_RAW)
         return None
 
-    def read_raw(self, path=None):
-        """This method reads the raw data available in the directory:
-        data/raw/
+    def read_raw(self, path: str | Path | None = None) -> None:
+        """
+        Reads the local raw forecast CSV file from disk into memory.
+
+        After loading the file, it cleans up types, automatically parses units,
+        and updates list indices containing column headers for meta and weather parameters.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path or None, default=None
+            Custom path pointing to a raw forecast file. If None, uses the
+            default location folder inside your project workspace root.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        FileNotFoundError
+            If no forecast csv source matches the determined path target.
         """
         if path is not None:
             self.PATH_TO_RAW = path
@@ -49,15 +85,25 @@ class Data:
         return None
 
     def convert_to_best_dtypes(self, df: pd.DataFrame, sun_duration_to_hours: bool = False) -> pd.DataFrame:
-        """_summary_
-
-        Args:
-            df (pd.DataFrame): _description_
-
-        Returns:
-            pd.DataFrame: _description_
         """
+        Ensures columns use optimal pandas types and converts metrics to correct units.
 
+        Forces city strings, timestamps, and numbers into their proper pandas formats.
+        It also scales raw sunshine seconds into hours to maintain mathematical sanity
+        across model boundaries.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The input weather records needing column type adjustments.
+        sun_duration_to_hours : bool, default=False
+            If True, converts 'sunshine_duration' from raw seconds to hours.
+
+        Returns
+        -------
+        pd.DataFrame
+            The freshly typed data frame with identical rows.
+        """
         datetime_cols = ["forecasted_on", "forecast_for"]
         for col in df.columns:
             if col == "location_name":
@@ -78,28 +124,23 @@ class Data:
         )
         return df
 
-    def generate_dataset(self):
-        """Filters raw forecasting data by city, splits entries into look-ahead forecasts
-        and ground-truth measurements proxies using a custom 12-hour boundary window,
-        pairs them together on calendar dates to compute target absolute error metrics,
-        and optionally outputs reproducible training and validation splits.
-
-        Args:
-            location_name (str, optional): The name of the geographic city filter
-                defined in the configuration file. Defaults to "aachen".
-            val_fraction (float, optional): The proportional fraction of the processed
-                paired dataset to split off into a separate validation subset.
-                Must be between 0.0 and 1.0. Defaults to 0.2.
-            random_state (int, optional): Fixed seed value used to control the random
-                shuffling permutations before splitting, ensuring reproducible datasets.
-                Defaults to 42.
-
-        Returns:
-            tuple[pd.DataFrame, pd.DataFrame]: A two-element tuple containing:
-                - train_df: The primary DataFrame used to train uncertainty models.
-                - val_df: The validation subset DataFrame (empty if val_fraction=0.0).
+    def generate_dataset(self) -> pd.DataFrame:
         """
+        assembles our target training matrix by matching forecasts against ground truth.
 
+        This method executes several steps:
+        1. Splits chronological rows using a 12-hour lead window (older rows become
+           forecast entries, while immediate horizons act as actual observation proxies).
+        2. Deduplicates matched dates to secure exactly one true target per calendar day.
+        3. Runs an inner merge, extracts seasonal timelines, and evaluates the absolute
+           residual differences (|predicted - observed|) to create our final training targets.
+
+        Returns
+        -------
+        pd.DataFrame
+            The consolidated design matrix containing core feature columns, lead timelines,
+            and target absolute difference values.
+        """
         # 1. Separate data by city
         raw_copy = self.raw.copy()
         raw_copy["forecast_for"] = pd.to_datetime(raw_copy["forecast_for"])
@@ -160,22 +201,30 @@ class Data:
     def split_dataset(
         self, dataset: pd.DataFrame, val_fraction: float = 0.2, random_state: int = 42, min_entries_per_city: int = 100
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
-        """Splits a unified dataframe into training and validation subsets using an
-        adaptive, completely dynamic Stratified Climatic Block strategy.
+        """
+        Splits data chronologically and geographically for training & validation.
 
-        Deduces available locations and coordinates entirely from the unique combinations
-        found in the input dataset. Filters out cities with insufficient historical
-        records to prevent severe volumetric imbalance during cross-validation.
+        First, drops rows belonging to newer cities that haven't collected enough
+        records. Next, pairs remaining cities using spatial distance metrics.
+        It randomly assigns one city from each pair to training and the other to
+        validation, ensuring an entire regional microclimate is fully quarantined
+        from the training group.
 
-        Args:
-            dataset (pd.DataFrame): The pooled data containing 'location_name', 'latitude',
-                                    and 'longitude' tracking columns.
-            val_fraction (float): The targeted ratio of total data assigned to validation. Defaults to 0.2.
-            random_state (int): Seed used to guarantee reproducible split logic. Defaults to 42.
-            min_entries_per_city (int): Minimum rows required for a city to be included in the split. Defaults to 100.
+        Parameters
+        ----------
+        dataset : pd.DataFrame
+            The raw constructed input dataset from our pipeline layer.
+        val_fraction : float, default=0.2
+            The target percentage size of our validation dataset chunk (e.g. 0.2 for 20%).
+        random_state : int, default=42
+            The initialization token to ensure repeatable city-flipping choices.
+        min_entries_per_city : int, default=100
+            The minimum row cut-off length required for a city to join the active pipeline.
 
-        Returns:
-            tuple[pd.DataFrame, pd.DataFrame]: (train_df, val_df) split structures.
+        Returns
+        -------
+        tuple of pd.DataFrame
+            A two-element tuple containing our (train_df, val_df) split subsets.
         """
 
         # 0. Filter out cities with insufficient data records
@@ -248,12 +297,24 @@ class Data:
         logger.info("Dataset split completed with %d training rows and %d validation rows", len(train_df), len(val_df))
         return train_df, val_df
 
-    def remove_duplicates(self, df):
-        """This method removes redundant data entries. This might happen when two
-        forecasts are fetched which contain identical forecasts in all variables.
-        This indicates, that that forecast likely stems from the same weather model
-        prediction cycle and is therefore a redundant data point."""
+    def remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Purges matching overlapping data entries based on weather metric states.
 
+        Rounds the position data down to a tiny decimal tolerance limit, identifies exact
+        duplicate weather attribute rows, and preserves the first occurrence while popping out
+        the trailing duplicates.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The target data frame tracking rows that might possess duplicates.
+
+        Returns
+        -------
+        pd.DataFrame
+            A duplicate-free row-subset of our original input frame.
+        """
         TOL_DECIMALS = 4
 
         rows_before = len(df)
@@ -263,14 +324,20 @@ class Data:
         logger.debug("Duplicate removal reduced rows from %d to %d", rows_before, len(df))
         return df
 
-    def fetch_forecast(self, config=None) -> pd.DataFrame:
-        """Uses the OpenMeteoClient class to fetch current forecasts.
+    def fetch_forecast(self, config: Config | None = None) -> pd.DataFrame:
+        """
+        Uses the internal OpenMeteoClient to download live forward-looking forecasts.
 
-        Args:
-            config (_type_, optional): Optionally pass a custom config object. Defaults to None.
+        Parameters
+        ----------
+        config : Config or None, default=None
+            An active Config instance holding coordinate keys. If None, builds a
+            fresh internal client defaults instance.
 
-        Returns:
-            pd.DataFrame: DataFrame containing the fetched forecast
+        Returns
+        -------
+        pd.DataFrame
+            Live weather point predictions structured into typed pandas rows.
         """
         if config is None:
             client = OpenMeteoClient()
@@ -288,7 +355,22 @@ class Data:
         return current_forecasts
 
     def combine_and_store_forecasts(self, current_forecasts: pd.DataFrame) -> None:
-        """Combine newly fetched forecasts with historic forecasts and store the result."""
+        """
+        Merges newly scraped forecast entries into our main persistent CSV archive file.
+
+        Loads your existing baseline historical rows, glues the fresh API scrape rows
+        directly to the bottom, applies automatic duplicate row removal rules, and
+        re-saves the structured updates back to disk storage.
+
+        Parameters
+        ----------
+        current_forecasts : pd.DataFrame
+            Fresh weather predictions scraped directly from the current API download session.
+
+        Returns
+        -------
+        None
+        """
         logger.info("Combining newly fetched forecasts with stored data")
 
         if self.raw.empty:
@@ -311,14 +393,22 @@ class Data:
 
     def get_collection_summary(self, threshold: int = 100) -> pd.DataFrame:
         """
-        Computes a statistical breakdown of the collected weather records per city,
-        identifying which locations have crossed the training threshold.
+        Generates a quick diagnostic status report for all our monitored cities.
 
-        Args:
-            threshold (int): Minimum rows required for active status. Defaults to 100.
+        Evaluates rows through our active dataset assembly engine, counts valid
+        completed pairings per town, and tags each city name as 'ACTIVE' or 'WAITING'
+        based on your custom validation threshold length.
 
-        Returns:
-            pd.DataFrame: A sorted summary DataFrame containing record counts and readiness status.
+        Parameters
+        ----------
+        threshold : int, default=100
+            The line count limit required for a city to graduate to active model training.
+
+        Returns
+        -------
+        pd.DataFrame
+            A tabular summary tracking three columns: 'location_name', 'valid_records',
+            and 'status'. Ideal for displaying a clean report inside our terminal interface.
         """
         logger.debug("Generating collection summary with threshold %d", threshold)
         # Generate the unified dataset to get final valid target pairings

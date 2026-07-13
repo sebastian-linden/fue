@@ -1,3 +1,10 @@
+"""
+API Client for fetching weather forecasts from Open-Meteo.
+
+This module communicates with the Open-Meteo API. It includes automatic data
+caching to prevent hitting rate limits and a retry system to handle network drops.
+"""
+
 import logging
 from datetime import datetime
 
@@ -12,10 +19,24 @@ logger = logging.getLogger(__name__)
 
 
 class OpenMeteoClient:
-    """This class implements a client, which fetches data via the Open-Meteo API.
-    It is mainly used by the Data class"""
+    """
+    A client used to fetch and format weather data from the Open-Meteo API.
+
+    This class handles the underlying network connection, sessions, and data caching.
+    It downloads weather metrics for all tracked cities simultaneously and maps the
+    raw API responses directly into pandas DataFrames for our pipeline.
+    """
 
     def __init__(self, config: Config | None = None):
+        """
+        Sets up the API endpoint URL, a cached network session, and configuration settings.
+
+        Parameters
+        ----------
+        config : Config or None, default=None
+            The shared project configuration object containing tracking parameters.
+            If None, a default instance of the Config class is automatically created.
+        """
 
         # Setup the Open-Meteo API client with cache and retry on error
         self.cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
@@ -32,12 +53,20 @@ class OpenMeteoClient:
         logger.info("OpenMeteoClient initialized with configuration.")
 
     def fetch_forecast(self) -> pd.DataFrame:
-        """Fetch forecast data from Open-Meteo API and return as pandas DataFrame.
+        """
+        Downloads forward-looking weather forecast values for all target cities.
 
-        Returns:
-            pd.DataFrame: Combined forecast data for all configured cities with columns:
-                location_name, latitude, longitude, forecasted_on, forecast_for,
-                and all daily weather variables from config
+        Queries the Open-Meteo endpoint using parameters from our configuration file,
+        loops over each city's geographic response, aligns the time indices to
+        the final second of the day, and aggregates everything into a single
+        unified data frame.
+
+        Returns
+        -------
+        pd.DataFrame
+            A stacked data frame containing forecast records for all cities.
+            Columns include: 'location_name', 'latitude', 'longitude',
+            'forecasted_on', 'forecast_for', and the specific weather variables.
         """
 
         # Fetch responses from API
@@ -82,8 +111,3 @@ class OpenMeteoClient:
         logger.debug(f"Forecasting data fetched for {n_cities} cities. Total forecasts: {n_cities * n_forecast_days}")
 
         return forecast_data
-
-
-if __name__ == "__main__":
-    client = OpenMeteoClient()
-    print(client.fetch_forecast())

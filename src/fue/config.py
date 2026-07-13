@@ -1,3 +1,11 @@
+"""
+Configuration management system for the fue package.
+
+This module handles reading and writing the 'config.json' settings file. It keeps
+track of the cities we want to download, API keys, timezones, and the specific
+rules used to clean and transform our data before training.
+"""
+
 import json
 import logging
 from pathlib import Path
@@ -6,12 +14,33 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    """This class handles writing to and reading from the configuration file.
-    It also implements methods to interact with the configuration.
+    """
+    Manages reading, modifying, and saving the project's settings.
+
+    This class loads settings from config.json, structures city coordinates for
+    the weather API client, and provides simple methods to add or remove cities,
+    change timezones, or adjust forecasting time windows.
     """
 
     def __init__(self, path: str | Path | None = None):
-        """Initializes parameter dictionary and reads from config.json file"""
+        """
+        Loads the config file and sets up internal variables for cities and parameters.
+
+        It parses the JSON file, extracts city lists into a separate tracking variable,
+        and extracts lists of latitudes and longitudes so that they match what the
+        Open-Meteo API expects.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path or None, default=None
+            The file path to config.json. If None, it automatically finds the file
+            by looking up from the folder where this code is running.
+
+        Raises
+        ------
+        FileNotFoundError
+            If config.json cannot be found at the default or specified path.
+        """
 
         self.params = {}
 
@@ -55,6 +84,15 @@ class Config:
         logger.info(f"Configuration loaded from {self.path}")
 
     def __repr__(self):
+        """
+        Creates a clean summary text block showing the current state of the config.
+
+        Returns
+        -------
+        str
+            A multi-line text representation showing the loaded cities, timezone,
+            past/forecast days, and active variables.
+        """
         return (
             f"Config(\n"
             f"  cities={self.cities},\n"
@@ -67,19 +105,38 @@ class Config:
         )
 
     def set_timezone(self, timezone: str) -> None:
-        """Set the timezone parameter.
+        """
+        Updates the target timezone parameter in our settings.
 
-        Args:
-            timezone: Timezone string (e.g., 'Europe/Berlin')
+        Parameters
+        ----------
+        timezone : str
+            A standard timezone name string (for example, 'Europe/Berlin').
+
+        Returns
+        -------
+        None
         """
         self.params["timezone"] = timezone
         logger.info(f"Timezone set to {timezone}")
 
     def set_past_days(self, past_days: int) -> None:
-        """Set the number of past days for historical data.
+        """
+        Sets how many days of past historical weather data we want to request.
 
-        Args:
-            past_days: Number of past days (must be non-negative)
+        Parameters
+        ----------
+        past_days : int
+            The number of history days to request. Must be 0 or a positive integer.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the value provided is negative or not a whole number.
         """
         if not isinstance(past_days, int) or past_days < 0:
             raise ValueError(f"past_days must be a non-negative integer, got {past_days}")
@@ -87,10 +144,22 @@ class Config:
         logger.info(f"Past days set to {past_days}")
 
     def set_forecast_days(self, forecast_days: int) -> None:
-        """Set the number of forecast days.
+        """
+        Sets how many days into the future our weather forecasts should reach.
 
-        Args:
-            forecast_days: Number of forecast days (must be non-negative)
+        Parameters
+        ----------
+        forecast_days : int
+            The length of the forecast window in days. Must be 0 or a positive integer.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the value provided is negative or not a whole number.
         """
         if not isinstance(forecast_days, int) or forecast_days < 0:
             raise ValueError(f"forecast_days must be a non-negative integer, got {forecast_days}")
@@ -98,10 +167,22 @@ class Config:
         logger.info(f"Forecast days set to {forecast_days}")
 
     def set_daily_variables(self, daily: list) -> None:
-        """Set the daily weather variables to fetch.
+        """
+        Updates the list of specific weather variables we want to pull from the API.
 
-        Args:
-            daily: List of variable names to fetch
+        Parameters
+        ----------
+        daily : list
+            A list of weather variable strings (like `['temperature_2m_max', 'precipitation_sum']`).
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the provided value is not structured as a Python list.
         """
         if not isinstance(daily, list):
             raise ValueError(f"daily must be a list, got {type(daily)}")
@@ -109,13 +190,23 @@ class Config:
         logger.info(f"Daily variables set to {daily}")
 
     def update(self, **kwargs) -> None:
-        """Update multiple configuration parameters at once.
+        """
+        Updates multiple configuration parameters at the same time.
 
-        Args:
-            timezone: Timezone string
-            past_days: Number of past days
-            forecast_days: Number of forecast days
-            daily: List of daily variables
+        Parameters
+        ----------
+        **kwargs : dict
+            Named arguments matching existing parameters (`timezone`, `past_days`,
+            `forecast_days`, or `daily`).
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyError
+            If you pass a setting name that the configuration class doesn't recognize.
         """
         # No logger is needed, because each individual setter method
         # already logs the changes made to the configuration.
@@ -132,17 +223,31 @@ class Config:
                 raise KeyError(f"Unknown configuration parameter: {key}")
 
     def add_city(self, name: str, lat: float, lon: float) -> None:
-        """Add a new city to the configuration.
+        """
+        Adds a new city and its coordinates to our tracking list.
 
-        Args:
-            name (str): City name (must be unique)
-            lat (float): Latitude coordinate
-            lon (float): Longitude coordinate
+        This method verifies that the city doesn't already exist and that coordinates
+        are valid numbers before appending them to the configuration lists.
 
-        Raises:
-            ValueError: If city is already in the configuration
-            TypeError: If city name is not a string
-            TypeError: If latitude or longitude are not numeric values
+        Parameters
+        ----------
+        name : str
+            The name of the city (e.g., 'aachen'). Must be unique.
+        lat : float
+            The latitude value of the city location.
+        lon : float
+            The longitude value of the city location.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the city name already exists in the current settings.
+        TypeError
+            If the city name is not a string, or if coordinates are not numbers.
         """
         if name in self.cities:
             raise ValueError(f"City '{name}' already exists in configuration")
@@ -158,10 +263,25 @@ class Config:
         logger.info(f"City '{name}' added with coordinates (lat: {lat}, lon: {lon})")
 
     def remove_city(self, name: str) -> None:
-        """Remove a city from the configuration.
+        """
+        Removes a city and its coordinates from our tracking list.
 
-        Args:
-            name: City name to remove
+        It finds the position of the city in our internal variables and removes it
+        completely so that our parallel list dimensions stay lined up.
+
+        Parameters
+        ----------
+        name : str
+            The name string of the city to delete.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the specified city name cannot be found in our settings.
         """
         if name not in self.cities:
             raise ValueError(f"City '{name}' not found in configuration")
@@ -177,7 +297,16 @@ class Config:
         logger.info(f"City '{name}' removed from configuration.")
 
     def save(self) -> None:
-        """Save the current configuration back to config.json."""
+        """
+        Writes all current setting variables back into our config.json file on disk.
+
+        This re-assembles the dictionary elements, strips out temporary processing lists
+        like latitudes and longitudes, and saves a clean formatted JSON file.
+
+        Returns
+        -------
+        None
+        """
         config_data = self.params
         config_data["cities"] = self.city_coordinates
         config_data["preprocessing"] = self.preprocessing
@@ -190,15 +319,31 @@ class Config:
         logger.info(f"Configuration saved to {self.path}")
 
     def get_preprocessing_rules(self) -> dict:
-        """Returns the preprocessing dictionary from config."""
+        """
+        Returns the data transformation rules currently configured in our settings.
+
+        Returns
+        -------
+        dict
+            A dictionary mapping weather variables directly to their transformation
+            methods (for example: `{'abs_diff__precipitation_sum': 'log'}`).
+        """
         return self.preprocessing
 
     def set_preprocessing_rule(self, variable: str, method: str) -> None:
-        """Sets or updates a transformation method for a specific variable.
+        """
+        Sets or changes a data cleaning/transformation rule for a specific weather variable.
 
-        Args:
-            variable: Weather variable name (e.g., 'temperature_2m_max')
-            method: Transformation method to apply (e.g. log, min-max, ...)
+        Parameters
+        ----------
+        variable : str
+            The specific weather column or target variable name.
+        method : str
+            The name of the scaling method to apply (such as 'min-max', 'standard', or 'log').
+
+        Returns
+        -------
+        None
         """
         self.preprocessing[variable] = method
         logger.info(f"Preprocessing rule set for '{variable}' to '{method}'")

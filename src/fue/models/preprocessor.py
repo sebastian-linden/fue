@@ -1,3 +1,12 @@
+"""
+Data preprocessing and transformation utilities for the fue package.
+
+This module provides stateful and stateless tools to prepare raw weather data
+for machine learning models. It supports scaling (Standard/Min-Max), mathematical
+adjustments (Log, Square Root, Box-Cox), and expanding cyclical columns into sine
+and cosine components.
+"""
+
 import logging
 
 import numpy as np
@@ -10,15 +19,24 @@ logger = logging.getLogger(__name__)
 
 
 class Preprocessor:
-    """Stateful preprocessor that learns transformations on training data,
-    handles cyclical feature expansions, and maps tracking column names dynamically.
+    """
+    Transforms data fields statefully before training and reverses them after predicting.
+
+    This class reads transformation choices from a rules dictionary. It remembers
+    parameters learned during training (like scaling ranges or Box-Cox lambda values)
+    so it can process incoming data identically or translate model error outputs
+    back into real-world units.
     """
 
     def __init__(self, rules: dict):
         """
-        Args:
-            rules: Dict mapping column names to transformation strings.
-                   e.g., {"wind_direction_10m_dominant": "sin-cos"}
+        Sets up empty storage containers for scalers and lambda parameters.
+
+        Parameters
+        ----------
+        rules : dict
+            A dictionary mapping column name strings directly to their preferred
+            transformation style keywords (for example: `{'precipitation_sum': 'log'}`).
         """
         self.rules = rules
         self.scalers = {}
@@ -26,14 +44,22 @@ class Preprocessor:
         logger.debug("Initialized Preprocessor with %s registered transformation rules.", len(self.rules))
 
     def map_feature_names(self, raw_features: list) -> list:
-        """Transforms a list of raw feature names into the names of the columns
-        that will exist after calling `.transform()`.
+        """
+        Adjusts a list of column names to account for columns that expand during scaling.
 
-        Args:
-            raw_features: List of original string column names.
+        Loops through your feature names and checks if any are flagged for a 'sin-cos'
+        split. If they are, it replaces that single name with twin '_sin' and '_cos'
+        labels so the model's design matrix columns align correctly.
 
-        Returns:
-            list: A new list with tracking adjustments (e.g., sin-cos splits).
+        Parameters
+        ----------
+        raw_features : list of str
+            The starting column name strings before any scaling changes take place.
+
+        Returns
+        -------
+        list of str
+            An updated list of column names reflecting the final preprocessed table layout.
         """
         logger.debug("Mapping feature names for %s raw features.", len(raw_features))
         processed_features = []
@@ -54,7 +80,28 @@ class Preprocessor:
         return processed_features
 
     def fit(self, df: pd.DataFrame) -> "Preprocessor":
-        """Learn scaling parameters from the training dataframe layout."""
+        """
+        Learns scaling statistics and normalization shapes from a training data frame.
+
+        Iterates through the registered columns list, extracts data series matrices,
+        and calculates baseline parameters like means, variances, ranges, or Box-Cox shifts.
+        Stateless operations (like a standard square root) are skipped but acknowledged.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The input training dataset used to calculate preprocessing limits.
+
+        Returns
+        -------
+        Preprocessor
+            The current class instance loaded with the newly learned parameters.
+
+        Raises
+        ------
+        ValueError
+            If an unrecognized transformation method keyword is encountered in your rules dictionary.
+        """
         logger.info("Executing preprocessor fit routine.")
         logger.debug("Fitting against DataFrame with shape: %s.", df.shape)
 
@@ -96,7 +143,30 @@ class Preprocessor:
         return self
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Apply transformations and structural column expansions. Returns a new DataFrame."""
+        """
+        Applies learned or stateless transformation rules to a data frame.
+
+        Creates a copy of your table, processes configured columns according to their
+        respective rules, and cleanly splits circular values (like degrees or angles)
+        into standalone sine and cosine columns while dropping the raw original field.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The dataset containing columns that need cleaning or reshaping.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the input data frame with all transformation adjustments applied.
+
+        Raises
+        ------
+        RuntimeError
+            If a stateful scaler or parameters block is requested before running `.fit()`.
+        ValueError
+            If a column uses an unknown transformation keyword string.
+        """
         logger.info("Executing preprocessing transform routine.")
         logger.debug("Input DataFrame shape for transform: %s.", df.shape)
 
@@ -158,7 +228,33 @@ class Preprocessor:
         return df_out
 
     def inverse_transform_target(self, series: pd.Series, target_name: str) -> pd.Series:
-        """Reverses the transformation for predictions or uncertainty metrics back to real units."""
+        """
+        Reverses scaling adjustments on model outputs to restore real-world weather units.
+
+        Takes raw numbers generated by an uncertainty estimator model and performs the
+        symmetrical opposite operation (such as exponentiating a log, or squaring a
+        square root) to turn abstract numbers back into normal physical units like °C or mm.
+
+        Parameters
+        ----------
+        series : pd.Series
+            The raw predicted error outputs coming from your trained model layer.
+        target_name : str
+            The dictionary lookup label representing the base column name before scaling.
+
+        Returns
+        -------
+        pd.Series
+            A fresh data series containing values translated back into real-world units.
+
+        Raises
+        ------
+        RuntimeError
+            If you try to reverse standard, min-max, or Box-Cox columns before the
+            preprocessor has been statefully fitted.
+        ValueError
+            If the targeted variable maps back to an unsupported transformation rule.
+        """
         arr = series.to_numpy()
         method = self.rules.get(target_name)
 

@@ -1,3 +1,12 @@
+"""
+Forecast inference and visualization pipeline for the fue package.
+
+This module maps fitted machine learning and linear uncertainty estimators onto
+freshly pulled weather forecasts. It applies physical boundary safeguards (such as
+clipping metrics at zero or capping sunshine hours via astronomical day length)
+and renders localized error-bound graphs.
+"""
+
 import logging
 import warnings
 
@@ -11,15 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 class Forecast:
-    """A class, that applies a fitted uncertainty model to a forecast, that can be either
-    given or fetched from the Open-Meteo API via the OpenMeteoClient() class. This class also provides
-    methods to visualize the forecast and its uncertainty predictions, if a model is given.
+    """
+    Applies trained error-prediction models to weather forecasts and handles plotting.
 
-    Attributes:
-        forecast: DataFrame with forecast data (set by fetch_forecast)
-        uncertainty_model: Fitted uncertainty model (set by compute_uncertainties)
-        uncertainty_predictions: DataFrame with uncertainty predictions (set by compute_uncertainties)
-        past_days: Number of past days included in forecast
+    This class tracks live point predictions alongside their calculated error ranges,
+    manages lookup dictionaries for plot labels, units, and colors, and overlays
+    shaded confidence bands ($\\pm \text{error}$) on meteorological lines.
     """
 
     # Class-level plot specifications for known variables
@@ -72,26 +78,42 @@ class Forecast:
         "abs_diff__precipitation_probability_mean": "Precipitation Probability Forecast Absolute Error",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initializes an empty forecast profile container with default tracking states.
+        """
         self.forecast = None
         self.uncertainty_model = None
         self.uncertainty_predictions = None
         self.past_days = None
 
     def fetch_forecast(self, location_name: str, forecast_days: int = 14, past_days: int = 0) -> None:
-        """Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.
+        """
+        Downloads a fresh forecast profile for a single city from the data client layer.
 
-        Args:
-            location_name (str): The name of the location. Must be one of the cities defined in the configuration file.
-            forecast_days (int, optional): The number of days to fetch. Defaults to 14. Must be > 0.
-            past_days (int, optional): The number of past days to include. Defaults to 0. Must be >= 0.
+        Validates user-supplied timing bounds, creates a localized temporary city config,
+        fetches raw predictive rows, and appends structural index features such as
+        seasonal times and ahead-horizon day fractions.
 
-        Returns:
-            None: Sets the forecast DataFrame directly in the class instance.
+        Parameters
+        ----------
+        location_name : str
+            The name string matching a tracked target city in our coordinates configurations.
+        forecast_days : int, default=14
+            The total look-ahead horizon window length to download, specified in full days.
+        past_days : int, default=0
+            The number of back-dated historical timeline records to include alongside the forecast.
 
-        Raises:
-            TypeError: If location_name is not a string or forecast_days/past_days are not integers.
-            ValueError: If location_name is not in config, or forecast_days/past_days are invalid.
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        TypeError
+            If any passed argument fails basic validation check rules for matching data types.
+        ValueError
+            If timing bounds fall into negative counts or if the city name is not registered.
         """
         # Input validation
         if not isinstance(location_name, str):
@@ -143,17 +165,27 @@ class Forecast:
         return None
 
     def compute_uncertainties(self, uncertainty_model) -> None:
-        """Applies a fitted uncertainty model to the forecast DataFrame to generate uncertainty predictions.
+        """
+        Runs the active weather forecast through our estimator to predict absolute error margins.
 
-        Args:
-            uncertainty_model: A fitted instance of an UncertaintyModel subclass. Must have a predict method.
+        Checks that our forecast lines are loaded and that the selected model possesses
+        a callable predict method before populating our data frame arrays with raw calculated deviations.
 
-        Returns:
-            None: Sets the uncertainty predictions DataFrame directly in the class instance.
+        Parameters
+        ----------
+        uncertainty_model : object
+            A statefully trained uncertainty estimator model subclass instance containing a `.predict()` method.
 
-        Raises:
-            ValueError: If forecast has not been fetched or uncertainty_model is invalid.
-            AttributeError: If uncertainty_model does not have a predict method.
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If forecast rows haven't been pulled yet, or if the model predictions come back empty.
+        AttributeError
+            If the supplied model lacks a callable predict function interface.
         """
         # Validate state
         if self.forecast is None:
@@ -184,17 +216,28 @@ class Forecast:
         return None
 
     def _get_plot_spec(self, variable: str, spec_type: str) -> str:
-        """Get plot specification (color, unit, or title) for a variable.
+        """
+        Looks up visual properties like color shades, labels, or units for a specific weather type.
 
-        Args:
-            variable (str): The variable name
-            spec_type (str): One of 'color', 'unit', or 'title'
+        If a column header is completely unknown, it defaults to a neutral fallback state
+        and triggers a clear terminal log alert so your pipeline doesn't crash during presentation.
 
-        Returns:
-            str: The specification value
+        Parameters
+        ----------
+        variable : str
+            The column header dictionary key name to evaluate (e.g., 'temperature_2m_max').
+        spec_type : str
+            The property layout block to open. Must be exactly 'color', 'unit', or 'title'.
 
-        Raises:
-            ValueError: If spec_type is invalid
+        Returns
+        -------
+        str
+            The text string holding the matched hex name, metric character, or title text block.
+
+        Raises
+        ------
+        ValueError
+            If an invalid configuration string type token is requested.
         """
         if spec_type == "color":
             specs = self._KNOWN_COLORS
@@ -226,17 +269,29 @@ class Forecast:
                 return variable
 
     def plot(self, target_variables: str | list) -> None:
-        """Visualize the forecast and its uncertainty predictions.
+        """
+        Renders line plots showing forecast tracks with shaded error ranges.
 
-        Args:
-            target_variables (str | list): Variable name(s) to plot. Must start with 'abs_diff__'.
+        Extracts matching data paths for each requested column, shifts back-dated records
+        down to zero variance bounds, and builds upper and lower bounds. It also
+        clips values at zero for non-negative tracks and implements physics-based caps on
+        sunshine parameters based on geographical day lengths.
 
-        Returns:
-            None: Displays matplotlib plots.
+        Parameters
+        ----------
+        target_variables : str or list of str
+            A single metric key or group list of error keys to draw (must begin with 'abs_diff__').
 
-        Raises:
-            ValueError: If state is invalid or variables are missing from forecast/predictions.
-            TypeError: If target_variables is not str or list.
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If data elements are uninitialized or missing, or if variable string layouts match poorly.
+        TypeError
+            If target inputs use container forms other than strings or string lists.
         """
         # Value and Type Checks
         if target_variables is None:

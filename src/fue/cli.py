@@ -1,3 +1,10 @@
+"""
+Command-line interface (CLI) for the Forecast Uncertainty Estimation (FUE) package.
+
+This module utilizes Typer to provide terminal-based execution of core pipeline
+tasks, including data ingestion, dataset summarization, and model hyperparameter tuning.
+"""
+
 import json
 import logging
 from pathlib import Path
@@ -13,7 +20,16 @@ app = typer.Typer(help="FUE: Forecast Uncertainty Estimation CLI.")
 @app.callback()
 def main():
     """
-    Main entry point for the FUE CLI. Use a sub-command to execute actions.
+    Main entry point for the FUE Command Line Interface.
+
+    This function acts as the parent callback for the Typer application,
+    establishing the root `fue` command from which all sub-commands
+    (e.g., `download`, `dataset-summary`, `tune`) are executed.
+
+
+    Returns
+    -------
+    None
     """
     pass
 
@@ -21,8 +37,19 @@ def main():
 @app.command()
 def download():
     """
-    Fetches raw forecast data from the Open-Meteo API and stores it
-    based on the current config.json settings.
+    Fetches and stores raw weather forecast data via the Open-Meteo API.
+
+    This command reads the target cities and geographical parameters from the
+    internal config settings, requests the corresponding data using the Data
+    layer, and persistently stores the combined results on disk.
+
+    .. note::
+       This docstring was automatically generated with the assistance of AI.
+
+
+    Returns
+    -------
+    None
     """
     from fue import Data
 
@@ -42,15 +69,21 @@ def dataset_summary(
     ] = 100,
 ):
     """
-    Displays a summary report of the current FUE data inventory, including:
-    - Total unique cities tracked
-    - Number of cities active in the pipeline (>= threshold rows)
-    - Number of cities awaiting graduation (< threshold rows)
-    - A detailed table of each city's valid records and pipeline status.
-    Args:
-        threshold (int): The minimum number of valid records required for a city to be considered "active" \
-            in the pipeline. Default is 100.
+    Generates and prints a summary report of the current local data inventory.
 
+    Evaluates the local data storage to calculate total unique cities tracked
+    and the number of cities meeting the minimum row threshold for training.
+    Outputs a formatted table of pipeline readiness to the terminal.
+
+    Parameters
+    ----------
+    threshold : int, default=100
+        The minimum number of valid chronological records required for a city
+        to be considered 'active' and ready for the machine learning pipeline.
+
+    Returns
+    -------
+    None
     """
     from fue.data import Data
 
@@ -106,7 +139,35 @@ def train(
     layers: Annotated[str | None, typer.Option(help="Hidden layer sizes, e.g., '16,8' (ML only)")] = "16,8",
 ):
     """
-    Trains a new Uncertainty Model and saves it to the runs/ directory.
+    Executes the training pipeline for a specified uncertainty estimation model.
+
+    Ingests pooled meteorological data, applies a chronological test-train partition
+    to protect against temporal leakage, initializes either a linear or multilayer
+    perceptron network model, fits the parameters statefully, and dumps the binary
+    artifacts along with run metadata onto the local filesystem.
+
+    Parameters
+    ----------
+    model_type : str, default="ml"
+        The structural category of the model estimator. Options are 'ml' for the
+        Multi-Layer Perceptron ensemble or 'linear' for Multi-Output Linear Regression.
+    alpha : float or None, default=0.01
+        L2 regularization weight penalty parameter (ridge regression equivalent).
+        Only evaluated if `model_type` is set to 'ml'.
+    layers : str or None, default="16,8"
+        A comma-separated string mapping out the dimensional configuration of the
+        hidden layers (e.g., '16,8' yields a 2-layer hidden layout). Only evaluated
+        if `model_type` is set to 'ml'.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    typer.Abort
+        If an unrecognized `model_type` is passed or an uncaught exception drops
+        during the pipeline ingestion and serialization phases.
     """
     from fue.config import Config
     from fue.data import Data
@@ -164,7 +225,29 @@ def evaluate(
     run_id: Annotated[str | None, typer.Option(help="Specific run ID to evaluate. Defaults to latest.")] = None,
 ):
     """
-    Evaluates a saved model against the current validation dataset.
+    Validates a saved model's predictive skill using historical validation holdouts.
+
+    Loads a serialized checkpoint model matching the given tracking run ID, generates
+    the comparative evaluation datasets, extracts the out-of-sample chronological
+    validation split, and prints a tabular layout of absolute residual scores (MAE, RMSE)
+    broken down by target meteorological column vector.
+
+    Parameters
+    ----------
+    run_id : str or None, default=None
+        The unique directory token identifier matching an entry inside the local
+        `runs/` inventory directory. If None, automatically scans for and targets
+        the chronologically latest directory modification.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    typer.Abort
+        If no serialized model checkpoints are present on disk, if the specified
+        `run_id` folder does not exist, or if data streaming fails.
     """
     from fue.data import Data
 
@@ -211,7 +294,39 @@ def forecast(
     ] = False,
 ):
     """
-    Fetches a forecast for a city and estimates uncertainty bounds using a trained model.
+    Generates forward operational forecasts decorated with custom uncertainty bounds.
+
+    Pulls live weather predictions using the Open-Meteo API for a requested city
+    coordinate space over an arbitrary horizon window, runs the point predictions
+    through a selected checkpoint uncertainty model, and maps out a tabular daily
+    terminal layout or populates an interactive matplotlib visualization highlighting
+    expected physical forecast fluctuations ($\\pm \text{error}$).
+
+    Parameters
+    ----------
+    loc : str
+        The designated city location query key matching an item tracked in the
+        coordinates system dictionary config (e.g., 'aachen', 'london').
+    days : int, default=7
+        The horizontal lead length of the forward operational prediction window on
+        the target API request.
+    run_id : str or None, default=None
+        The tracking folder token for the uncertainty estimator checkpoint model to load.
+        If None, targets the latest matching local run directory.
+    plot : bool, default=False
+        Toggle flag governing display. If True, maps out the metric tracking sequences
+        via an external matplotlib display window. If False, streams formatted string
+        blocks directly into standard output.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    typer.Abort
+        If model files are unreadable, API communication errors manifest, or index mapping
+        mismatches interrupt cell formatting steps.
     """
     from fue.forecast import Forecast
 
@@ -291,8 +406,16 @@ def forecast(
 @app.command()
 def tune():
     """
-    Runs Hyperparameter Optimization (HPO) for the ML model, logs metrics,
-    and statefully stores the optimal model configuration and weights.
+    Executes hyperparameter optimization (HPO) across the active dataset.
+
+    Ingests the locally stored raw data, applies a strict chronological and
+    city-stratified split to prevent temporal leakage, and runs a grid search
+    using the HyperparameterTuner. The best performing model (champion) and
+    its training history are automatically serialized to the runs directory.
+
+    Returns
+    -------
+    None
     """
     from pathlib import Path
 
