@@ -19,6 +19,7 @@ documentation for details.
    Quickstart <quickstart>
    Forecast Data <data/index>
    Mathematical Background <model/index>
+   Configuration Guide <configuration/index>
 
 Autodoc API Reference
 =====================
