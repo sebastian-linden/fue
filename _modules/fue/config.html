@@ -71,7 +71,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for fue.config</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Configuration management system for the fue package.</span>
+
+<span class="sd">This module handles reading and writing the &#39;config.json&#39; settings file. It keeps</span>
+<span class="sd">track of the cities we want to download, API keys, timezones, and the specific</span>
+<span class="sd">rules used to clean and transform our data before training.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -81,12 +89,33 @@
 <div class="viewcode-block" id="Config">
 <a class="viewcode-back" href="../../index.html#fue.Config">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class handles writing to and reading from the configuration file.</span>
-<span class="sd">    It also implements methods to interact with the configuration.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages reading, modifying, and saving the project&#39;s settings.</span>
+
+<span class="sd">    This class loads settings from config.json, structures city coordinates for</span>
+<span class="sd">    the weather API client, and provides simple methods to add or remove cities,</span>
+<span class="sd">    change timezones, or adjust forecasting time windows.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes parameter dictionary and reads from config.json file&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the config file and sets up internal variables for cities and parameters.</span>
+
+<span class="sd">        It parses the JSON file, extracts city lists into a separate tracking variable,</span>
+<span class="sd">        and extracts lists of latitudes and longitudes so that they match what the</span>
+<span class="sd">        Open-Meteo API expects.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str or pathlib.Path or None, default=None</span>
+<span class="sd">            The file path to config.json. If None, it automatically finds the file</span>
+<span class="sd">            by looking up from the folder where this code is running.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        FileNotFoundError</span>
+<span class="sd">            If config.json cannot be found at the default or specified path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -130,6 +159,15 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration loaded from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a clean summary text block showing the current state of the config.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            A multi-line text representation showing the loaded cities, timezone,</span>
+<span class="sd">            past/forecast days, and active variables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Config(</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;  cities=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cities</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -144,10 +182,17 @@
 <div class="viewcode-block" id="Config.set_timezone">
 <a class="viewcode-back" href="../../index.html#fue.Config.set_timezone">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_timezone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timezone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the timezone parameter.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates the target timezone parameter in our settings.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            timezone: Timezone string (e.g., &#39;Europe/Berlin&#39;)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        timezone : str</span>
+<span class="sd">            A standard timezone name string (for example, &#39;Europe/Berlin&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timezone</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timezone set to </span><span class="si">{</span><span class="n">timezone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
@@ -156,10 +201,22 @@
 <div class="viewcode-block" id="Config.set_past_days">
 <a class="viewcode-back" href="../../index.html#fue.Config.set_past_days">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_past_days</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">past_days</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the number of past days for historical data.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets how many days of past historical weather data we want to request.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            past_days: Number of past days (must be non-negative)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        past_days : int</span>
+<span class="sd">            The number of history days to request. Must be 0 or a positive integer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the value provided is negative or not a whole number.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">past_days</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">past_days</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;past_days must be a non-negative integer, got </span><span class="si">{</span><span class="n">past_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -170,10 +227,22 @@
 <div class="viewcode-block" id="Config.set_forecast_days">
 <a class="viewcode-back" href="../../index.html#fue.Config.set_forecast_days">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_forecast_days</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the number of forecast days.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets how many days into the future our weather forecasts should reach.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            forecast_days: Number of forecast days (must be non-negative)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        forecast_days : int</span>
+<span class="sd">            The length of the forecast window in days. Must be 0 or a positive integer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the value provided is negative or not a whole number.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">forecast_days</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">forecast_days</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;forecast_days must be a non-negative integer, got </span><span class="si">{</span><span class="n">forecast_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -184,10 +253,22 @@
 <div class="viewcode-block" id="Config.set_daily_variables">
 <a class="viewcode-back" href="../../index.html#fue.Config.set_daily_variables">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_daily_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daily</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the daily weather variables to fetch.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates the list of specific weather variables we want to pull from the API.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            daily: List of variable names to fetch</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        daily : list</span>
+<span class="sd">            A list of weather variable strings (like `[&#39;temperature_2m_max&#39;, &#39;precipitation_sum&#39;]`).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the provided value is not structured as a Python list.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">daily</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;daily must be a list, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">daily</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -198,13 +279,23 @@
 <div class="viewcode-block" id="Config.update">
 <a class="viewcode-back" href="../../index.html#fue.Config.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update multiple configuration parameters at once.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates multiple configuration parameters at the same time.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            timezone: Timezone string</span>
-<span class="sd">            past_days: Number of past days</span>
-<span class="sd">            forecast_days: Number of forecast days</span>
-<span class="sd">            daily: List of daily variables</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Named arguments matching existing parameters (`timezone`, `past_days`,</span>
+<span class="sd">            `forecast_days`, or `daily`).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If you pass a setting name that the configuration class doesn&#39;t recognize.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># No logger is needed, because each individual setter method</span>
         <span class="c1"># already logs the changes made to the configuration.</span>
@@ -224,17 +315,31 @@
 <div class="viewcode-block" id="Config.add_city">
 <a class="viewcode-back" href="../../index.html#fue.Config.add_city">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_city</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new city to the configuration.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new city and its coordinates to our tracking list.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            name (str): City name (must be unique)</span>
-<span class="sd">            lat (float): Latitude coordinate</span>
-<span class="sd">            lon (float): Longitude coordinate</span>
+<span class="sd">        This method verifies that the city doesn&#39;t already exist and that coordinates</span>
+<span class="sd">        are valid numbers before appending them to the configuration lists.</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">            ValueError: If city is already in the configuration</span>
-<span class="sd">            TypeError: If city name is not a string</span>
-<span class="sd">            TypeError: If latitude or longitude are not numeric values</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name of the city (e.g., &#39;aachen&#39;). Must be unique.</span>
+<span class="sd">        lat : float</span>
+<span class="sd">            The latitude value of the city location.</span>
+<span class="sd">        lon : float</span>
+<span class="sd">            The longitude value of the city location.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the city name already exists in the current settings.</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If the city name is not a string, or if coordinates are not numbers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cities</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;City &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; already exists in configuration&quot;</span><span class="p">)</span>
@@ -253,10 +358,25 @@
 <div class="viewcode-block" id="Config.remove_city">
 <a class="viewcode-back" href="../../index.html#fue.Config.remove_city">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_city</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove a city from the configuration.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a city and its coordinates from our tracking list.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            name: City name to remove</span>
+<span class="sd">        It finds the position of the city in our internal variables and removes it</span>
+<span class="sd">        completely so that our parallel list dimensions stay lined up.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name string of the city to delete.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the specified city name cannot be found in our settings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cities</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;City &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; not found in configuration&quot;</span><span class="p">)</span>
@@ -275,7 +395,16 @@
 <div class="viewcode-block" id="Config.save">
 <a class="viewcode-back" href="../../index.html#fue.Config.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the current configuration back to config.json.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes all current setting variables back into our config.json file on disk.</span>
+
+<span class="sd">        This re-assembles the dictionary elements, strips out temporary processing lists</span>
+<span class="sd">        like latitudes and longitudes, and saves a clean formatted JSON file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">config_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
         <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;cities&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_coordinates</span>
         <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;preprocessing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span>
@@ -291,18 +420,34 @@
 <div class="viewcode-block" id="Config.get_preprocessing_rules">
 <a class="viewcode-back" href="../../index.html#fue.Config.get_preprocessing_rules">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_preprocessing_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the preprocessing dictionary from config.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the data transformation rules currently configured in our settings.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary mapping weather variables directly to their transformation</span>
+<span class="sd">            methods (for example: `{&#39;abs_diff__precipitation_sum&#39;: &#39;log&#39;}`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span></div>
 
 
 <div class="viewcode-block" id="Config.set_preprocessing_rule">
 <a class="viewcode-back" href="../../index.html#fue.Config.set_preprocessing_rule">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_preprocessing_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets or updates a transformation method for a specific variable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets or changes a data cleaning/transformation rule for a specific weather variable.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            variable: Weather variable name (e.g., &#39;temperature_2m_max&#39;)</span>
-<span class="sd">            method: Transformation method to apply (e.g. log, min-max, ...)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variable : str</span>
+<span class="sd">            The specific weather column or target variable name.</span>
+<span class="sd">        method : str</span>
+<span class="sd">            The name of the scaling method to apply (such as &#39;min-max&#39;, &#39;standard&#39;, or &#39;log&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Preprocessing rule set for &#39;</span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&#39; to &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>

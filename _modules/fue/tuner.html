@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fue.tuner &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data/index.html">Forecast Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model/index.html">Mathematical Background</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">fue.tuner</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for fue.tuner</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Hyperparameter optimization (HPO) engine for the fue package.</span>
+
+<span class="sd">This module provides grid-search capabilities to sweep through various model</span>
+<span class="sd">configurations, evaluate performance on out-of-sample validation data, and</span>
+<span class="sd">identify the optimal configuration for uncertainty estimation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvergenceWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterGrid</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLUncertaintyModel</span><span class="p">,</span> <span class="n">UncertaintyModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_run_id</span>
+
+<span class="c1"># Initialize module-scoped logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="HyperparameterTuner">
+<a class="viewcode-back" href="../../index.html#fue.HyperparameterTuner">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HyperparameterTuner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Automates the process of finding the best settings for our uncertainty models.</span>
+
+<span class="sd">    This class loops through a grid of possible hyperparameter values, runs training</span>
+<span class="sd">    and evaluation iterations for each setting combination, collapses multi-target</span>
+<span class="sd">    error scores down to a single optimization value, and selects the champion model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">UncertaintyModel</span><span class="p">],</span>
+        <span class="n">param_grid</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+        <span class="n">optimization_target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;global&quot;</span><span class="p">,</span>
+        <span class="n">optimization_metric</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the tuner with a target model type, parameters grid, and scoring metrics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_class : type[UncertaintyModel]</span>
+<span class="sd">            The uninstantiated class type of the model you want to tune (for example, MLUncertaintyModel).</span>
+<span class="sd">        param_grid : dict of (str, list)</span>
+<span class="sd">            A dictionary where keys match the model&#39;s setup argument names and values are</span>
+<span class="sd">            lists of settings options to try.</span>
+<span class="sd">        optimization_target : str, default=&quot;global&quot;</span>
+<span class="sd">            The target column to optimize for. If set to &#39;global&#39;, the tuner averages scores</span>
+<span class="sd">            across all weather variables.</span>
+<span class="sd">        optimization_metric : str, default=&quot;RMSE&quot;</span>
+<span class="sd">            The name of the evaluation error metric to track (for example, &#39;RMSE&#39; or &#39;MAE&#39;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span> <span class="o">=</span> <span class="n">model_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span> <span class="o">=</span> <span class="n">param_grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimization_target</span> <span class="o">=</span> <span class="n">optimization_target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimization_metric</span> <span class="o">=</span> <span class="n">optimization_metric</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flattens multi-target error scores into a single number for tracking comparisons.</span>
+
+<span class="sd">        If configured for global optimization, it averages the chosen metric across all</span>
+<span class="sd">        tracked columns. Otherwise, it extracts the score for a single priority target variable.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        metrics_dict : dict</span>
+<span class="sd">            A nested dictionary of evaluation results returned by the model class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The calculated scalar summary score used to evaluate this parameter combination.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_target</span> <span class="o">==</span> <span class="s2">&quot;global&quot;</span><span class="p">:</span>
+            <span class="c1"># Extract the specific metric (e.g., RMSE) for every target variable and average it</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">target_metrics</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_metric</span><span class="p">]</span> <span class="k">for</span> <span class="n">target_metrics</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Route directly to the user-specified priority target</span>
+            <span class="k">return</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_target</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_metric</span><span class="p">]</span>
+
+<div class="viewcode-block" id="HyperparameterTuner.search">
+<a class="viewcode-back" href="../../index.html#fue.HyperparameterTuner.search">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">train_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">val_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">feature_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">target_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MLUncertaintyModel</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs the grid search sweep across all setting combinations to find the best model.</span>
+
+<span class="sd">        Generates all hyperparameter combinations, trains a model candidate on the training pool,</span>
+<span class="sd">        evaluates performance against validation records, and prints an updated leaderboard</span>
+<span class="sd">        status to the console. The overall best model is then automatically saved to disk.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_df : pd.DataFrame</span>
+<span class="sd">            The data frame holding historical training records.</span>
+<span class="sd">        val_df : pd.DataFrame</span>
+<span class="sd">            The out-of-sample data frame used for validation testing.</span>
+<span class="sd">        feature_columns : list</span>
+<span class="sd">            List of column names used as model inputs.</span>
+<span class="sd">        target_columns : list</span>
+<span class="sd">            List of absolute error column names the model aims to predict.</span>
+<span class="sd">        run_id : str or None, default=None</span>
+<span class="sd">            A custom directory name for storing the results. If None, an ID is generated</span>
+<span class="sd">            automatically using the project&#39;s timestamp utilities.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of (UncertaintyModel, list of dict)</span>
+<span class="sd">            A two-element tuple containing:</span>
+<span class="sd">            - The optimal trained model instance (the champion).</span>
+<span class="sd">            - A list of dictionary records mapping out the parameter states and scoring</span>
+<span class="sd">              history for every iteration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ParameterGrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span><span class="p">))</span>
+        <span class="n">total_runs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">run_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">run_id</span> <span class="o">=</span> <span class="n">generate_run_id</span><span class="p">(</span><span class="n">purpose</span><span class="o">=</span><span class="s2">&quot;hpo&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No explicit run_id provided for HPO. Auto-generated identifier: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting HPO sweep. Total configurations to evaluate: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">total_runs</span><span class="p">)</span>
+
+        <span class="n">best_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="n">best_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">best_metrics</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Mute convergence warnings only during the tuning process</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">ConvergenceWarning</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
+                <span class="c1"># 1. Instantiate the model dynamically with the current grid slice</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+                <span class="c1"># 2. Train on the 80% pool</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_df</span><span class="p">,</span> <span class="n">feature_columns</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">)</span>
+
+                <span class="c1"># 3. Evaluate on the 20% unseen pool</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">val_df</span><span class="p">)</span>
+
+                <span class="c1"># 4. Collapse metrics to a single optimization scalar</span>
+                <span class="n">current_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_objective</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+
+                <span class="c1"># 5. Track leaderboard logic</span>
+                <span class="n">is_best</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">current_score</span> <span class="o">&lt;</span> <span class="n">best_score</span><span class="p">:</span>
+                    <span class="n">best_score</span> <span class="o">=</span> <span class="n">current_score</span>
+                    <span class="n">best_model</span> <span class="o">=</span> <span class="n">model</span>
+                    <span class="n">best_metrics</span> <span class="o">=</span> <span class="n">metrics</span>
+                    <span class="n">is_best</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="c1"># 6. One-Liner State Logging</span>
+                <span class="c1"># Output: &quot;Iter 4/48 | Score (RMSE): 0.8421 | Best: 0.8101 | Params: {&#39;alpha&#39;: 0.01, ...}&quot;</span>
+                <span class="n">mark</span> <span class="o">=</span> <span class="s2">&quot;⭐&quot;</span> <span class="k">if</span> <span class="n">is_best</span> <span class="k">else</span> <span class="s2">&quot;  &quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">] Iter </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> | Score (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%.4f</span><span class="s2"> | Best: </span><span class="si">%.4f</span><span class="s2"> | Params: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">mark</span><span class="p">,</span>
+                    <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">total_runs</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">optimization_metric</span><span class="p">,</span>
+                    <span class="n">current_score</span><span class="p">,</span>
+                    <span class="n">best_score</span><span class="p">,</span>
+                    <span class="n">params</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Store iteration results strictly in memory</span>
+                <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;iteration&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="n">current_score</span><span class="p">,</span> <span class="s2">&quot;metrics&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">})</span>
+
+        <span class="c1"># 7. Persist the Champion Model to disk</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;HPO complete. Writing champion model to disk under run_id: &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+
+        <span class="c1"># Package the HPO search metadata alongside the standard validation metrics</span>
+        <span class="n">tracking_metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;hpo_winning_score&quot;</span><span class="p">:</span> <span class="n">best_score</span><span class="p">,</span>
+            <span class="s2">&quot;hpo_optimization_metric&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_metric</span><span class="p">,</span>
+            <span class="s2">&quot;hpo_optimization_target&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_target</span><span class="p">,</span>
+            <span class="s2">&quot;validation_metrics&quot;</span><span class="p">:</span> <span class="n">best_metrics</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># We leverage Phase 1&#39;s save logic!</span>
+        <span class="n">best_model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">tracking_metadata</span><span class="p">)</span>  <span class="c1"># ty: ignore [unresolved-attribute]</span>
+
+        <span class="k">return</span> <span class="n">best_model</span><span class="p">,</span> <span class="n">history</span>  <span class="c1"># ty: ignore [invalid-return-type]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

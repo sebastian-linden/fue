@@ -71,7 +71,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for fue.forecast</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Forecast inference and visualization pipeline for the fue package.</span>
+
+<span class="sd">This module maps fitted machine learning and linear uncertainty estimators onto</span>
+<span class="sd">freshly pulled weather forecasts. It applies physical boundary safeguards (such as</span>
+<span class="sd">clipping metrics at zero or capping sunshine hours via astronomical day length)</span>
+<span class="sd">and renders localized error-bound graphs.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
@@ -86,15 +95,12 @@
 <div class="viewcode-block" id="Forecast">
 <a class="viewcode-back" href="../../index.html#fue.Forecast">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Forecast</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A class, that applies a fitted uncertainty model to a forecast, that can be either</span>
-<span class="sd">    given or fetched from the Open-Meteo API via the OpenMeteoClient() class. This class also provides</span>
-<span class="sd">    methods to visualize the forecast and its uncertainty predictions, if a model is given.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies trained error-prediction models to weather forecasts and handles plotting.</span>
 
-<span class="sd">    Attributes:</span>
-<span class="sd">        forecast: DataFrame with forecast data (set by fetch_forecast)</span>
-<span class="sd">        uncertainty_model: Fitted uncertainty model (set by compute_uncertainties)</span>
-<span class="sd">        uncertainty_predictions: DataFrame with uncertainty predictions (set by compute_uncertainties)</span>
-<span class="sd">        past_days: Number of past days included in forecast</span>
+<span class="sd">    This class tracks live point predictions alongside their calculated error ranges,</span>
+<span class="sd">    manages lookup dictionaries for plot labels, units, and colors, and overlays</span>
+<span class="sd">    shaded confidence bands ($\\pm \text{error}$) on meteorological lines.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Class-level plot specifications for known variables</span>
@@ -147,7 +153,10 @@
         <span class="s2">&quot;abs_diff__precipitation_probability_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation Probability Forecast Absolute Error&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes an empty forecast profile container with default tracking states.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="o">=</span> <span class="kc">None</span>
@@ -156,19 +165,32 @@
 <div class="viewcode-block" id="Forecast.fetch_forecast">
 <a class="viewcode-back" href="../../index.html#fue.Forecast.fetch_forecast">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span> <span class="n">past_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches the latest forecast for the given location and number of days directly from the Open-Meteo API.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downloads a fresh forecast profile for a single city from the data client layer.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            location_name (str): The name of the location. Must be one of the cities defined in the configuration file.</span>
-<span class="sd">            forecast_days (int, optional): The number of days to fetch. Defaults to 14. Must be &gt; 0.</span>
-<span class="sd">            past_days (int, optional): The number of past days to include. Defaults to 0. Must be &gt;= 0.</span>
+<span class="sd">        Validates user-supplied timing bounds, creates a localized temporary city config,</span>
+<span class="sd">        fetches raw predictive rows, and appends structural index features such as</span>
+<span class="sd">        seasonal times and ahead-horizon day fractions.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            None: Sets the forecast DataFrame directly in the class instance.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        location_name : str</span>
+<span class="sd">            The name string matching a tracked target city in our coordinates configurations.</span>
+<span class="sd">        forecast_days : int, default=14</span>
+<span class="sd">            The total look-ahead horizon window length to download, specified in full days.</span>
+<span class="sd">        past_days : int, default=0</span>
+<span class="sd">            The number of back-dated historical timeline records to include alongside the forecast.</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">            TypeError: If location_name is not a string or forecast_days/past_days are not integers.</span>
-<span class="sd">            ValueError: If location_name is not in config, or forecast_days/past_days are invalid.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If any passed argument fails basic validation check rules for matching data types.</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If timing bounds fall into negative counts or if the city name is not registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Input validation</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">location_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -223,17 +245,27 @@
 <div class="viewcode-block" id="Forecast.compute_uncertainties">
 <a class="viewcode-back" href="../../index.html#fue.Forecast.compute_uncertainties">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_uncertainties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uncertainty_model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Applies a fitted uncertainty model to the forecast DataFrame to generate uncertainty predictions.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs the active weather forecast through our estimator to predict absolute error margins.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            uncertainty_model: A fitted instance of an UncertaintyModel subclass. Must have a predict method.</span>
+<span class="sd">        Checks that our forecast lines are loaded and that the selected model possesses</span>
+<span class="sd">        a callable predict method before populating our data frame arrays with raw calculated deviations.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            None: Sets the uncertainty predictions DataFrame directly in the class instance.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        uncertainty_model : object</span>
+<span class="sd">            A statefully trained uncertainty estimator model subclass instance containing a `.predict()` method.</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">            ValueError: If forecast has not been fetched or uncertainty_model is invalid.</span>
-<span class="sd">            AttributeError: If uncertainty_model does not have a predict method.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If forecast rows haven&#39;t been pulled yet, or if the model predictions come back empty.</span>
+<span class="sd">        AttributeError</span>
+<span class="sd">            If the supplied model lacks a callable predict function interface.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Validate state</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -265,17 +297,28 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_plot_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">spec_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get plot specification (color, unit, or title) for a variable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Looks up visual properties like color shades, labels, or units for a specific weather type.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            variable (str): The variable name</span>
-<span class="sd">            spec_type (str): One of &#39;color&#39;, &#39;unit&#39;, or &#39;title&#39;</span>
+<span class="sd">        If a column header is completely unknown, it defaults to a neutral fallback state</span>
+<span class="sd">        and triggers a clear terminal log alert so your pipeline doesn&#39;t crash during presentation.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            str: The specification value</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variable : str</span>
+<span class="sd">            The column header dictionary key name to evaluate (e.g., &#39;temperature_2m_max&#39;).</span>
+<span class="sd">        spec_type : str</span>
+<span class="sd">            The property layout block to open. Must be exactly &#39;color&#39;, &#39;unit&#39;, or &#39;title&#39;.</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">            ValueError: If spec_type is invalid</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The text string holding the matched hex name, metric character, or title text block.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If an invalid configuration string type token is requested.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">spec_type</span> <span class="o">==</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span>
             <span class="n">specs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_KNOWN_COLORS</span>
@@ -309,17 +352,29 @@
 <div class="viewcode-block" id="Forecast.plot">
 <a class="viewcode-back" href="../../index.html#fue.Forecast.plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_variables</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Visualize the forecast and its uncertainty predictions.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders line plots showing forecast tracks with shaded error ranges.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            target_variables (str | list): Variable name(s) to plot. Must start with &#39;abs_diff__&#39;.</span>
+<span class="sd">        Extracts matching data paths for each requested column, shifts back-dated records</span>
+<span class="sd">        down to zero variance bounds, and builds upper and lower bounds. It also</span>
+<span class="sd">        clips values at zero for non-negative tracks and implements physics-based caps on</span>
+<span class="sd">        sunshine parameters based on geographical day lengths.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            None: Displays matplotlib plots.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target_variables : str or list of str</span>
+<span class="sd">            A single metric key or group list of error keys to draw (must begin with &#39;abs_diff__&#39;).</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">            ValueError: If state is invalid or variables are missing from forecast/predictions.</span>
-<span class="sd">            TypeError: If target_variables is not str or list.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If data elements are uninitialized or missing, or if variable string layouts match poorly.</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If target inputs use container forms other than strings or string lists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Value and Type Checks</span>
         <span class="k">if</span> <span class="n">target_variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

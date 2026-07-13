@@ -71,7 +71,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for fue.openmeteoclient</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">API Client for fetching weather forecasts from Open-Meteo.</span>
+
+<span class="sd">This module communicates with the Open-Meteo API. It includes automatic data</span>
+<span class="sd">caching to prevent hitting rate limits and a retry system to handle network drops.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">openmeteo_requests</span>
@@ -87,10 +94,24 @@
 <div class="viewcode-block" id="OpenMeteoClient">
 <a class="viewcode-back" href="../../index.html#fue.OpenMeteoClient">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OpenMeteoClient</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class implements a client, which fetches data via the Open-Meteo API.</span>
-<span class="sd">    It is mainly used by the Data class&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A client used to fetch and format weather data from the Open-Meteo API.</span>
+
+<span class="sd">    This class handles the underlying network connection, sessions, and data caching.</span>
+<span class="sd">    It downloads weather metrics for all tracked cities simultaneously and maps the</span>
+<span class="sd">    raw API responses directly into pandas DataFrames for our pipeline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets up the API endpoint URL, a cached network session, and configuration settings.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config : Config or None, default=None</span>
+<span class="sd">            The shared project configuration object containing tracking parameters.</span>
+<span class="sd">            If None, a default instance of the Config class is automatically created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Setup the Open-Meteo API client with cache and retry on error</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_session</span> <span class="o">=</span> <span class="n">requests_cache</span><span class="o">.</span><span class="n">CachedSession</span><span class="p">(</span><span class="s2">&quot;.cache&quot;</span><span class="p">,</span> <span class="n">expire_after</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span>
@@ -109,12 +130,20 @@
 <div class="viewcode-block" id="OpenMeteoClient.fetch_forecast">
 <a class="viewcode-back" href="../../index.html#fue.OpenMeteoClient.fetch_forecast">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch forecast data from Open-Meteo API and return as pandas DataFrame.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downloads forward-looking weather forecast values for all target cities.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            pd.DataFrame: Combined forecast data for all configured cities with columns:</span>
-<span class="sd">                location_name, latitude, longitude, forecasted_on, forecast_for,</span>
-<span class="sd">                and all daily weather variables from config</span>
+<span class="sd">        Queries the Open-Meteo endpoint using parameters from our configuration file,</span>
+<span class="sd">        loops over each city&#39;s geographic response, aligns the time indices to</span>
+<span class="sd">        the final second of the day, and aggregates everything into a single</span>
+<span class="sd">        unified data frame.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A stacked data frame containing forecast records for all cities.</span>
+<span class="sd">            Columns include: &#39;location_name&#39;, &#39;latitude&#39;, &#39;longitude&#39;,</span>
+<span class="sd">            &#39;forecasted_on&#39;, &#39;forecast_for&#39;, and the specific weather variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Fetch responses from API</span>
@@ -161,11 +190,6 @@
         <span class="k">return</span> <span class="n">forecast_data</span></div>
 </div>
 
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">OpenMeteoClient</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">fetch_forecast</span><span class="p">())</span>
 </pre></div>
 
            </div>
