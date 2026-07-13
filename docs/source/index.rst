@@ -1,15 +1,8 @@
-.. fue documentation master file, created by
-   sphinx-quickstart on Thu Jun 25 14:35:02 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 fue documentation
 =================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+Welcome to the documentation for the Forecast Uncertainty Estimation (fue) package. 
+This system maps out physical uncertainty trends across complex European microclimates.
 
 .. toctree::
    :maxdepth: 2
@@ -21,16 +14,9 @@ documentation for details.
    Mathematical Background <model/index>
    Configuration Guide <configuration/index>
 
-Autodoc API Reference
-=====================
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference:
 
-.. automodule:: fue
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-.. automodule:: fue.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   api/fue
+   api/models
