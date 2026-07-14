@@ -44,4 +44,4 @@ exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
-mathjax_path = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"

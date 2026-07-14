@@ -8,21 +8,21 @@ Rather than computing post-hoc statistical variances or classic standard deviati
 The Mathematical Formulation
 -----------------------------
 
-Let $y_{t, h}$ represent the raw numerical forecast generated for a specific weather variable at calendar day $t$ with a look-ahead horizon of $h$ days (where $h = \text{delta\_days}$). Let $\tilde{y}_{t}$ represent the actual ground-truth observation recorded for that calendar day.
+Let :math:`y_{t, h}` represent the raw numerical forecast generated for a specific weather variable at calendar day :math:`t` with a look-ahead horizon of :math:`h` days (where :math:`h = \text{delta\_days}`). Let :math:`\tilde{y}_{t}` represent the actual ground-truth observation recorded for that calendar day.
 
-We define the physical absolute forecast error, $e_{t, h}$, as:
+We define the physical absolute forecast error, :math:`e_{t, h}`, as:
 
 .. math::
 
    e_{t, h} = | y_{t, h} - \tilde{y}_{t} |
 
-Our models are explicitly optimized to find a predictive mapping function $f(\cdot)$ such that:
+Our models are explicitly optimized to find a predictive mapping function :math:`f(\cdot)` such that:
 
 .. math::
 
    \hat{e}_{t, h} = f(X_{t, h})
 
-Where $X_{t, h}$ is our design matrix containing predictors like seasonal timing (``day_of_year``), look-ahead time constraints (``delta_days``), and simulated atmospheric point states (like maximum temperature or precipitation sums).
+Where :math:`X_{t, h}` is our design matrix containing predictors like seasonal timing (``day_of_year``), look-ahead time constraints (``delta_days``), and simulated atmospheric point states (like maximum temperature or precipitation sums).
 
 The Base Architecture (``UncertaintyModel``)
 --------------------------------------------
@@ -43,10 +43,10 @@ The linear system can be expressed as:
 
    \mathbf{E} = \mathbf{X}_{processed} \cdot \mathbf{W} + \mathbf{B}
 
-Where $\mathbf{E}$ represents our multi-column target error matrix, $\mathbf{W}$ is the weights coefficient matrix, and $\mathbf{B}$ is the bias intercept vector.
+Where :math:`\mathbf{E}` represents our multi-column target error matrix, :math:`\mathbf{W}` is the weights coefficient matrix, and :math:`\mathbf{B}` is the bias intercept vector.
 
 .. note::
-   Because standard linear lines extend to infinity, the OLS equation can mathematically output negative values for short forecast horizons ($h \approx 0$). Since a physical error magnitude can never drop below zero, the model automatically clips outputs using an element-wise maximum constraint: $\max(0, \hat{e})$.
+   Because standard linear lines extend to infinity, the OLS equation can mathematically output negative values for short forecast horizons (:math:`h \approx 0`). Since a physical error magnitude can never drop below zero, the model automatically clips outputs using an element-wise maximum constraint: :math:`\max(0, \hat{e})`.
 
 Nonlinear Machine Learning Approach
 -----------------------------------
@@ -65,9 +65,9 @@ The network inherently excels at handling variable saturation—meaning that as 
 
 Ensemble Aggregation
 ^^^^^^^^^^^^^^^^^^^^
-Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an **Ensemble Pool** of size $N$ (configured in ``config.json``).
+Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an **Ensemble Pool** of size :math:`N` (configured in ``config.json``).
 
-Each ensemble member is initialized with a distinct random seed ($S_i = \text{base\_seed} + i$). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:
+Each ensemble member is initialized with a distinct random seed (:math:`S_i = \text{base\_seed} + i`). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:
 
 .. math::
 
@@ -84,4 +84,4 @@ The tuner collapses multi-variable prediction metrics down to a single optimizat
 
    \text{Objective} = \frac{1}{M} \sum_{m=1}^{M} \text{Metric}_m
 
-Where $M$ is the number of target weather variables and $\text{Metric}$ represents an error score vector like Root Mean Squared Error (``RMSE``) or Mean Absolute Error (``MAE``) calculated against unseen validation partitions.
+Where :math:`M` is the number of target weather variables and :math:`\text{Metric}` represents an error score vector like Root Mean Squared Error (``RMSE``) or Mean Absolute Error (``MAE``) calculated against unseen validation partitions.
