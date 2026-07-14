@@ -101,14 +101,14 @@
 <p>Rather than computing post-hoc statistical variances or classic standard deviations around a single machine learning prediction, this package reframes uncertainty estimation entirely. We treat uncertainty as a <strong>primary target variable</strong> by directly training estimators to predict the real-world absolute error magnitude of numerical weather simulations.</p>
 <section id="the-mathematical-formulation">
 <h2>The Mathematical Formulation<a class="headerlink" href="#the-mathematical-formulation" title="Link to this heading"></a></h2>
-<p>Let $y_{t, h}$ represent the raw numerical forecast generated for a specific weather variable at calendar day $t$ with a look-ahead horizon of $h$ days (where $h = text{delta_days}$). Let $tilde{y}_{t}$ represent the actual ground-truth observation recorded for that calendar day.</p>
-<p>We define the physical absolute forecast error, $e_{t, h}$, as:</p>
+<p>Let <span class="math notranslate nohighlight">\(y_{t, h}\)</span> represent the raw numerical forecast generated for a specific weather variable at calendar day <span class="math notranslate nohighlight">\(t\)</span> with a look-ahead horizon of <span class="math notranslate nohighlight">\(h\)</span> days (where <span class="math notranslate nohighlight">\(h = \text{delta\_days}\)</span>). Let <span class="math notranslate nohighlight">\(\tilde{y}_{t}\)</span> represent the actual ground-truth observation recorded for that calendar day.</p>
+<p>We define the physical absolute forecast error, <span class="math notranslate nohighlight">\(e_{t, h}\)</span>, as:</p>
 <div class="math notranslate nohighlight">
 \[e_{t, h} = | y_{t, h} - \tilde{y}_{t} |\]</div>
-<p>Our models are explicitly optimized to find a predictive mapping function $f(cdot)$ such that:</p>
+<p>Our models are explicitly optimized to find a predictive mapping function <span class="math notranslate nohighlight">\(f(\cdot)\)</span> such that:</p>
 <div class="math notranslate nohighlight">
 \[\hat{e}_{t, h} = f(X_{t, h})\]</div>
-<p>Where $X_{t, h}$ is our design matrix containing predictors like seasonal timing (<code class="docutils literal notranslate"><span class="pre">day_of_year</span></code>), look-ahead time constraints (<code class="docutils literal notranslate"><span class="pre">delta_days</span></code>), and simulated atmospheric point states (like maximum temperature or precipitation sums).</p>
+<p>Where <span class="math notranslate nohighlight">\(X_{t, h}\)</span> is our design matrix containing predictors like seasonal timing (<code class="docutils literal notranslate"><span class="pre">day_of_year</span></code>), look-ahead time constraints (<code class="docutils literal notranslate"><span class="pre">delta_days</span></code>), and simulated atmospheric point states (like maximum temperature or precipitation sums).</p>
 </section>
 <section id="the-base-architecture-uncertaintymodel">
 <h2>The Base Architecture (<code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code>)<a class="headerlink" href="#the-base-architecture-uncertaintymodel" title="Link to this heading"></a></h2>
@@ -124,10 +124,10 @@
 <p>The linear system can be expressed as:</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{E} = \mathbf{X}_{processed} \cdot \mathbf{W} + \mathbf{B}\]</div>
-<p>Where $mathbf{E}$ represents our multi-column target error matrix, $mathbf{W}$ is the weights coefficient matrix, and $mathbf{B}$ is the bias intercept vector.</p>
+<p>Where <span class="math notranslate nohighlight">\(\mathbf{E}\)</span> represents our multi-column target error matrix, <span class="math notranslate nohighlight">\(\mathbf{W}\)</span> is the weights coefficient matrix, and <span class="math notranslate nohighlight">\(\mathbf{B}\)</span> is the bias intercept vector.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Because standard linear lines extend to infinity, the OLS equation can mathematically output negative values for short forecast horizons ($h approx 0$). Since a physical error magnitude can never drop below zero, the model automatically clips outputs using an element-wise maximum constraint: $max(0, hat{e})$.</p>
+<p>Because standard linear lines extend to infinity, the OLS equation can mathematically output negative values for short forecast horizons (<span class="math notranslate nohighlight">\(h \approx 0\)</span>). Since a physical error magnitude can never drop below zero, the model automatically clips outputs using an element-wise maximum constraint: <span class="math notranslate nohighlight">\(\max(0, \hat{e})\)</span>.</p>
 </div>
 </section>
 <section id="nonlinear-machine-learning-approach">
@@ -142,8 +142,8 @@
 </section>
 <section id="ensemble-aggregation">
 <h3>Ensemble Aggregation<a class="headerlink" href="#ensemble-aggregation" title="Link to this heading"></a></h3>
-<p>Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an <strong>Ensemble Pool</strong> of size $N$ (configured in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>).</p>
-<p>Each ensemble member is initialized with a distinct random seed ($S_i = text{base_seed} + i$). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:</p>
+<p>Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an <strong>Ensemble Pool</strong> of size <span class="math notranslate nohighlight">\(N\)</span> (configured in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>).</p>
+<p>Each ensemble member is initialized with a distinct random seed (<span class="math notranslate nohighlight">\(S_i = \text{base\_seed} + i\)</span>). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:</p>
 <div class="math notranslate nohighlight">
 \[\hat{e}_{final} = \frac{1}{N} \sum_{i=1}^{N} f_{MLP, i}(\mathbf{X}_{processed})\]</div>
 </section>
@@ -154,7 +154,7 @@
 <p>The tuner collapses multi-variable prediction metrics down to a single optimization objective. When configured for a <code class="docutils literal notranslate"><span class="pre">global</span></code> target, it computes the mean error across all metrics simultaneously:</p>
 <div class="math notranslate nohighlight">
 \[\text{Objective} = \frac{1}{M} \sum_{m=1}^{M} \text{Metric}_m\]</div>
-<p>Where $M$ is the number of target weather variables and $text{Metric}$ represents an error score vector like Root Mean Squared Error (<code class="docutils literal notranslate"><span class="pre">RMSE</span></code>) or Mean Absolute Error (<code class="docutils literal notranslate"><span class="pre">MAE</span></code>) calculated against unseen validation partitions.</p>
+<p>Where <span class="math notranslate nohighlight">\(M\)</span> is the number of target weather variables and <span class="math notranslate nohighlight">\(\text{Metric}\)</span> represents an error score vector like Root Mean Squared Error (<code class="docutils literal notranslate"><span class="pre">RMSE</span></code>) or Mean Absolute Error (<code class="docutils literal notranslate"><span class="pre">MAE</span></code>) calculated against unseen validation partitions.</p>
 </section>
 </section>
 
