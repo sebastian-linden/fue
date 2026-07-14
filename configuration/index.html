@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; fue 12.08.2026 documentation</title>
+  <title>Configuration &mdash; fue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -16,11 +16,12 @@
       <script src="../_static/documentation_options.js?v=1baa63dd"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Core API Reference" href="../api/fue.html" />
-    <link rel="prev" title="Mathematical Background" href="../model/index.html" /> 
+    <link rel="prev" title="Mathematical Background &amp; Modeling" href="../model/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,11 +44,29 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Forecast Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#open-meteo-parameters">Open-Meteo Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cities"><code class="docutils literal notranslate"><span class="pre">cities</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timezone"><code class="docutils literal notranslate"><span class="pre">timezone</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#forecast-days"><code class="docutils literal notranslate"><span class="pre">forecast_days</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#past-days"><code class="docutils literal notranslate"><span class="pre">past_days</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#daily"><code class="docutils literal notranslate"><span class="pre">daily</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#package-pipeline-settings">Package Pipeline Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preprocessing"><code class="docutils literal notranslate"><span class="pre">preprocessing</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default-feature-columns"><code class="docutils literal notranslate"><span class="pre">default_feature_columns</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default-target-columns"><code class="docutils literal notranslate"><span class="pre">default_target_columns</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -69,7 +88,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active">Configuration</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/configuration/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -79,12 +98,75 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
+<p>The source of configuration settings in this package is the <code class="docutils literal notranslate"><span class="pre">config.json</span></code> file located in the root directory. When you initialize an instance of the <code class="docutils literal notranslate"><span class="pre">Config</span></code> class, it reads this file, shares those settings with the other package components and provides built-in methods to update settings and save those changes back to the <code class="docutils literal notranslate"><span class="pre">config.json</span></code> file. On this page, I will walk you through each configuration entry so you know how to choose the right parameters for your run.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">config.json</span></code> file uses a standard JSON key-value format that maps cleanly to a Python dictionary. When downloading weather data from the Open-Meteo API, the package passes a dictionary with the parameters specifying the location(s), the number of days the forecast should cover, and the meteorological variables you are interested in tracking. We also pass an explicit timezone setting, because capturing the exact local time boundary for each prediction block is important for our data alignment steps.</p>
+<p>Initially the <code class="docutils literal notranslate"><span class="pre">Config</span></code> class was designed to handle only the parameters which are required by the Open-Meteo API. However, as the package grew, more and more settings were outsourced to the <code class="docutils literal notranslate"><span class="pre">config.json</span></code> file to preserve modularity and avoid hard-coding machine learning design choices directly into the Python code.</p>
+<p>In the following sections I walk you through each element of the configuration file so you can customize it for your own use.</p>
+<section id="open-meteo-parameters">
+<h2>Open-Meteo Parameters<a class="headerlink" href="#open-meteo-parameters" title="Link to this heading"></a></h2>
+<section id="cities">
+<h3><code class="docutils literal notranslate"><span class="pre">cities</span></code><a class="headerlink" href="#cities" title="Link to this heading"></a></h3>
+<p>The Open-Meteo API can handle multiple locations simultaneously and they are passed internally as two lists containing latitudes and longitudes. For convenience, this package pairs the coordinates with the associated location name. For consistency city names are written in all lowercase letters. The cities dictionary looks as follows:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;cities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;aachen&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;lat&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">50.7753</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;lon&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">6.0839</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;munich&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;lat&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">48.1351</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;lon&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">11.582</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="timezone">
+<h3><code class="docutils literal notranslate"><span class="pre">timezone</span></code><a class="headerlink" href="#timezone" title="Link to this heading"></a></h3>
+<p>Choose the timezone corresponding to your local time. The API automatically adjusts the timestamp of the forecasts. To know which string to specify, have a look at the available options at <a class="reference external" href="https://open-meteo.com/en/docs">www.open-meteo.com/en/docs</a>.</p>
+</section>
+<section id="forecast-days">
+<h3><code class="docutils literal notranslate"><span class="pre">forecast_days</span></code><a class="headerlink" href="#forecast-days" title="Link to this heading"></a></h3>
+<p>This parameter specifies how many days the forecast covers. A number of 1 means that the forecast returns estimated forecasts for today (0) and tomorrow (1). The default is 7, but many weather models produce forecasts of up to 14 days. This depends on the location(s) you specified. For more information look at the table on their website: <a class="reference external" href="https://open-meteo.com/en/docs#data_sources">https://open-meteo.com/en/docs#data_sources</a>.</p>
+</section>
+<section id="past-days">
+<h3><code class="docutils literal notranslate"><span class="pre">past_days</span></code><a class="headerlink" href="#past-days" title="Link to this heading"></a></h3>
+<p>Open-Meteo also provides an option to fetch forecast for past days. If you pass a value larger than 0 the API returns historical forecasts alongside the future forecasts. In this package, we use these past days as our “ground truth” observations to calculate our forecast error targets. Open-Meteo continuously updates past days’ fields with high-resolution reanalysis data (observed weather mapped back onto a grid) once the calendar day is complete.</p>
+</section>
+<section id="daily">
+<h3><code class="docutils literal notranslate"><span class="pre">daily</span></code><a class="headerlink" href="#daily" title="Link to this heading"></a></h3>
+<p>This is a list where you specify exactly which daily weather variables you want to download from the API. The string names you choose must match Open-Meteo’s official naming conventions (like <code class="docutils literal notranslate"><span class="pre">temperature_2m_max</span></code> or <code class="docutils literal notranslate"><span class="pre">precipitation_sum</span></code>). The client uses the order of this list to map the incoming raw arrays correctly, so make sure they are valid. You can check the complete list of variables directly on the Open-Meteo documentation page: <a class="reference external" href="https://open-meteo.com/en/docs#daily_weather_variables">https://open-meteo.com/en/docs#daily_weather_variables</a>.</p>
+</section>
+</section>
+<section id="package-pipeline-settings">
+<h2>Package Pipeline Settings<a class="headerlink" href="#package-pipeline-settings" title="Link to this heading"></a></h2>
+<section id="preprocessing">
+<h3><code class="docutils literal notranslate"><span class="pre">preprocessing</span></code><a class="headerlink" href="#preprocessing" title="Link to this heading"></a></h3>
+<p>This section is a dictionary map where you assign custom data cleaning and math transformation rules to your weather columns. Before training a model, the <code class="docutils literal notranslate"><span class="pre">Preprocessor</span></code> looks at this dictionary to normalize data scales or handle tricky distributions. You can map variables to stateful scalers like <code class="docutils literal notranslate"><span class="pre">&quot;standard&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;min-max&quot;</span></code>, apply adjustments like <code class="docutils literal notranslate"><span class="pre">&quot;log&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;square&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;sqrt&quot;</span></code>, or transform circular parameters (like angles) into coordinate pairs using <code class="docutils literal notranslate"><span class="pre">&quot;sin-cos&quot;</span></code>. For example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;preprocessing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;precipitation_sum&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;log&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;wind_direction_10m_dominant&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sin-cos&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="default-feature-columns">
+<h3><code class="docutils literal notranslate"><span class="pre">default_feature_columns</span></code><a class="headerlink" href="#default-feature-columns" title="Link to this heading"></a></h3>
+<p>This is the baseline list of input features that our machine learning and linear models look at to learn when forecasts tend to be wrong. It acts as the default blueprint for your model’s design matrix, packing together metrics like <code class="docutils literal notranslate"><span class="pre">day_of_year</span></code> (to capture seasonal changes), <code class="docutils literal notranslate"><span class="pre">delta_days</span></code> (how many days in advance the forecast was made), and specific predicted weather states.</p>
+</section>
+<section id="default-target-columns">
+<h3><code class="docutils literal notranslate"><span class="pre">default_target_columns</span></code><a class="headerlink" href="#default-target-columns" title="Link to this heading"></a></h3>
+<p>This list defines the exact targets your models are trying to predict. In our case, these are the calculated physical absolute errors of the weather forecasts, which always carry the <code class="docutils literal notranslate"><span class="pre">&quot;abs_diff__&quot;</span></code> prefix (for example, <code class="docutils literal notranslate"><span class="pre">abs_diff__temperature_2m_max</span></code>). The baseline <code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code> checks this list during training and inference to map out multi-target predictions simultaneously.</p>
+</section>
+</section>
+</section>
+
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../model/index.html" class="btn btn-neutral float-left" title="Mathematical Background" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../model/index.html" class="btn btn-neutral float-left" title="Mathematical Background &amp; Modeling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../api/fue.html" class="btn btn-neutral float-right" title="Core API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

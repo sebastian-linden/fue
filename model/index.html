@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mathematical Background &mdash; fue 12.08.2026 documentation</title>
+  <title>Mathematical Background &amp; Modeling &mdash; fue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -16,11 +16,14 @@
       <script src="../_static/documentation_options.js?v=1baa63dd"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="../configuration/index.html" />
-    <link rel="prev" title="Data Source" href="../data/index.html" /> 
+    <link rel="next" title="Configuration" href="../configuration/index.html" />
+    <link rel="prev" title="Data Pipeline &amp; Architecture" href="../data/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,12 +48,22 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Forecast Data</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Mathematical Background</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mathematical Background &amp; Modeling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-mathematical-formulation">The Mathematical Formulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-base-architecture-uncertaintymodel">The Base Architecture (<code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linear-modeling-approach">Linear Modeling Approach</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nonlinear-machine-learning-approach">Nonlinear Machine Learning Approach</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#neural-network-structure">Neural Network Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ensemble-aggregation">Ensemble Aggregation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#hyperparameter-optimization-hpo">Hyperparameter Optimization (HPO)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -72,7 +85,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Mathematical Background</li>
+      <li class="breadcrumb-item active">Mathematical Background &amp; Modeling</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/model/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -82,19 +95,66 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mathematical-background">
-<h1>Mathematical Background<a class="headerlink" href="#mathematical-background" title="Link to this heading"></a></h1>
-<p>The spatial interpolation framework relies heavily on advanced geodetic kriging techniques as discussed by <span class="bibtex-citation" id="id1">[<a class="reference internal" href="#id3" title="Sebastian Linden. Evaluation of synthetic precipitation data generation via kriging methods. Journal of Simulation Sciences, 2026.">Lin26</a>]</span>.</p>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<div class="docutils container" id="id2">
-<div role="list" class="citation-list">
-<div class="citation" id="id3" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Lin26</a><span class="fn-bracket">]</span></span>
-<p>Sebastian Linden. Evaluation of synthetic precipitation data generation via kriging methods. <em>Journal of Simulation Sciences</em>, 2026.</p>
+  <section id="mathematical-background-modeling">
+<h1>Mathematical Background &amp; Modeling<a class="headerlink" href="#mathematical-background-modeling" title="Link to this heading"></a></h1>
+<p>This section details the mathematical and algorithmic architecture used by the <code class="docutils literal notranslate"><span class="pre">fue</span></code> package to estimate forecast uncertainty.</p>
+<p>Rather than computing post-hoc statistical variances or classic standard deviations around a single machine learning prediction, this package reframes uncertainty estimation entirely. We treat uncertainty as a <strong>primary target variable</strong> by directly training estimators to predict the real-world absolute error magnitude of numerical weather simulations.</p>
+<section id="the-mathematical-formulation">
+<h2>The Mathematical Formulation<a class="headerlink" href="#the-mathematical-formulation" title="Link to this heading"></a></h2>
+<p>Let $y_{t, h}$ represent the raw numerical forecast generated for a specific weather variable at calendar day $t$ with a look-ahead horizon of $h$ days (where $h = text{delta_days}$). Let $tilde{y}_{t}$ represent the actual ground-truth observation recorded for that calendar day.</p>
+<p>We define the physical absolute forecast error, $e_{t, h}$, as:</p>
+<div class="math notranslate nohighlight">
+\[e_{t, h} = | y_{t, h} - \tilde{y}_{t} |\]</div>
+<p>Our models are explicitly optimized to find a predictive mapping function $f(cdot)$ such that:</p>
+<div class="math notranslate nohighlight">
+\[\hat{e}_{t, h} = f(X_{t, h})\]</div>
+<p>Where $X_{t, h}$ is our design matrix containing predictors like seasonal timing (<code class="docutils literal notranslate"><span class="pre">day_of_year</span></code>), look-ahead time constraints (<code class="docutils literal notranslate"><span class="pre">delta_days</span></code>), and simulated atmospheric point states (like maximum temperature or precipitation sums).</p>
+</section>
+<section id="the-base-architecture-uncertaintymodel">
+<h2>The Base Architecture (<code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code>)<a class="headerlink" href="#the-base-architecture-uncertaintymodel" title="Link to this heading"></a></h2>
+<p>The abstract base class <code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code> standardizes how features and targets flow into concrete mathematical operations. It isolates algorithm implementations from data preparation tasks by enforcing a strict two-stage cycle:</p>
+<ol class="arabic simple">
+<li><p><strong>Stateful Data Preparation:</strong> The base class passes the raw input data frame through the <code class="docutils literal notranslate"><span class="pre">Preprocessor</span></code>. Features are transformed according to your <code class="docutils literal notranslate"><span class="pre">config.json</span></code> rules (e.g., standardizing columns, applying Box-Cox corrections, or parsing circular wind vectors into sine-cosine coordinates).</p></li>
+<li><p><strong>Subclass Hook Execution:</strong> The cleaned data matrices are forwarded down to internal mathematical hooks (<code class="docutils literal notranslate"><span class="pre">_fit_internal</span></code> and <code class="docutils literal notranslate"><span class="pre">_predict_internal</span></code>) overridden by individual model variants.</p></li>
+</ol>
+</section>
+<section id="linear-modeling-approach">
+<h2>Linear Modeling Approach<a class="headerlink" href="#linear-modeling-approach" title="Link to this heading"></a></h2>
+<p>The baseline algorithm implemented is the <code class="docutils literal notranslate"><span class="pre">LinearUncertaintyModel</span></code>. This model uses standard multi-output ordinary least squares (OLS) linear regression to map features to absolute errors.</p>
+<p>The linear system can be expressed as:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{E} = \mathbf{X}_{processed} \cdot \mathbf{W} + \mathbf{B}\]</div>
+<p>Where $mathbf{E}$ represents our multi-column target error matrix, $mathbf{W}$ is the weights coefficient matrix, and $mathbf{B}$ is the bias intercept vector.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because standard linear lines extend to infinity, the OLS equation can mathematically output negative values for short forecast horizons ($h approx 0$). Since a physical error magnitude can never drop below zero, the model automatically clips outputs using an element-wise maximum constraint: $max(0, hat{e})$.</p>
 </div>
-</div>
-</div>
+</section>
+<section id="nonlinear-machine-learning-approach">
+<h2>Nonlinear Machine Learning Approach<a class="headerlink" href="#nonlinear-machine-learning-approach" title="Link to this heading"></a></h2>
+<p>To model complex, multi-variable weather interactions that straight linear paths miss, we implement the <code class="docutils literal notranslate"><span class="pre">MLUncertaintyModel</span></code>. This architecture utilizes a multi-layer neural network (Multi-Layer Perceptron Regressor) backed by an ensemble framework.</p>
+<section id="neural-network-structure">
+<h3>Neural Network Structure<a class="headerlink" href="#neural-network-structure" title="Link to this heading"></a></h3>
+<p>Features traverse fully connected hidden processing layers using Rectified Linear Unit (ReLU) activations to learn highly flexible nonlinear boundaries:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{H}_1 = \text{ReLU}(\mathbf{X}_{processed} \cdot \mathbf{W}_1 + \mathbf{b}_1)\]</div>
+<p>The network inherently excels at handling variable saturation—meaning that as forecast look-ahead horizons extend past major prediction limits (e.g., beyond 10-14 days), the network’s outputs naturally flatten into a stable error ceiling matching historical climatological variance.</p>
+</section>
+<section id="ensemble-aggregation">
+<h3>Ensemble Aggregation<a class="headerlink" href="#ensemble-aggregation" title="Link to this heading"></a></h3>
+<p>Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an <strong>Ensemble Pool</strong> of size $N$ (configured in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>).</p>
+<p>Each ensemble member is initialized with a distinct random seed ($S_i = text{base_seed} + i$). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:</p>
+<div class="math notranslate nohighlight">
+\[\hat{e}_{final} = \frac{1}{N} \sum_{i=1}^{N} f_{MLP, i}(\mathbf{X}_{processed})\]</div>
+</section>
+</section>
+<section id="hyperparameter-optimization-hpo">
+<h2>Hyperparameter Optimization (HPO)<a class="headerlink" href="#hyperparameter-optimization-hpo" title="Link to this heading"></a></h2>
+<p>To locate the ideal structural setup for the neural networks, the <code class="docutils literal notranslate"><span class="pre">HyperparameterTuner</span></code> executes an automated grid search sweep across your parameter ranges.</p>
+<p>The tuner collapses multi-variable prediction metrics down to a single optimization objective. When configured for a <code class="docutils literal notranslate"><span class="pre">global</span></code> target, it computes the mean error across all metrics simultaneously:</p>
+<div class="math notranslate nohighlight">
+\[\text{Objective} = \frac{1}{M} \sum_{m=1}^{M} \text{Metric}_m\]</div>
+<p>Where $M$ is the number of target weather variables and $text{Metric}$ represents an error score vector like Root Mean Squared Error (<code class="docutils literal notranslate"><span class="pre">RMSE</span></code>) or Mean Absolute Error (<code class="docutils literal notranslate"><span class="pre">MAE</span></code>) calculated against unseen validation partitions.</p>
 </section>
 </section>
 
@@ -102,8 +162,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../data/index.html" class="btn btn-neutral float-left" title="Data Source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../configuration/index.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../data/index.html" class="btn btn-neutral float-left" title="Data Pipeline &amp; Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../configuration/index.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -16,11 +16,12 @@
       <script src="../_static/documentation_options.js?v=1baa63dd"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Models API Reference" href="models.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="../configuration/index.html" /> 
+    <link rel="prev" title="Configuration" href="../configuration/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,9 +46,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Forecast Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
@@ -121,8 +124,8 @@
              
   <section id="core-api-reference">
 <h1>Core API Reference<a class="headerlink" href="#core-api-reference" title="Link to this heading"></a></h1>
-<p>This section covers the primary data orchestration and pipeline classes used
-to interface with weather configurations, pull live data feeds, and format metrics.</p>
+<p>This section covers the primary data workflows and the classes used
+to interact with weather forecast data pulled from open-meteo.com.</p>
 <p id="module-fue">Top-level package for fue.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="fue.Config">
@@ -650,7 +653,7 @@ Columns include: ‘location_name’, ‘latitude’, ‘longitude’,
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../configuration/index.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../configuration/index.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="models.html" class="btn btn-neutral float-right" title="Models API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

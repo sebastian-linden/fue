@@ -16,6 +16,7 @@
       <script src="../_static/documentation_options.js?v=1baa63dd"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -44,9 +45,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Forecast Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
@@ -95,7 +98,12 @@
   <section id="models-api-reference">
 <h1>Models API Reference<a class="headerlink" href="#models-api-reference" title="Link to this heading"></a></h1>
 <p>This section details the statistical and machine learning estimators used
-to model absolute deviations and calculate forecast uncertainty constraints.</p>
+to model absolute deviations and calculate forecast uncertainty constraints.
+The parent class <code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code> implements functionality, that is
+independent from the exact mathematical model like error evaluation, saving
+a model with its parameters and loading the model with its learnt parameters.
+The specific mathematical models inherit from this parent class and are only
+responsible for fitting and predicting.</p>
 <dl class="py class" id="module-fue.models">
 <dt class="sig sig-object py" id="fue.models.LinearUncertaintyModel">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">fue.models.</span></span><span class="sig-name descname"><span class="pre">LinearUncertaintyModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="fue.html#fue.Config" title="fue.config.Config"><span class="pre">Config</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fue/models/linear_model.html#LinearUncertaintyModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fue.models.LinearUncertaintyModel" title="Link to this definition"></a></dt>

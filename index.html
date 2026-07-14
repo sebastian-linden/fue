@@ -16,10 +16,11 @@
       <script src="_static/documentation_options.js?v=1baa63dd"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Quickstart" href="quickstart.html" /> 
+    <link rel="next" title="Quickstart" href="notebooks/quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,9 +45,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="data/index.html">Forecast Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="model/index.html">Mathematical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration/index.html">Configuration Guide</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -81,15 +84,44 @@
   <section id="fue-documentation">
 <h1>fue documentation<a class="headerlink" href="#fue-documentation" title="Link to this heading"></a></h1>
 <p>Welcome to the documentation for the Forecast Uncertainty Estimation (fue) package.
-This system maps out physical uncertainty trends across complex European microclimates.</p>
+It is built around the idea that a weather forecasts are reliable only to a certain
+degree. There might be significant uncertainty attached to forecasts, that are not
+clearly stated in the apps we use daily. This hobby project aims at finding these
+deviations between the forecasted weather and the true realization of the weather
+several days later, when weather station measurements show us how accurate a forecast
+really was. I had the idea for this project for a while and now that I am taking a
+course on sustainable computational engineering (aka how to write code that others
+can understand and use), I finally had a good reason to realize the project.</p>
+<p>The project is split into two modules: the core <strong>fue</strong> and the <strong>fue.models</strong> module.
+The core <strong>fue</strong> module includes fetching forecasting data from the open-meteo.com API, cleaning
+and preprocessing of data and the generation of valid traing and validation datasets.
+<strong>fue.models</strong> is focused on using a mathematical model to map a certain forecast
+to attached uncertainties.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="data/index.html">Forecast Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="model/index.html">Mathematical Background</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="model/index.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data/index.html">Data Pipeline &amp; Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data/index.html#general-overview-of-components">General Overview of Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/index.html#raw-data-format-and-file-location">Raw Data Format and File Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/index.html#the-data-processing-pipeline">The Data Processing Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/index.html#data-splitting-preventing-leakage">Data Splitting (Preventing Leakage)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/index.html#other-important-remarks">Other Important Remarks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model/index.html">Mathematical Background &amp; Modeling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="model/index.html#the-mathematical-formulation">The Mathematical Formulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model/index.html#the-base-architecture-uncertaintymodel">The Base Architecture (<code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model/index.html#linear-modeling-approach">Linear Modeling Approach</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model/index.html#nonlinear-machine-learning-approach">Nonlinear Machine Learning Approach</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model/index.html#hyperparameter-optimization-hpo">Hyperparameter Optimization (HPO)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration/index.html">Configuration Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration/index.html#open-meteo-parameters">Open-Meteo Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration/index.html#package-pipeline-settings">Package Pipeline Settings</a></li>
 </ul>
 </li>
 </ul>
@@ -119,7 +151,7 @@ This system maps out physical uncertainty trends across complex European microcl
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="notebooks/quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

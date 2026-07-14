@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Source &mdash; fue 12.08.2026 documentation</title>
+  <title>Data Pipeline &amp; Architecture &mdash; fue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -16,11 +16,12 @@
       <script src="../_static/documentation_options.js?v=1baa63dd"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Mathematical Background" href="../model/index.html" />
-    <link rel="prev" title="Quickstart" href="../quickstart.html" /> 
+    <link rel="next" title="Mathematical Background &amp; Modeling" href="../model/index.html" />
+    <link rel="prev" title="Quickstart" href="../notebooks/quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,9 +46,23 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Forecast Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Pipeline &amp; Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-overview-of-components">General Overview of Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-class"><code class="docutils literal notranslate"><span class="pre">Data</span></code> Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#openmeteoclient-class"><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient</span></code> Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raw-forecast-data">Raw Forecast Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#raw-data-format-and-file-location">Raw Data Format and File Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-data-processing-pipeline">The Data Processing Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-splitting-preventing-leakage">Data Splitting (Preventing Leakage)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-important-remarks">Other Important Remarks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -69,7 +84,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Data Source</li>
+      <li class="breadcrumb-item active">Data Pipeline &amp; Architecture</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/data/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -79,7 +94,64 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="data-source">
+  <section id="data-pipeline-architecture">
+<h1>Data Pipeline &amp; Architecture<a class="headerlink" href="#data-pipeline-architecture" title="Link to this heading"></a></h1>
+<p>Welcome to the data layer of the package. Before we can train any uncertainty estimators, we need a robust way to download, store, clean, and organize our meteorological data. Because weather data is highly dependent on time and geography, we cannot just throw raw numbers into a standard machine learning algorithm. We have to handle it with care to prevent data leakage and ensure our models learn genuine physical relationships.</p>
+<p>On this page, I will walk you through the core data components, where files are stored, and exactly how we transform raw API downloads into strict, training-ready datasets.</p>
+<section id="general-overview-of-components">
+<h2>General Overview of Components<a class="headerlink" href="#general-overview-of-components" title="Link to this heading"></a></h2>
+<p>Our data architecture is built around three main components:</p>
+<section id="data-class">
+<h3><code class="docutils literal notranslate"><span class="pre">Data</span></code> Class<a class="headerlink" href="#data-class" title="Link to this heading"></a></h3>
+<p>Think of this as the main engine of the data pipeline. It orchestrates everything. When you initialize an instance of the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class, it manages reading from your local hard drive, automatically fixing data types, merging datasets, and performing the complex chronological and geographical splitting required for our machine learning models.</p>
+</section>
+<section id="openmeteoclient-class">
+<h3><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient</span></code> Class<a class="headerlink" href="#openmeteoclient-class" title="Link to this heading"></a></h3>
+<p>This is our dedicated network messenger. It handles the actual internet communication with the Open-Meteo API. Instead of writing raw web requests, this class uses a caching session (so we don’t accidentally spam the API and get blocked) and a retry mechanism to handle random network drops smoothly. It downloads the data and formats it directly into a clean Pandas DataFrame for the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class to consume.</p>
+</section>
+<section id="raw-forecast-data">
+<h3>Raw Forecast Data<a class="headerlink" href="#raw-forecast-data" title="Link to this heading"></a></h3>
+<p>This is our persistent historical archive. Every time you pull new forecasts from the API, they are appended to a central dataset on your local machine. Over time, this file grows, capturing both what the weather models predicted and what actually happened.</p>
+</section>
+</section>
+<section id="raw-data-format-and-file-location">
+<h2>Raw Data Format and File Location<a class="headerlink" href="#raw-data-format-and-file-location" title="Link to this heading"></a></h2>
+<p>By default, all of your raw weather data is stored as a standard CSV file located in your project workspace at <code class="docutils literal notranslate"><span class="pre">data/raw/forecasts.csv</span></code>.</p>
+<p>Every row in this file represents a single weather snapshot. To make our uncertainty math work, the two most important columns in this file are:
+* <code class="docutils literal notranslate"><span class="pre">forecasted_on</span></code>: The exact timestamp when the prediction was generated.
+* <code class="docutils literal notranslate"><span class="pre">forecast_for</span></code>: The future timestamp that the prediction is actually describing.</p>
+</section>
+<section id="the-data-processing-pipeline">
+<h2>The Data Processing Pipeline<a class="headerlink" href="#the-data-processing-pipeline" title="Link to this heading"></a></h2>
+<p>To train our models, we need to know exactly how wrong a forecast was. But raw API data doesn’t explicitly tell us the error margin — we have to calculate it ourselves. When you call the <code class="docutils literal notranslate"><span class="pre">generate_dataset()</span></code> method, the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class runs a strict assembly line to build our final training matrix.</p>
+<p>Here is how it works under the hood:</p>
+<ol class="arabic simple">
+<li><p><strong>The 12-Hour Boundary Rule:</strong> We split the raw data into two piles based on the time difference between <code class="docutils literal notranslate"><span class="pre">forecasted_on</span></code> and <code class="docutils literal notranslate"><span class="pre">forecast_for</span></code>. If the look-ahead horizon is longer than 12 hours, we treat it as a <strong>forecast</strong>. If the horizon is shorter than 12 hours, we treat it as a <strong>ground-truth measurement</strong>. (Because Open-Meteo updates past days with high-resolution reanalysis data, these short-horizon rows act as highly accurate historical observations).</p></li>
+<li><p><strong>Calendar Merging:</strong> We strip away the exact hours and match the “forecast” rows with their corresponding “ground-truth” rows for that exact calendar day.</p></li>
+<li><p><strong>Calculating Absolute Error:</strong> We subtract the true observed weather from the forecasted weather and take the absolute value. This gives us our exact target variables (e.g., <code class="docutils literal notranslate"><span class="pre">abs_diff__temperature_2m_max</span></code>).</p></li>
+<li><p><strong>Feature Engineering:</strong> We inject a few extra helper columns to give our models context. We calculate <code class="docutils literal notranslate"><span class="pre">delta_days</span></code> (how many days in advance the forecast was made) and <code class="docutils literal notranslate"><span class="pre">day_of_year</span></code> (to help the model understand seasonal atmospheric changes).</p></li>
+<li><p><strong>Cleanup:</strong> Finally, we drop any incomplete rows and strip out the temporary mathematical columns, leaving us with a matrix ready for training.</p></li>
+</ol>
+</section>
+<section id="data-splitting-preventing-leakage">
+<h2>Data Splitting (Preventing Leakage)<a class="headerlink" href="#data-splitting-preventing-leakage" title="Link to this heading"></a></h2>
+<p>When it comes to weather, you cannot just randomly shuffle your data into 80% training and 20% validation sets. Weather is highly correlated. If it is raining in Munich today, it is probably raining in neighboring cities too. If we randomly shuffle neighboring cities into both sets, the model will “cheat” by memorizing a specific regional storm rather than actually learning how to predict uncertainty.</p>
+<p>When you call <code class="docutils literal notranslate"><span class="pre">split_dataset()</span></code>, the package uses a specialized spatiotemporal strategy:</p>
+<ul class="simple">
+<li><p><strong>Dynamic Filtering:</strong> First, the pipeline ignores any cities that haven’t accumulated enough historical data (the default threshold is 100 valid rows).</p></li>
+<li><p><strong>Spatial Pairing:</strong> Next, it calculates the geographic distance between all considered cities using the Haversine formula and groups neighboring cities into pairs.</p></li>
+<li><p><strong>Local Splits:</strong> It then splits the pairs! One city goes entirely into the training set, and its neighbor goes entirely into the validation set. This forces the model to prove it can generalize its uncertainty rules to an “unseen” microclimate, guaranteeing that our validation scores are honest and robust.</p></li>
+</ul>
+</section>
+<section id="other-important-remarks">
+<h2>Other Important Remarks<a class="headerlink" href="#other-important-remarks" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Duplicate Handling:</strong> Because you might run the download command multiple times a day, your raw CSV might accidentally pull overlapping predictions. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class handles this safely by rounding coordinates to a tiny decimal tolerance and silently dropping exact duplicate rows before saving to disk.</p></li>
+<li><p><strong>Unit Safety:</strong> Pay attention to your weather units. For example, raw sunshine duration is provided by the API in seconds, which creates massive numbers that can break machine learning gradients. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class automatically converts these into standard hours behind the scenes to keep the math stable.</p></li>
+</ul>
+</section>
+</section>
+<section id="data-source">
 <h1>Data Source<a class="headerlink" href="#data-source" title="Link to this heading"></a></h1>
 <p>Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a></p></section>
 
@@ -87,8 +159,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../model/index.html" class="btn btn-neutral float-right" title="Mathematical Background" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../notebooks/quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../model/index.html" class="btn btn-neutral float-right" title="Mathematical Background &amp; Modeling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
