@@ -143,7 +143,7 @@
 <section id="ensemble-aggregation">
 <h3>Ensemble Aggregation<a class="headerlink" href="#ensemble-aggregation" title="Link to this heading"></a></h3>
 <p>Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an <strong>Ensemble Pool</strong> of size <span class="math notranslate nohighlight">\(N\)</span> (configured in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>).</p>
-<p>Each ensemble member is initialized with a distinct random seed (<span class="math notranslate nohighlight">\(S_i = \text{base\_seed} + i\)</span>). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:</p>
+<p>Each ensemble member is initialized with a distinct random seed (<span class="math notranslate nohighlight">\(S_i = \text{base}_\text{seed} + i\)</span>). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:</p>
 <div class="math notranslate nohighlight">
 \[\hat{e}_{final} = \frac{1}{N} \sum_{i=1}^{N} f_{MLP, i}(\mathbf{X}_{processed})\]</div>
 </section>

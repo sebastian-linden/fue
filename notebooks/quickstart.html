@@ -49,7 +49,13 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Data-Workflow">Data Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Train-a-Linear-Model">Train a Linear Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Generate-a-Forecast">Generate a Forecast</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
@@ -88,49 +94,93 @@
   <section id="Quickstart">
 <h1>Quickstart<a class="headerlink" href="#Quickstart" title="Link to this heading"></a></h1>
 <p>This workflow is for a user who wants to use a basic linear model without tuning and would like to generate and plot uncertainty bounds for a weather forecast of a specific city.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<section id="Imports">
+<h2>Imports<a class="headerlink" href="#Imports" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from fue.config import Config
 from fue.data import Data
 from fue.forecast import Forecast
 from fue.models import LinearUncertaintyModel
-
-# 1. Initialize Configuration and Data
-# We use the default settings from config.json
-config = Config()
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Data-Workflow">
+<h2>Data Workflow<a class="headerlink" href="#Data-Workflow" title="Link to this heading"></a></h2>
+<p>Initialize Configuration (using the default settings from config.json) and Data objects</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>config = Config()
 data = Data()
-
-# Read the historical raw dataset from disk to train a quick baseline model
-data.read_raw()
+</pre></div>
+</div>
+</div>
+<p>Read the historical raw dataset from disk to train a quick baseline model</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data.read_raw()
 dataset = data.generate_dataset()
-
-# Split the data into train and validation sets (using the geographic quarantine)
-train_df, val_df = data.split_dataset(dataset, val_fraction=0.2)
-
-# Extract the configured feature and target column names
-features = config.default_feature_columns
+</pre></div>
+</div>
+</div>
+<p>Extract the configured feature and target column names</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>features = config.default_feature_columns
 targets = config.default_target_columns
-
-# 2. Train a Baseline Linear Model
-print(&quot;Training Linear Baseline Model...&quot;)
-linear_model = LinearUncertaintyModel(config=config)
-linear_model.fit(train_df, features, targets)
-
-# 3. Generate a Live Forecast
-print(&quot;Fetching 14-day live forecast for Munich...&quot;)
-forecaster = Forecast()
-
-# Fetch live data (0 past days means we only want the future)
-forecaster.fetch_forecast(location_name=&quot;munich&quot;, forecast_days=14, past_days=0)
-
-# 4. Predict Uncertainty and Visualize
-print(&quot;Computing uncertainty bounds...&quot;)
-forecaster.compute_uncertainties(linear_model)
-
-# Plot the predicted maximum temperature with its calculated error margin
-forecaster.plot(target_variables=&quot;abs_diff__temperature_2m_max&quot;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Train-a-Linear-Model">
+<h2>Train a Linear Model<a class="headerlink" href="#Train-a-Linear-Model" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>linear_model = LinearUncertaintyModel(config=config)
+linear_model.fit(dataset, features, targets)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;fue.models.linear_model.LinearUncertaintyModel at 0x7927a6498c30&gt;
+</pre></div></div>
+</div>
+</section>
+<section id="Generate-a-Forecast">
+<h2>Generate a Forecast<a class="headerlink" href="#Generate-a-Forecast" title="Link to this heading"></a></h2>
+<p>… for a specific city and for a certain number of days</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast = Forecast()
+forecast.fetch_forecast(location_name=&quot;aachen&quot;, forecast_days=14, past_days=0)
+</pre></div>
+</div>
+</div>
+<p>Use the uncertainty model to estimate uncertainty bounds and visualize them</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast.compute_uncertainties(linear_model)
+forecast.plot(target_variables=[&quot;abs_diff__temperature_2m_max&quot;, &quot;abs_diff__precipitation_sum&quot;])
 </pre></div>
 </div>
 </div>
@@ -138,17 +188,14 @@ forecaster.plot(target_variables=&quot;abs_diff__temperature_2m_max&quot;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-Training Linear Baseline Model...
-Fetching 14-day live forecast for Munich...
-Computing uncertainty bounds...
-</pre></div></div>
+<img alt="../_images/notebooks_quickstart_13_0.png" src="../_images/notebooks_quickstart_13_0.png" />
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_quickstart_1_1.png" src="../_images/notebooks_quickstart_1_1.png" />
+<img alt="../_images/notebooks_quickstart_13_1.png" src="../_images/notebooks_quickstart_13_1.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -159,6 +206,7 @@ Computing uncertainty bounds...
 </pre></div>
 </div>
 </div>
+</section>
 </section>
 
 

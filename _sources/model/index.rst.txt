@@ -67,7 +67,7 @@ Ensemble Aggregation
 ^^^^^^^^^^^^^^^^^^^^
 Neural networks are highly sensitive to random weight initializations, especially on smaller data footprints. To stabilize our variance ceilings, the model trains an **Ensemble Pool** of size :math:`N` (configured in ``config.json``).
 
-Each ensemble member is initialized with a distinct random seed (:math:`S_i = \text{base\_seed} + i`). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:
+Each ensemble member is initialized with a distinct random seed (:math:`S_i = \text{base}_\text{seed} + i`). The final predicted uncertainty bound is calculated as the simple arithmetic average of the individual sub-model predictions:
 
 .. math::
 
