@@ -25,6 +25,7 @@ extensions = [
     "sphinx.ext.napoleon",  # Parses Google/NumPy style docstrings
     "sphinx.ext.viewcode",  # Adds links to the highlighted source code
     "sphinxcontrib.bibtex",  # Added for BibTeX support
+    "nbsphinx", # For jupyter notebooks
 ]
 
 # Configure the path to your master .bib file(s)

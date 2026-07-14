@@ -1,8 +1,8 @@
 Core API Reference
 ==================
 
-This section covers the primary data orchestration and pipeline classes used 
-to interface with weather configurations, pull live data feeds, and format metrics.
+This section covers the primary data workflows and the classes used 
+to interact with weather forecast data pulled from open-meteo.com.
 
 .. automodule:: fue
    :members:
