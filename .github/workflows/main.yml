@@ -23,6 +23,10 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
 
+      # NEW: Install all documentation dependencies defined in pyproject.toml
+      - name: Install documentation dependencies
+        run: uv sync --group docs
+        
       - name: Build docs using uv environment
         run: |
           cd docs
