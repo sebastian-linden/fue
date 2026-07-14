@@ -26,6 +26,7 @@ extensions = [
     "sphinx.ext.viewcode",  # Adds links to the highlighted source code
     "sphinxcontrib.bibtex",  # Added for BibTeX support
     "nbsphinx",  # For jupyter notebooks
+    "sphinx.ext.mathjax",
 ]
 
 # Configure the path to your master .bib file(s)
@@ -43,3 +44,4 @@ exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+mathjax_path = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
