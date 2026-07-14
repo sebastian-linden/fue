@@ -40,7 +40,6 @@ dev = [
     { include-group = "test" },
     { include-group = "typecheck" },
     { include-group = "docs" },
-    "nbsphinx>=0.9.8",
     "pytest-cov>=7.1.0",
 ]
 lint = [
@@ -54,6 +53,7 @@ typecheck = [
     "ty",
 ]
 docs = [
+    "nbsphinx>=0.9.8",
     "sphinx",
     "sphinx-rtd-theme>=3.1.0",
     "sphinxcontrib-bibtex>=2.7.0",

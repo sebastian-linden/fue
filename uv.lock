@@ -544,6 +544,7 @@ dev = [
     { name = "ty" },
 ]
 docs = [
+    { name = "nbsphinx" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
     { name = "sphinxcontrib-bibtex" },
@@ -587,6 +588,7 @@ dev = [
     { name = "ty" },
 ]
 docs = [
+    { name = "nbsphinx", specifier = ">=0.9.8" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
     { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0" },
