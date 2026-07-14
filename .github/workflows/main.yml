@@ -26,7 +26,10 @@ jobs:
       # NEW: Install all documentation dependencies defined in pyproject.toml
       - name: Install documentation dependencies
         run: uv sync --group docs
-        
+      
+      - name: Install Pandoc
+        run: sudo apt-get install -y pandoc
+
       - name: Build docs using uv environment
         run: |
           cd docs
