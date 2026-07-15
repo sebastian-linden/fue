@@ -308,7 +308,7 @@ class UncertaintyModel(ABC):
             raise ValueError("Metric variant specification must be either 'MAE' or 'RMSE'.")
 
         logger.info("Compiling learning curve plot for diagnostic metric: %s.", metric)
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(8, 5))
 
         for target, data in convergence_history.items():
             sizes = data["sizes"]
