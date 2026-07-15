@@ -44,10 +44,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration/index.html">Configuration Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../data/index.html">Data Pipeline &amp; Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/data_management.html">Data Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../model/index.html">Mathematical Background &amp; Modeling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../configuration/index.html">Configuration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/model_evaluation.html">Model Evaluation Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli/index.html">Command Line Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -406,7 +409,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Metric variant specification must be either &#39;MAE&#39; or &#39;RMSE&#39;.&quot;</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Compiling learning curve plot for diagnostic metric: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">target</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">convergence_history</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">sizes</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;sizes&quot;</span><span class="p">]</span>

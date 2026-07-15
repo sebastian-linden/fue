@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Management Workflow &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Mathematical Background &amp; Modeling" href="../model/index.html" />
+    <link rel="prev" title="Data Pipeline &amp; Architecture" href="../data/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_evaluation.html">Model Evaluation Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli/index.html">Command Line Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/fue.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Models API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data Management Workflow</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/data_management.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Data-Management-Workflow">
+<h1>Data Management Workflow<a class="headerlink" href="#Data-Management-Workflow" title="Link to this heading"></a></h1>
+<p>Estimating the expected error of a forecasts relies (in the scope of this package) entirely on comparing past forecasts with the true weather outcome and compute the errors. So, before you can really start predicting uncertainty bounds you need data. Howevever, there is an inherent problem with forecasting data. If you fetch a forecast for Tuesday next week, then that forecast is based on the most recent results of the weather models. As soon as there are more uptodate atmospheric measurements
+available, these models are re-run, which happens about every 3-6 hours. The outdated forecasts are simply overwritten and no longer accessible (at least not that I know off). In this package we are however interested in all forecasts, outdated and new ones and the only way of conserving old forecasts is to fetch and store them regularly.</p>
+<p>The default location where this package stores data is under:</p>
+<p><code class="docutils literal notranslate"><span class="pre">data/raw/forecasts.csv</span></code></p>
+<p>When using an instance of a Data object to read the raw data, then it will first look there. However you can pass your own path:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+
+from fue import Data
+
+data = Data()
+root_dir = &quot;../../..&quot;
+default_path = os.path.join(root_dir, &quot;data/raw/forecasts.csv&quot;)
+data.read_raw(path=default_path)
+data.raw.head()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>location_name</th>
+      <th>latitude</th>
+      <th>longitude</th>
+      <th>forecasted_on</th>
+      <th>forecast_for</th>
+      <th>temperature_2m_max</th>
+      <th>temperature_2m_min</th>
+      <th>precipitation_sum</th>
+      <th>sunshine_duration</th>
+      <th>wind_direction_10m_dominant</th>
+      <th>wind_speed_10m_max</th>
+      <th>wind_gusts_10m_max</th>
+      <th>wind_speed_10m_mean</th>
+      <th>precipitation_probability_mean</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>london</td>
+      <td>51.5074</td>
+      <td>-0.1278</td>
+      <td>2026-06-02 12:00:00</td>
+      <td>2026-06-02 23:59:59</td>
+      <td>20.8410</td>
+      <td>15.0410</td>
+      <td>16.700</td>
+      <td>0.0</td>
+      <td>238.6091</td>
+      <td>21.24</td>
+      <td>45.36</td>
+      <td>13.4550</td>
+      <td>95.500</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>london</td>
+      <td>51.5074</td>
+      <td>-0.1278</td>
+      <td>2026-06-02 12:00:00</td>
+      <td>2026-06-03 23:59:59</td>
+      <td>17.8410</td>
+      <td>14.1410</td>
+      <td>7.700</td>
+      <td>0.0</td>
+      <td>228.6835</td>
+      <td>26.28</td>
+      <td>55.44</td>
+      <td>18.0450</td>
+      <td>37.875</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>london</td>
+      <td>51.5074</td>
+      <td>-0.1278</td>
+      <td>2026-06-02 12:00:00</td>
+      <td>2026-06-04 23:59:59</td>
+      <td>16.6545</td>
+      <td>12.9477</td>
+      <td>7.625</td>
+      <td>0.0</td>
+      <td>234.1178</td>
+      <td>24.84</td>
+      <td>50.40</td>
+      <td>21.8362</td>
+      <td>51.250</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>london</td>
+      <td>51.5074</td>
+      <td>-0.1278</td>
+      <td>2026-06-02 12:00:00</td>
+      <td>2026-06-05 23:59:59</td>
+      <td>17.7045</td>
+      <td>11.4045</td>
+      <td>0.600</td>
+      <td>0.0</td>
+      <td>253.5632</td>
+      <td>20.88</td>
+      <td>42.12</td>
+      <td>18.4050</td>
+      <td>13.750</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>london</td>
+      <td>51.5074</td>
+      <td>-0.1278</td>
+      <td>2026-06-02 12:00:00</td>
+      <td>2026-06-06 23:59:59</td>
+      <td>16.1045</td>
+      <td>12.1545</td>
+      <td>4.800</td>
+      <td>0.0</td>
+      <td>140.8960</td>
+      <td>19.08</td>
+      <td>39.24</td>
+      <td>12.2400</td>
+      <td>38.750</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>If you don’t have any data yet you will have to spend a considerable amount of time collecting data. You can fetch new forecasts either using <code class="docutils literal notranslate"><span class="pre">Data().fetch_forecast()</span></code> + <code class="docutils literal notranslate"><span class="pre">Data().combine_and_store_forecasts()</span></code> or - and this is the much more convenient solution - use the terminal and type:</p>
+<div class="highlight-batch notranslate"><div class="highlight"><pre><span></span>fue download
+</pre></div>
+</div>
+<p>I dedicated an entire document on the CLI (Command Line Interface) of this package. This command does the same as running the following two lines. However, the CLI command doesn’t have the option to pass a costom path, so if you want to store your data somewhere else, either modify the <code class="docutils literal notranslate"><span class="pre">cli.py</span></code> file in the package or write your own Python script following the steps shown in this notebook.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>new_forecast = data.fetch_forecast()
+data.combine_and_store_forecasts(new_forecast)
+</pre></div>
+</div>
+</div>
+<p>Both of these methods will fetch the newest available forecast from Open-Meteo, make sure, that the data has the right format and store it in the specified location. If you execute these lines multiple times in short succession, then only those forecasts will be stored, that are actually new (weather models only update their forecasts every 3-6 hours). Duplicates are discarded automatically.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../data/index.html" class="btn btn-neutral float-left" title="Data Pipeline &amp; Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../model/index.html" class="btn btn-neutral float-right" title="Mathematical Background &amp; Modeling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

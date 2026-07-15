@@ -1,0 +1,187 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Line Interface &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Core API Reference" href="../api/fue.html" />
+    <link rel="prev" title="Model Evaluation" href="../notebooks/model_evaluation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/data_management.html">Data Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/model_evaluation.html">Model Evaluation Workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#downloading-data">Downloading Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#checking-your-inventory">Checking Your Inventory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#training-and-tuning-models">Training and Tuning Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#evaluating-performance">Evaluating Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-forecasts">Generating Forecasts</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/fue.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Models API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Command Line Interface</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cli/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="command-line-interface">
+<h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h1>
+<p>As I mentioned in the Data Management Workflow, setting up instances and running pipelines in Python works perfectly fine, but using the terminal is often the much more convenient solution.</p>
+<p>The Forecast Uncertainty Estimation (FUE) package comes with a built-in Command Line Interface (CLI) powered by Typer. It gives you terminal-based execution for all the core pipeline tasks: fetching data, checking your inventory, training models, and generating those final uncertainty bounds.</p>
+<p>Below is a breakdown of the available commands and how they fit into the workflow.</p>
+<section id="downloading-data">
+<h2>Downloading Data<a class="headerlink" href="#downloading-data" title="Link to this heading"></a></h2>
+<p>Estimating the expected error of a forecast relies entirely on comparing past forecasts with the true weather outcomes. Because weather models overwrite their data every 3-6 hours, you have to conserve old forecasts by fetching and storing them regularly.</p>
+<p>To pull the newest available forecasts for your target cities via the Open-Meteo API, simply use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>download
+</pre></div>
+</div>
+<p>This command fetches the data, ensures it has the right format, discards duplicates, and stores it.</p>
+<p><strong>Note:</strong> The CLI command doesn’t have the option to pass a custom path. It uses the default location (<code class="docutils literal notranslate"><span class="pre">data/raw/forecasts.csv</span></code>). If you want to store your data somewhere else, you will either need to modify <code class="docutils literal notranslate"><span class="pre">cli.py</span></code> or write your own Python script using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> object.</p>
+</section>
+<section id="checking-your-inventory">
+<h2>Checking Your Inventory<a class="headerlink" href="#checking-your-inventory" title="Link to this heading"></a></h2>
+<p>If you don’t have any data yet, you will have to spend a considerable amount of time collecting it. Before you can really start predicting uncertainty bounds, you need to know if you have enough chronological records to actually train a model.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>dataset-summary
+</pre></div>
+</div>
+<p>This evaluates your local data storage and outputs a formatted table of your pipeline readiness. By default, it requires a minimum of 100 valid records for a city to be considered “ACTIVE”. If you want to change that threshold, you can pass it directly:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>dataset-summary<span class="w"> </span>--threshold<span class="w"> </span><span class="m">150</span>
+</pre></div>
+</div>
+</section>
+<section id="training-and-tuning-models">
+<h2>Training and Tuning Models<a class="headerlink" href="#training-and-tuning-models" title="Link to this heading"></a></h2>
+<p>Once you have enough active cities, you can move on to training. The training command ingests your pooled meteorological data and applies a strict chronological test-train partition. This is important to protect against temporal leakage (we don’t want to predict the past using future weather patterns).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>train<span class="w"> </span>--model<span class="w"> </span>ml<span class="w"> </span>--layers<span class="w"> </span><span class="s2">&quot;16,8&quot;</span><span class="w"> </span>--alpha<span class="w"> </span><span class="m">0</span>.01
+</pre></div>
+</div>
+<p>You can choose between a Multi-Layer Perceptron (<code class="docutils literal notranslate"><span class="pre">--model</span> <span class="pre">ml</span></code>) or Multi-Output Linear Regression (<code class="docutils literal notranslate"><span class="pre">--model</span> <span class="pre">linear</span></code>). When it finishes, it dumps the binary artifacts and run metadata into a local <code class="docutils literal notranslate"><span class="pre">runs/</span></code> directory. In other words, it stores your trained model using a unique run_id.</p>
+<p>If you don’t want to guess the best parameters, you can use the following command to perform a hyper parameter optimization (HPO) automatically. Here, the default model is the <cite>MLUncertaintyModel</cite>. You can adjust the search space in the <cite>Tuner()</cite> class if you want.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>tune
+</pre></div>
+</div>
+<p>This executes a grid search across your active dataset. It keeps the terminal quiet to avoid flooding your screen, instead sending detailed iteration logs to <code class="docutils literal notranslate"><span class="pre">tune_debug.log</span></code>. The best performing “champion” model is automatically stored to your <code class="docutils literal notranslate"><span class="pre">runs/</span></code> directory.</p>
+</section>
+<section id="evaluating-performance">
+<h2>Evaluating Performance<a class="headerlink" href="#evaluating-performance" title="Link to this heading"></a></h2>
+<p>Did the model actually learn anything useful? You can validate a saved model’s predictive skill against your validation dataset using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>evaluate
+</pre></div>
+</div>
+<p>This looks for the latest run in your <code class="docutils literal notranslate"><span class="pre">runs/</span></code> folder (though you can specify one with <code class="docutils literal notranslate"><span class="pre">--run-id</span></code>) and prints a tabular layout of absolute residual scores, breaking down the Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE) for each meteorological target.</p>
+</section>
+<section id="generating-forecasts">
+<h2>Generating Forecasts<a class="headerlink" href="#generating-forecasts" title="Link to this heading"></a></h2>
+<p>Finally, once your model is trained, you can pull live weather predictions for a specific city and run them through your checkpoint model to get forward operational forecasts decorated with estimated uncertainty bounds.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>forecast<span class="w"> </span>--city<span class="w"> </span>aachen<span class="w"> </span>--days<span class="w"> </span><span class="m">7</span>
+</pre></div>
+</div>
+<p>This maps out a daily terminal layout highlighting expected physical forecast fluctuations (like ± temperature or precipitation).</p>
+<p>If you prefer visuals over terminal tables, you can pop open an interactive Matplotlib window instead by adding the plot flag:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fue<span class="w"> </span>forecast<span class="w"> </span>--city<span class="w"> </span>aachen<span class="w"> </span>--days<span class="w"> </span><span class="m">7</span><span class="w"> </span>--plot
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../notebooks/model_evaluation.html" class="btn btn-neutral float-left" title="Model Evaluation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/fue.html" class="btn btn-neutral float-right" title="Core API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

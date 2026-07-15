@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Evaluation &mdash; fue 12.08.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1baa63dd"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Command Line Interface" href="../cli/index.html" />
+    <link rel="prev" title="Mathematical Background &amp; Modeling" href="../model/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fue
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_management.html">Data Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Model Evaluation Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Initialize-the-Neural-Network-Ensemble">Initialize the Neural Network Ensemble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Perform-a-Convergence-Study">Perform a Convergence Study</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli/index.html">Command Line Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/fue.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Models API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fue</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Model Evaluation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/model_evaluation.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Model-Evaluation">
+<h1>Model Evaluation<a class="headerlink" href="#Model-Evaluation" title="Link to this heading"></a></h1>
+<p>Once we’ve collected a decent amount of data, the next logical question is: how good is our model at actually predicting uncertainty? We need a robust way to evaluate its performance before we start trusting it with live operational forecasts.</p>
+<p>The first step, as always, is setting up our data pipeline. We need to load our raw inventory and split it into training and validation sets. A standard random split isn’t usually the best choice for weather data due to temporal correlation (which can lead to data leakage), but our <code class="docutils literal notranslate"><span class="pre">Data().split_dataset()</span></code> method is designed to handle the chronological partitioning for us automatically.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from fue.config import Config
+from fue.data import Data
+from fue.models import MLUncertaintyModel
+
+# Generate dataset
+config = Config()
+data = Data()
+data.read_raw()
+dataset = data.generate_dataset()
+
+# Split data
+train_df, val_df = data.split_dataset(dataset, val_fraction=0.2, random_state=42)
+features = config.default_feature_columns
+targets = config.default_target_columns
+</pre></div>
+</div>
+</div>
+<section id="Initialize-the-Neural-Network-Ensemble">
+<h2>Initialize the Neural Network Ensemble<a class="headerlink" href="#Initialize-the-Neural-Network-Ensemble" title="Link to this heading"></a></h2>
+<p>Now that our data is prepped, we can initialize our uncertainty estimator. In this example, we’ll use a Multi-Layer Perceptron (MLP) architecture.</p>
+<p>Because neural networks are highly sensitive to their random starting weights—meaning two identically configured models might converge to slightly different solutions—we use an ensemble approach. By training a small group of models (in this case, 5) and averaging their predictions, we smooth out that random initialization variance and get a much more stable, reliable prediction of the uncertainty bounds.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ml_model = MLUncertaintyModel(
+    config=config,
+    hidden_layer_sizes=(16, 8),
+    max_iter=2000,
+    alpha=0.01,
+    ensemble_size=5,
+)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Perform-a-Convergence-Study">
+<h2>Perform a Convergence Study<a class="headerlink" href="#Perform-a-Convergence-Study" title="Link to this heading"></a></h2>
+<p>Before we just fit the model on all our data and look at the final score, it’s incredibly useful to understand <em>how</em> the model learns as we feed it more information.</p>
+<p>This is where a convergence study comes in. By training the model on progressively larger subsets of our training data (10%, 20%, 40%, etc.) and evaluating it against our holdout validation set at each step, we can plot a learning curve.</p>
+<p>Why do this? If the error curve is still trending sharply downward at 100%, it tells us we should probably keep running <code class="docutils literal notranslate"><span class="pre">fue</span> <span class="pre">download</span></code> because collecting more historical data will directly improve performance. If the curve has completely flattened out, our model has likely hit its capacity limits for this specific architecture, and more data won’t help much without tuning the hyperparameters.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(f&quot;Running Convergence Study across {len(train_df)} training samples...&quot;)
+
+# The study will train the model on 10%, 20%, 40%... up to 100% of the training data
+# and record the validation metrics at each step.
+convergence_results = ml_model.study_data_convergence(
+    train_df=train_df,
+    val_df=val_df,
+    feature_columns=features,
+    target_columns=targets,
+    increments=[0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
+)
+
+# Render the learning curve for Root Mean Squared Error
+ml_model.plot_learning_curve(convergence_history=convergence_results, metric=&quot;RMSE&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Running Convergence Study across 10549 training samples...
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_model_evaluation_5_1.png" src="../_images/notebooks_model_evaluation_5_1.png" />
+</div>
+</div>
+<p>Finally, with our convergence study complete, we can train the model one last time using the entire training pool to ensure it has the maximum amount of information possible.</p>
+<p>Once fitted, we’ll evaluate its predictive skill against the validation holdouts we set aside earlier. The output will give us the Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE) broken down by each meteorological target variable. This tabular summary provides a clear, quantitative baseline of our model’s accuracy.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># 4. Final Evaluation Summary
+# Fit the model on the full training pool one last time
+ml_model.fit(train_df, feature_columns=features, target_columns=targets)
+
+# Extract and print final metrics
+final_metrics = ml_model.evaluate(val_df)
+print(&quot;\n=== Final Validation Metrics ===&quot;)
+for target, metrics in final_metrics.items():
+    print(f&quot;{target:&lt;45} | MAE: {metrics[&#39;MAE&#39;]:.3f} | RMSE: {metrics[&#39;RMSE&#39;]:.3f}&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+=== Final Validation Metrics ===
+abs_diff__temperature_2m_max                  | MAE: 3.035 | RMSE: 3.823
+abs_diff__temperature_2m_min                  | MAE: 2.111 | RMSE: 2.663
+abs_diff__precipitation_sum                   | MAE: 1.414 | RMSE: 2.740
+abs_diff__wind_speed_10m_mean                 | MAE: 2.073 | RMSE: 2.659
+abs_diff__precipitation_probability_mean      | MAE: 6.015 | RMSE: 9.960
+</pre></div></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../model/index.html" class="btn btn-neutral float-left" title="Mathematical Background &amp; Modeling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../cli/index.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Sebastian Linden.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

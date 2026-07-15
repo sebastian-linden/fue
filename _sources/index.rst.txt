@@ -23,9 +23,12 @@ to attached uncertainties.
 
    Home <self>
    Quickstart Guide <notebooks/quickstart>
-   Forecast Data <data/index>
-   Mathematical Background & Modeling <model/index>
    Configuration Guide <configuration/index>
+   Forecast Data <data/index>
+   Data Workflow <notebooks/data_management>
+   Mathematical Background & Modeling <model/index>
+   Model Evaluation Workflow <notebooks/model_evaluation>
+   Command Line Interface <cli/index>
 
 .. toctree::
    :maxdepth: 2

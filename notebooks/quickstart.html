@@ -23,7 +23,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Data Pipeline &amp; Architecture" href="../data/index.html" />
+    <link rel="next" title="Configuration" href="../configuration/index.html" />
     <link rel="prev" title="fue documentation" href="../index.html" /> 
 </head>
 
@@ -53,13 +53,17 @@
 <li class="toctree-l2"><a class="reference internal" href="#Imports">Imports</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Data-Workflow">Data Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Train-a-Linear-Model">Train a Linear Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Train-a-Machine-Learning-Model">Train a Machine Learning Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Generate-a-Forecast">Generate a Forecast</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../data/index.html">Data Pipeline &amp; Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../data/index.html#data-source">Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_management.html">Data Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../model/index.html">Mathematical Background &amp; Modeling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../configuration/index.html">Configuration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_evaluation.html">Model Evaluation Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli/index.html">Command Line Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -103,7 +107,7 @@
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from fue.config import Config
 from fue.data import Data
 from fue.forecast import Forecast
-from fue.models import LinearUncertaintyModel
+from fue.models import LinearUncertaintyModel, MLUncertaintyModel
 </pre></div>
 </div>
 </div>
@@ -130,6 +134,9 @@ dataset = data.generate_dataset()
 </pre></div>
 </div>
 </div>
+</section>
+<section id="Train-a-Linear-Model">
+<h2>Train a Linear Model<a class="headerlink" href="#Train-a-Linear-Model" title="Link to this heading"></a></h2>
 <p>Extract the configured feature and target column names</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
@@ -140,9 +147,6 @@ targets = config.default_target_columns
 </pre></div>
 </div>
 </div>
-</section>
-<section id="Train-a-Linear-Model">
-<h2>Train a Linear Model<a class="headerlink" href="#Train-a-Linear-Model" title="Link to this heading"></a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -158,7 +162,30 @@ linear_model.fit(dataset, features, targets)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;fue.models.linear_model.LinearUncertaintyModel at 0x7da9d18af770&gt;
+&lt;fue.models.linear_model.LinearUncertaintyModel at 0x713112a2f770&gt;
+</pre></div></div>
+</div>
+</section>
+<section id="Train-a-Machine-Learning-Model">
+<h2>Train a Machine Learning Model<a class="headerlink" href="#Train-a-Machine-Learning-Model" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ml_model = MLUncertaintyModel(
+    config=config, hidden_layer_sizes=(32, 16), max_iter=1000, alpha=0.01, ensemble_size=5, seed=42
+)
+ml_model.fit(dataset, features, targets)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;fue.models.ml_model.MLUncertaintyModel at 0x7131126fb0e0&gt;
 </pre></div></div>
 </div>
 </section>
@@ -166,7 +193,7 @@ linear_model.fit(dataset, features, targets)
 <h2>Generate a Forecast<a class="headerlink" href="#Generate-a-Forecast" title="Link to this heading"></a></h2>
 <p>… for a specific city and for a certain number of days</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast = Forecast()
@@ -176,7 +203,7 @@ forecast.fetch_forecast(location_name=&quot;aachen&quot;, forecast_days=14, past
 </div>
 <p>Use the uncertainty model to estimate uncertainty bounds and visualize them</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast.compute_uncertainties(linear_model)
@@ -188,22 +215,38 @@ forecast.plot(target_variables=[&quot;abs_diff__temperature_2m_max&quot;, &quot;
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_quickstart_13_0.png" src="../_images/notebooks_quickstart_13_0.png" />
+<img alt="../_images/notebooks_quickstart_15_0.png" src="../_images/notebooks_quickstart_15_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_quickstart_13_1.png" src="../_images/notebooks_quickstart_13_1.png" />
+<img alt="../_images/notebooks_quickstart_15_1.png" src="../_images/notebooks_quickstart_15_1.png" />
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<p>Now, we plot the uncertainty bounds using the machine learning model</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast.compute_uncertainties(ml_model)
+forecast.plot(target_variables=[&quot;abs_diff__temperature_2m_max&quot;, &quot;abs_diff__precipitation_sum&quot;])
 </pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quickstart_17_0.png" src="../_images/notebooks_quickstart_17_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quickstart_17_1.png" src="../_images/notebooks_quickstart_17_1.png" />
 </div>
 </div>
 </section>
@@ -214,7 +257,7 @@ forecast.plot(target_variables=[&quot;abs_diff__temperature_2m_max&quot;, &quot;
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../index.html" class="btn btn-neutral float-left" title="fue documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../data/index.html" class="btn btn-neutral float-right" title="Data Pipeline &amp; Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../configuration/index.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
