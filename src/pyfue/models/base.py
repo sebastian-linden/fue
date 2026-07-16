@@ -330,7 +330,7 @@ class UncertaintyModel(ABC):
         logger.info("Learning curve visualization rendered and dispatched to graphical backend.")
         plt.show()
 
-    def save(self, run_id: str | None = None, metrics: dict | None = None, runs_dir: str = "runs") -> tuple[Path, str]:
+    def save(self, run_id: str | None = None, metrics: dict | None = None) -> tuple[Path, str]:
         """
         Serializes the active model instance state and tracks metrics inside a run folder.
 
@@ -355,11 +355,13 @@ class UncertaintyModel(ABC):
             - The tracking run string token name.
         """
         # 1. Fallback to automatic timestamped naming if no ID is passed explicitly
-        if not run_id:
-            run_id = generate_run_id()
+
+        if run_id is None:
+            run_id = generate_run_id(prefix=self.__class__.__name__)
             logger.debug("No explicit run_id provided. Auto-generated identifier: %s", run_id)
 
-        run_path = Path(runs_dir) / run_id
+        run_path = Path.home() / ".pyfue" / "runs" / run_id
+        run_path.mkdir(parents=True, exist_ok=True)
 
         try:
             # 2. Synchronize directory generation
@@ -396,7 +398,7 @@ class UncertaintyModel(ABC):
             raise
 
     @classmethod
-    def load(cls, run_id: str, runs_dir: str = "runs") -> "UncertaintyModel":
+    def load(cls, run_id: str | Path) -> "UncertaintyModel":
         """
         Restores a trained estimator model from a persistent binary checkpoint file.
 
@@ -416,18 +418,12 @@ class UncertaintyModel(ABC):
         UncertaintyModel
             The restored instance, ready to generate forward inferences immediately.
         """
-        # 1. Establish an absolute anchor path back to your project root folder
-        # (src/pyfue/models/base.py is 3 levels deep from the package root directory)
-        package_src_dir = Path(__file__).resolve().parents[3]
 
-        # 2. Build absolute paths to avoid context breaks in Jupyter Notebooks
-        model_file = package_src_dir / runs_dir / run_id / "model.joblib"
-
-        # Fallback check for hidden folder structures if written by an alternative tuner layer
-        if not model_file.exists():
-            alternative_path = package_src_dir / ".pyfue" / "runs" / run_id / "model.joblib"
-            if alternative_path.exists():
-                model_file = alternative_path
+        if str(run_id).endswith(".joblib"):
+            model_file = Path(run_id)
+        else:
+            # Fixed Path
+            model_file = Path.home() / ".pyfue" / "runs" / str(run_id) / "model.joblib"
 
         logger.info("Attempting to restore model checkpoint state for run tracking key: %s", run_id)
         logger.debug("Target file lookup path resolved to: %s", model_file)

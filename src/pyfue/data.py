@@ -29,12 +29,19 @@ class Data:
     and packages data frames so they are structured perfectly for downstream training models.
     """
 
-    def __init__(self) -> None:
-        """
-        Sets up default file paths and tracking names for different categories of variables.
-        """
-        self.PATH_TO_DATA = Path(__file__).resolve().parent.parent.parent / "data"
-        self.PATH_TO_RAW = os.path.join(self.PATH_TO_DATA, "raw", "forecasts.csv")
+    def __init__(self, data_root: Path | str | None = None) -> None:
+        """Sets up default file paths and tracking names for different categories of variables."""
+        # 1. Resolve to a safe, persistent home directory
+        if data_root is None:
+            self.PATH_TO_DATA = Path.home() / ".pyfue" / "data"
+        else:
+            self.PATH_TO_DATA = Path(data_root)
+            
+        self.PATH_TO_RAW = self.PATH_TO_DATA / "raw" / "forecasts.csv"
+        
+        # 2. Ensure directories actually exist before Pandas tries to read/write!
+        self.PATH_TO_RAW.parent.mkdir(parents=True, exist_ok=True)
+        (self.PATH_TO_DATA / "backup").mkdir(parents=True, exist_ok=True)
 
         # This is the data as fetched from the open-meteo API.
         self.raw = pd.DataFrame()

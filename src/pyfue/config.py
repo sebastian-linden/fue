@@ -9,6 +9,25 @@ rules used to clean and transform our data before training.
 import json
 import logging
 from pathlib import Path
+import shutil
+from importlib import resources
+
+logger = logging.getLogger(__name__)
+
+
+"""
+Configuration management system for the pyfue package.
+
+This module handles reading and writing the 'config.json' settings file. It keeps
+track of the cities we want to download, API keys, timezones, and the specific
+rules used to clean and transform our data before training.
+"""
+
+import json
+import logging
+import shutil
+from pathlib import Path
+from importlib import resources
 
 logger = logging.getLogger(__name__)
 
@@ -34,52 +53,69 @@ class Config:
         ----------
         path : str or pathlib.Path or None, default=None
             The file path to config.json. If None, it automatically finds the file
-            by looking up from the folder where this code is running.
+            by looking up the user's home directory (~/.pyfue/config.json).
 
         Raises
         ------
         FileNotFoundError
-            If config.json cannot be found at the default or specified path.
+            If config.json cannot be found at the specified path, or if the bundled
+            fallback config fails to generate.
         """
 
         self.params = {}
 
-        # Use __file__ to create absolute path to config.json in project root
-        # If a custom path is given, use it; otherwise, fall back to default project root
+        # If a custom path is given, use it; otherwise, fall back to the safe user directory
         if path is not None:
             self.path = Path(path)
         else:
-            self.path = Path(__file__).parent.parent.parent / "config.json"
+            self.path = Path.home() / ".pyfue" / "config.json"
+            
+            # If the user hasn't generated a config yet, copy the default one from the package
+            if not self.path.exists():
+                self.path.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    # Use importlib.resources to safely extract the bundled config.json
+                    default_config = resources.files("pyfue") / "config.json"
+                    shutil.copy(str(default_config), str(self.path))
+                    logger.info(f"Initialized default configuration at {self.path}")
+                except Exception as e:
+                    raise FileNotFoundError(
+                        f"Could not locate the bundled default config.json to initialize {self.path}. "
+                        f"Installation may be corrupted. Original error: {e}"
+                    )
 
+        # Standard safety check (especially useful if the user passed a custom path)
         if not self.path.exists():
             raise FileNotFoundError(f"The file 'config.json' was not found at: {self.path}")
+            
+        with open(self.path, "r", encoding="utf-8") as file:
+            self.params = json.load(file)
+            
+        # Reformat dictionary to suit the format that Open-Meteo needs
+        self.city_coordinates = self.params.get("cities", {})
+        self.params["latitude"] = [item["lat"] for item in self.city_coordinates.values()]
+        self.params["longitude"] = [item["lon"] for item in self.city_coordinates.values()]
+
+        # Pull out some of the configuration variables into separate variables and delete
+        # them from the self.params dictionary, as this is the one that will be passed to
+        # Open-Meteo API
+        if "cities" in self.params:
+            self.cities = list(self.city_coordinates.keys())
+            del self.params["cities"]
+
+        if "preprocessing" in self.params:
+            self.preprocessing = self.params.get("preprocessing", {})
+            del self.params["preprocessing"]
         else:
-            with open(self.path) as file:
-                self.params = json.load(file)
-            # Reformat dictionary to suit the format that Open-Meteo needs
-            self.city_coordinates = self.params.get("cities", {})
-            self.params["latitude"] = [item["lat"] for item in self.city_coordinates.values()]
-            self.params["longitude"] = [item["lon"] for item in self.city_coordinates.values()]
+            self.preprocessing = {}
 
-            # Pull out some of the configuration variables into separate variables and delete
-            # them from the self.params dictionary, as this is the one, that will be passed to
-            # Open-Meteo API
-            if "cities" in self.params:
-                self.cities = list(self.city_coordinates.keys())
-                del self.params["cities"]
-
-            if "preprocessing" in self.params:
-                self.preprocessing = self.params.get("preprocessing", {})
-                del self.params["preprocessing"]
-            else:
-                self.preprocessing = {}
-
-            if "default_feature_columns" in self.params:
-                self.default_feature_columns = self.params.get("default_feature_columns", [])
-                del self.params["default_feature_columns"]
-            if "default_target_columns" in self.params:
-                self.default_target_columns = self.params.get("default_target_columns", [])
-                del self.params["default_target_columns"]
+        if "default_feature_columns" in self.params:
+            self.default_feature_columns = self.params.get("default_feature_columns", [])
+            del self.params["default_feature_columns"]
+            
+        if "default_target_columns" in self.params:
+            self.default_target_columns = self.params.get("default_target_columns", [])
+            del self.params["default_target_columns"]
 
         logger.info(f"Configuration loaded from {self.path}")
 
