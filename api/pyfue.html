@@ -19,7 +19,9 @@
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Models API Reference" href="models.html" />
+    <link rel="prev" title="Command Line Interface" href="../cli/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -54,7 +56,48 @@
 <li class="toctree-l1"><a class="reference internal" href="../cli/index.html">Command Line Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pyfue.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.add_city"><code class="docutils literal notranslate"><span class="pre">Config.add_city()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.get_preprocessing_rules"><code class="docutils literal notranslate"><span class="pre">Config.get_preprocessing_rules()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.remove_city"><code class="docutils literal notranslate"><span class="pre">Config.remove_city()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.save"><code class="docutils literal notranslate"><span class="pre">Config.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.set_daily_variables"><code class="docutils literal notranslate"><span class="pre">Config.set_daily_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.set_forecast_days"><code class="docutils literal notranslate"><span class="pre">Config.set_forecast_days()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.set_past_days"><code class="docutils literal notranslate"><span class="pre">Config.set_past_days()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.set_preprocessing_rule"><code class="docutils literal notranslate"><span class="pre">Config.set_preprocessing_rule()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.set_timezone"><code class="docutils literal notranslate"><span class="pre">Config.set_timezone()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Config.update"><code class="docutils literal notranslate"><span class="pre">Config.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pyfue.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.combine_and_store_forecasts"><code class="docutils literal notranslate"><span class="pre">Data.combine_and_store_forecasts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.convert_to_best_dtypes"><code class="docutils literal notranslate"><span class="pre">Data.convert_to_best_dtypes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.fetch_forecast"><code class="docutils literal notranslate"><span class="pre">Data.fetch_forecast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.generate_dataset"><code class="docutils literal notranslate"><span class="pre">Data.generate_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.get_collection_summary"><code class="docutils literal notranslate"><span class="pre">Data.get_collection_summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.read_raw"><code class="docutils literal notranslate"><span class="pre">Data.read_raw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.remove_duplicates"><code class="docutils literal notranslate"><span class="pre">Data.remove_duplicates()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Data.split_dataset"><code class="docutils literal notranslate"><span class="pre">Data.split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pyfue.Forecast"><code class="docutils literal notranslate"><span class="pre">Forecast</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Forecast.compute_uncertainties"><code class="docutils literal notranslate"><span class="pre">Forecast.compute_uncertainties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Forecast.fetch_forecast"><code class="docutils literal notranslate"><span class="pre">Forecast.fetch_forecast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.Forecast.plot"><code class="docutils literal notranslate"><span class="pre">Forecast.plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pyfue.HyperparameterTuner"><code class="docutils literal notranslate"><span class="pre">HyperparameterTuner</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.HyperparameterTuner.search"><code class="docutils literal notranslate"><span class="pre">HyperparameterTuner.search()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pyfue.OpenMeteoClient"><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyfue.OpenMeteoClient.fetch_forecast"><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient.fetch_forecast()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models API Reference</a></li>
 </ul>
 
@@ -74,7 +117,7 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Core API Reference</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/fue.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/pyfue.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -272,7 +315,7 @@ like latitudes and longitudes, and saves a clean formatted JSON file.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfue.Data">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyfue.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><a class="reference internal" href="../_modules/pyfue/data.html#Data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyfue.Data" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyfue.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyfue/data.html#Data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyfue.Data" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Manages loading, cleaning, assembling, and splitting our project’s weather datasets.</p>
 <p>This class coordinates the data-shaping pipeline. It reads from local storage files,
@@ -612,7 +655,10 @@ Columns include: ‘location_name’, ‘latitude’, ‘longitude’,
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../cli/index.html" class="btn btn-neutral float-left" title="Command Line Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="models.html" class="btn btn-neutral float-right" title="Models API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
