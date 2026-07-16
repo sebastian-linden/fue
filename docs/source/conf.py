@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("../../src"))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "fue"
+project = "pyfue"
 copyright = "2026, Sebastian Linden"
 author = "Sebastian Linden"
 release = "12.08.2026"

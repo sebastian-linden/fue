@@ -1,5 +1,5 @@
 """
-Forecast inference and visualization pipeline for the fue package.
+Forecast inference and visualization pipeline for the pyfue package.
 
 This module maps fitted machine learning and linear uncertainty estimators onto
 freshly pulled weather forecasts. It applies physical boundary safeguards (such as

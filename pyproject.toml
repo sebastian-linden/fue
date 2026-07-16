@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 # Explicitly tell Hatchling to include the root config file in the PyPI build
 [tool.hatch.build.targets.wheel]
-packages = ["src/fue"]
+packages = ["src/pyfue"]
 shared-data = { "config.json" = "config.json" }
 
 [project]
-name = "fue"
+name = "pyfue"
 version = "0.1.0"
 description = "A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to see how they hold up over time. By comparing early predictions to the actual weather, it calculates the \"real\" uncertainty of a forecast. It’s built for hikers and outdoor enthusiasts who want to know if that 18°C Saturday is a sure thing or just a hopeful guess."
 readme = "README.md"
@@ -64,13 +64,13 @@ docs = [
 ]
 
 [project.urls]
-bugs = "https://github.com/sebastian-linden/fue/issues"
-changelog = "https://github.com/sebastian-linden/fue/releases"
-documentation = "https://sebastian-linden.github.io/fue/"
-homepage = "https://github.com/sebastian-linden/fue"
+bugs = "https://github.com/sebastian-linden/pyfue/issues"
+changelog = "https://github.com/sebastian-linden/pyfue/releases"
+documentation = "https://sebastian-linden.github.io/pyfue/"
+homepage = "https://github.com/sebastian-linden/pyfue"
 
 [project.scripts]
-fue = "fue.cli:app"
+pyfue = "pyfue.cli:app"
 
 [tool.ty]
 # All rules are enabled as "error" by default; no need to specify unless overriding.

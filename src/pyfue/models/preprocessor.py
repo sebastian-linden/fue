@@ -1,5 +1,5 @@
 """
-Data preprocessing and transformation utilities for the fue package.
+Data preprocessing and transformation utilities for the pyfue package.
 
 This module provides stateful and stateless tools to prepare raw weather data
 for machine learning models. It supports scaling (Standard/Min-Max), mathematical

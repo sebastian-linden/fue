@@ -1,5 +1,5 @@
 """
-Ensemble Multi-Layer Perceptron (MLP) network model implementation for the fue package.
+Ensemble Multi-Layer Perceptron (MLP) network model implementation for the pyfue package.
 
 This module provides a concrete subclass that fits an ensemble of neural network
 regressors to estimate non-linear absolute deviations of forecast weather parameters

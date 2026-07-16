@@ -1,5 +1,5 @@
 """
-Hyperparameter optimization (HPO) engine for the fue package.
+Hyperparameter optimization (HPO) engine for the pyfue package.
 
 This module provides grid-search capabilities to sweep through various model
 configurations, evaluate performance on out-of-sample validation data, and

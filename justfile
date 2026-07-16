@@ -1,4 +1,4 @@
-# Justfile for fue
+# Justfile for pyfue
 
 # Show available commands
 list:

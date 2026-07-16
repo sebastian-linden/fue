@@ -1,4 +1,4 @@
-"""Top-level package for fue."""
+"""Top-level package for pyfue."""
 
 from .config import Config
 from .data import Data

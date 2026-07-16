@@ -1,7 +1,7 @@
-# fue (Forecast Uncertainty Estimation)
+# pyfue (Forecast Uncertainty Estimation)
 
-[![PyPI version](https://img.shields.io/pypi/v/fue.svg)](https://pypi.org/project/fue/)
-[![Documentation Status](https://img.shields.io/badge/docs-latest-blue.svg)](https://sebastian-linden.github.io/fue/)
+[![PyPI version](https://img.shields.io/pypi/v/pyfue.svg)](https://pypi.org/project/pyfue/)
+[![Documentation Status](https://img.shields.io/badge/docs-latest-blue.svg)](https://sebastian-linden.github.io/pyfue/)
 [![Code License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
@@ -38,18 +38,18 @@ Most of the following sections of this README file are also AI generated and che
 ## Installation
 
 **End-User Installation (PyPI)**
-The easiest way to install `fue` is via pip:
+The easiest way to install `pyfue` is via pip:
 ```bash
-pip install fue
+pip install pyfue
 ```
 
 **Developer Installation**
-If you want to build fue from source or contribute to the project:
+If you want to build pyfue from source or contribute to the project:
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/YourUsername/fue.git](https://github.com/YourUsername/fue.git)
-cd fue
+git clone [https://github.com/YourUsername/pyfue.git](https://github.com/YourUsername/pyfue.git)
+cd pyfue
 
 # 2. Create and activate a virtual environment
 python3 -m venv venv
@@ -61,8 +61,8 @@ pip install -e .
 
 ## Project Structure
 ```txt
-fue/
-├── src/fue/
+pyfue/
+├── src/pyfue/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base.py                 # Abstract base class
@@ -82,12 +82,12 @@ fue/
 ```
 
 ## Documentation
-Comprehensive documentation including API references, mathematical methodologies, and workflow tutorials are hosted on [GitHub Pages](https://sebastian-linden.github.io/fue/index.html).
+Comprehensive documentation including API references, mathematical methodologies, and workflow tutorials are hosted on [GitHub Pages](https://sebastian-linden.github.io/pyfue/index.html).
 
 
 ## Author
 
-fue was created in 2026 by Sebastian Linden and co-authored by Google's Gemini AI.
+pyfue was created in 2026 by Sebastian Linden and co-authored by Google's Gemini AI.
 
 Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.
 

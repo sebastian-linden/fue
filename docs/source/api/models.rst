@@ -9,7 +9,7 @@ a model with its parameters and loading the model with its learnt parameters.
 The specific mathematical models inherit from this parent class and are only 
 responsible for fitting and predicting.
 
-.. automodule:: fue.models
+.. automodule:: pyfue.models
    :members:
    :undoc-members:
    :show-inheritance:

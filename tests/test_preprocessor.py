@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fue.models.preprocessor import Preprocessor
+from pyfue.models.preprocessor import Preprocessor
 
 
 class TestPreprocessor:

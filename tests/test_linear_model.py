@@ -3,15 +3,15 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from fue.config import Config
-from fue.models.linear_model import LinearUncertaintyModel
+from pyfue.config import Config
+from pyfue.models.linear_model import LinearUncertaintyModel
 
 
 class TestLinearUncertaintyModel:
     """Test suite for LinearUncertaintyModel, which also tests base UncertaintyModel logic."""
 
-    @patch("fue.models.base.Config")
-    @patch("fue.models.base.Preprocessor")
+    @patch("pyfue.models.base.Config")
+    @patch("pyfue.models.base.Preprocessor")
     def test_init_default(self, MockPreprocessor, MockConfig):
         """Test initialization without passing a config (ensures default creation)."""
         # Setup the fake config behavior
@@ -35,7 +35,7 @@ class TestLinearUncertaintyModel:
         assert model.X is None
         assert model.Y is None
 
-    @patch("fue.models.base.Preprocessor")
+    @patch("pyfue.models.base.Preprocessor")
     def test_init_with_custom_config(self, MockPreprocessor):
         """Test initialization when a custom config object is explicitly provided."""
         # Setup a custom mock config
@@ -60,8 +60,8 @@ class TestLinearUncertaintyModel:
         with pytest.raises(ValueError, match="must be prefixed with 'abs_diff__'"):
             model.fit(df=dummy_df, feature_columns=["feature_1"], target_columns=["target_1"])
 
-    @patch("fue.models.base.Preprocessor")
-    @patch("fue.models.base.Config")
+    @patch("pyfue.models.base.Preprocessor")
+    @patch("pyfue.models.base.Config")
     def test_fit_success(self, MockConfig, MockPreprocessor):
         """Test the successful execution of the fit pipeline and internal model training."""
         model = LinearUncertaintyModel()
@@ -126,7 +126,7 @@ class TestLinearUncertaintyModel:
         with pytest.raises(ValueError, match="Model must be trained via .fit\\(\\) before making predictions."):
             model.predict(dummy_df)
 
-    @patch("fue.models.base.Preprocessor")
+    @patch("pyfue.models.base.Preprocessor")
     def test_predict_success(self, MockPreprocessor):
         """Test the successful execution of the predict pipeline, including clipping and inverse transformation."""
         model = LinearUncertaintyModel()
@@ -281,7 +281,7 @@ class TestLinearUncertaintyModel:
             # Pass an empty dict and an invalid metric name
             model.plot_learning_curve({}, metric="MAPE")
 
-    @patch("fue.models.base.plt")
+    @patch("pyfue.models.base.plt")
     def test_plot_learning_curve_success(self, mock_plt):
         """
         Test the successful orchestration of the matplotlib calls,

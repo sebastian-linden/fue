@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fue.forecast import Forecast
+from pyfue.forecast import Forecast
 
 # ============================================================================
 # FIXTURES
@@ -107,8 +107,8 @@ class TestForecastInit:
 class TestFetchForecast:
     """Test fetch_forecast method."""
 
-    @patch("fue.forecast.Data")
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Data")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_valid_location_default_params(
         self, mock_config_class, mock_data_class, forecast_instance, sample_forecast_df, mock_config
     ):
@@ -129,8 +129,8 @@ class TestFetchForecast:
         assert "day_of_year" in forecast_instance.forecast.columns
         assert "delta_days" in forecast_instance.forecast.columns
 
-    @patch("fue.forecast.Data")
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Data")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_with_custom_params(
         self, mock_config_class, mock_data_class, forecast_instance, sample_forecast_df, mock_config
     ):
@@ -149,7 +149,7 @@ class TestFetchForecast:
         mock_config.set_forecast_days.assert_called_once_with(21)
         mock_config.set_past_days.assert_called_once_with(7)
 
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_location_type(self, mock_config_class, forecast_instance, mock_config):
         """Test that non-string location_name raises TypeError."""
         mock_config_class.return_value = mock_config
@@ -157,7 +157,7 @@ class TestFetchForecast:
         with pytest.raises(TypeError, match="location_name must be a string"):
             forecast_instance.fetch_forecast(123)
 
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_location_not_in_config(self, mock_config_class, forecast_instance, mock_config):
         """Test that non-existent location raises ValueError."""
         mock_config_class.return_value = mock_config
@@ -165,7 +165,7 @@ class TestFetchForecast:
         with pytest.raises(ValueError, match="Location .* is not defined in the configuration"):
             forecast_instance.fetch_forecast("NonExistentCity")
 
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_forecast_days_type(self, mock_config_class, forecast_instance, mock_config):
         """Test that non-integer forecast_days raises TypeError."""
         mock_config_class.return_value = mock_config
@@ -173,7 +173,7 @@ class TestFetchForecast:
         with pytest.raises(TypeError, match="forecast_days must be an integer"):
             forecast_instance.fetch_forecast("Berlin", forecast_days="14")
 
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_forecast_days_value(self, mock_config_class, forecast_instance, mock_config):
         """Test that forecast_days <= 0 raises ValueError."""
         mock_config_class.return_value = mock_config
@@ -184,7 +184,7 @@ class TestFetchForecast:
         with pytest.raises(ValueError, match="forecast_days must be > 0"):
             forecast_instance.fetch_forecast("Berlin", forecast_days=-5)
 
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_past_days_type(self, mock_config_class, forecast_instance, mock_config):
         """Test that non-integer past_days raises TypeError."""
         mock_config_class.return_value = mock_config
@@ -192,7 +192,7 @@ class TestFetchForecast:
         with pytest.raises(TypeError, match="past_days must be an integer"):
             forecast_instance.fetch_forecast("Berlin", past_days="7")
 
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_past_days_value(self, mock_config_class, forecast_instance, mock_config):
         """Test that past_days < 0 raises ValueError."""
         mock_config_class.return_value = mock_config
@@ -200,8 +200,8 @@ class TestFetchForecast:
         with pytest.raises(ValueError, match="past_days must be >= 0"):
             forecast_instance.fetch_forecast("Berlin", past_days=-1)
 
-    @patch("fue.forecast.Data")
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Data")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_missing_required_columns(
         self, mock_config_class, mock_data_class, forecast_instance, mock_config
     ):
@@ -221,8 +221,8 @@ class TestFetchForecast:
         with pytest.raises(ValueError, match="Forecast DataFrame missing required columns"):
             forecast_instance.fetch_forecast("Berlin")
 
-    @patch("fue.forecast.Data")
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Data")
+    @patch("pyfue.forecast.Config")
     def test_fetch_forecast_adds_computed_columns(
         self, mock_config_class, mock_data_class, forecast_instance, sample_forecast_df, mock_config
     ):
@@ -417,15 +417,15 @@ class TestGetPlotSpec:
 class TestPlot:
     """Test plot method."""
 
-    @patch("fue.forecast.plt.show")
-    @patch("fue.forecast.plt.tight_layout")
-    @patch("fue.forecast.plt.legend")
-    @patch("fue.forecast.plt.ylabel")
-    @patch("fue.forecast.plt.title")
-    @patch("fue.forecast.plt.xticks")
-    @patch("fue.forecast.plt.grid")
-    @patch("fue.forecast.plt.fill_between")
-    @patch("fue.forecast.plt.plot")
+    @patch("pyfue.forecast.plt.show")
+    @patch("pyfue.forecast.plt.tight_layout")
+    @patch("pyfue.forecast.plt.legend")
+    @patch("pyfue.forecast.plt.ylabel")
+    @patch("pyfue.forecast.plt.title")
+    @patch("pyfue.forecast.plt.xticks")
+    @patch("pyfue.forecast.plt.grid")
+    @patch("pyfue.forecast.plt.fill_between")
+    @patch("pyfue.forecast.plt.plot")
     def test_plot_single_variable_as_string(
         self,
         mock_plot,
@@ -455,15 +455,15 @@ class TestPlot:
         assert mock_fill_between.called
         assert mock_show.called
 
-    @patch("fue.forecast.plt.show")
-    @patch("fue.forecast.plt.tight_layout")
-    @patch("fue.forecast.plt.legend")
-    @patch("fue.forecast.plt.ylabel")
-    @patch("fue.forecast.plt.title")
-    @patch("fue.forecast.plt.xticks")
-    @patch("fue.forecast.plt.grid")
-    @patch("fue.forecast.plt.fill_between")
-    @patch("fue.forecast.plt.plot")
+    @patch("pyfue.forecast.plt.show")
+    @patch("pyfue.forecast.plt.tight_layout")
+    @patch("pyfue.forecast.plt.legend")
+    @patch("pyfue.forecast.plt.ylabel")
+    @patch("pyfue.forecast.plt.title")
+    @patch("pyfue.forecast.plt.xticks")
+    @patch("pyfue.forecast.plt.grid")
+    @patch("pyfue.forecast.plt.fill_between")
+    @patch("pyfue.forecast.plt.plot")
     def test_plot_multiple_variables_as_list(
         self,
         mock_plot,
@@ -604,15 +604,15 @@ class TestPlot:
         with pytest.raises(ValueError, match="Uncertainty predictions for target variable .* are not available"):
             forecast_instance.plot("abs_diff__temperature_2m_max")
 
-    @patch("fue.forecast.plt.show")
-    @patch("fue.forecast.plt.tight_layout")
-    @patch("fue.forecast.plt.legend")
-    @patch("fue.forecast.plt.ylabel")
-    @patch("fue.forecast.plt.title")
-    @patch("fue.forecast.plt.xticks")
-    @patch("fue.forecast.plt.grid")
-    @patch("fue.forecast.plt.fill_between")
-    @patch("fue.forecast.plt.plot")
+    @patch("pyfue.forecast.plt.show")
+    @patch("pyfue.forecast.plt.tight_layout")
+    @patch("pyfue.forecast.plt.legend")
+    @patch("pyfue.forecast.plt.ylabel")
+    @patch("pyfue.forecast.plt.title")
+    @patch("pyfue.forecast.plt.xticks")
+    @patch("pyfue.forecast.plt.grid")
+    @patch("pyfue.forecast.plt.fill_between")
+    @patch("pyfue.forecast.plt.plot")
     def test_plot_past_days_uncertainty_set_to_zero(
         self,
         mock_plot,
@@ -641,15 +641,15 @@ class TestPlot:
         assert mock_fill_between.called
         # The call would have been made with zeroed uncertainties for first 4 days
 
-    @patch("fue.forecast.plt.show")
-    @patch("fue.forecast.plt.tight_layout")
-    @patch("fue.forecast.plt.legend")
-    @patch("fue.forecast.plt.ylabel")
-    @patch("fue.forecast.plt.title")
-    @patch("fue.forecast.plt.xticks")
-    @patch("fue.forecast.plt.grid")
-    @patch("fue.forecast.plt.fill_between")
-    @patch("fue.forecast.plt.plot")
+    @patch("pyfue.forecast.plt.show")
+    @patch("pyfue.forecast.plt.tight_layout")
+    @patch("pyfue.forecast.plt.legend")
+    @patch("pyfue.forecast.plt.ylabel")
+    @patch("pyfue.forecast.plt.title")
+    @patch("pyfue.forecast.plt.xticks")
+    @patch("pyfue.forecast.plt.grid")
+    @patch("pyfue.forecast.plt.fill_between")
+    @patch("pyfue.forecast.plt.plot")
     def test_plot_non_temperature_bounds_clipped_to_zero(
         self,
         mock_plot,
@@ -676,16 +676,16 @@ class TestPlot:
         # Assert - verify fill_between was called (bounds would be clipped)
         assert mock_fill_between.called
 
-    @patch("fue.forecast.daylength")
-    @patch("fue.forecast.plt.show")
-    @patch("fue.forecast.plt.tight_layout")
-    @patch("fue.forecast.plt.legend")
-    @patch("fue.forecast.plt.ylabel")
-    @patch("fue.forecast.plt.title")
-    @patch("fue.forecast.plt.xticks")
-    @patch("fue.forecast.plt.grid")
-    @patch("fue.forecast.plt.fill_between")
-    @patch("fue.forecast.plt.plot")
+    @patch("pyfue.forecast.daylength")
+    @patch("pyfue.forecast.plt.show")
+    @patch("pyfue.forecast.plt.tight_layout")
+    @patch("pyfue.forecast.plt.legend")
+    @patch("pyfue.forecast.plt.ylabel")
+    @patch("pyfue.forecast.plt.title")
+    @patch("pyfue.forecast.plt.xticks")
+    @patch("pyfue.forecast.plt.grid")
+    @patch("pyfue.forecast.plt.fill_between")
+    @patch("pyfue.forecast.plt.plot")
     def test_plot_sunshine_duration_requires_latitude(
         self,
         mock_plot,
@@ -712,16 +712,16 @@ class TestPlot:
         with pytest.raises(ValueError, match="missing 'latitude' column"):
             forecast_instance.plot("abs_diff__sunshine_duration")
 
-    @patch("fue.forecast.daylength")
-    @patch("fue.forecast.plt.show")
-    @patch("fue.forecast.plt.tight_layout")
-    @patch("fue.forecast.plt.legend")
-    @patch("fue.forecast.plt.ylabel")
-    @patch("fue.forecast.plt.title")
-    @patch("fue.forecast.plt.xticks")
-    @patch("fue.forecast.plt.grid")
-    @patch("fue.forecast.plt.fill_between")
-    @patch("fue.forecast.plt.plot")
+    @patch("pyfue.forecast.daylength")
+    @patch("pyfue.forecast.plt.show")
+    @patch("pyfue.forecast.plt.tight_layout")
+    @patch("pyfue.forecast.plt.legend")
+    @patch("pyfue.forecast.plt.ylabel")
+    @patch("pyfue.forecast.plt.title")
+    @patch("pyfue.forecast.plt.xticks")
+    @patch("pyfue.forecast.plt.grid")
+    @patch("pyfue.forecast.plt.fill_between")
+    @patch("pyfue.forecast.plt.plot")
     def test_plot_sunshine_duration_with_latitude(
         self,
         mock_plot,
@@ -761,9 +761,9 @@ class TestPlot:
 class TestForecastIntegration:
     """Test integration of multiple methods."""
 
-    @patch("fue.forecast.Data")
-    @patch("fue.forecast.Config")
-    @patch("fue.forecast.plt.show")
+    @patch("pyfue.forecast.Data")
+    @patch("pyfue.forecast.Config")
+    @patch("pyfue.forecast.plt.show")
     def test_full_workflow_fetch_compute_plot(
         self,
         mock_show,
@@ -785,14 +785,14 @@ class TestForecastIntegration:
 
         # Execute full workflow
         with (
-            patch("fue.forecast.plt.plot"),
-            patch("fue.forecast.plt.fill_between"),
-            patch("fue.forecast.plt.grid"),
-            patch("fue.forecast.plt.xticks"),
-            patch("fue.forecast.plt.title"),
-            patch("fue.forecast.plt.ylabel"),
-            patch("fue.forecast.plt.legend"),
-            patch("fue.forecast.plt.tight_layout"),
+            patch("pyfue.forecast.plt.plot"),
+            patch("pyfue.forecast.plt.fill_between"),
+            patch("pyfue.forecast.plt.grid"),
+            patch("pyfue.forecast.plt.xticks"),
+            patch("pyfue.forecast.plt.title"),
+            patch("pyfue.forecast.plt.ylabel"),
+            patch("pyfue.forecast.plt.legend"),
+            patch("pyfue.forecast.plt.tight_layout"),
         ):
             forecast_instance.fetch_forecast("Berlin")
             forecast_instance.compute_uncertainties(mock_uncertainty_model)
@@ -817,8 +817,8 @@ class TestForecastIntegration:
         with pytest.raises(ValueError, match="Uncertainty predictions have not been computed"):
             forecast_instance.plot("abs_diff__temperature_2m_max")
 
-    @patch("fue.forecast.Data")
-    @patch("fue.forecast.Config")
+    @patch("pyfue.forecast.Data")
+    @patch("pyfue.forecast.Config")
     def test_multiple_uncertainty_computations_overwrite(
         self,
         mock_config_class,

@@ -1,5 +1,5 @@
 """
-Abstract base class definition for models within the fue package.
+Abstract base class definition for models within the pyfue package.
 
 This module defines the skeleton and shared workflows for all uncertainty
 estimators. It manages feature preprocessing, coordinate scaling, prediction mapping,
@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from fue.config import Config
-from fue.utils import generate_run_id
+from pyfue.config import Config
+from pyfue.utils import generate_run_id
 
 from .preprocessor import Preprocessor
 
@@ -417,7 +417,7 @@ class UncertaintyModel(ABC):
             The restored instance, ready to generate forward inferences immediately.
         """
         # 1. Establish an absolute anchor path back to your project root folder
-        # (src/fue/models/base.py is 3 levels deep from the package root directory)
+        # (src/pyfue/models/base.py is 3 levels deep from the package root directory)
         package_src_dir = Path(__file__).resolve().parents[3]
 
         # 2. Build absolute paths to avoid context breaks in Jupyter Notebooks
@@ -425,7 +425,7 @@ class UncertaintyModel(ABC):
 
         # Fallback check for hidden folder structures if written by an alternative tuner layer
         if not model_file.exists():
-            alternative_path = package_src_dir / ".fue" / "runs" / run_id / "model.joblib"
+            alternative_path = package_src_dir / ".pyfue" / "runs" / run_id / "model.joblib"
             if alternative_path.exists():
                 model_file = alternative_path
 

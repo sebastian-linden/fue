@@ -1,5 +1,5 @@
 """
-Data pipeline management system for the fue package.
+Data pipeline management system for the pyfue package.
 
 This module handles reading raw forecast csv files, sorting incoming data, parsing
 units, applying our custom 12-hour boundary rule to separate predictions from ground-truth

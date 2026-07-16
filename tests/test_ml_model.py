@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fue.models.ml_model import MLUncertaintyModel
+from pyfue.models.ml_model import MLUncertaintyModel
 
 
 class TestMLUncertaintyModel:
@@ -21,7 +21,7 @@ class TestMLUncertaintyModel:
         assert model.seed == 123
         assert model.models == []
 
-    @patch("fue.models.ml_model.MLPRegressor")
+    @patch("pyfue.models.ml_model.MLPRegressor")
     def test_fit_internal(self, MockMLP):
         """Test that fit_internal initializes the correct number of models with distinct seeds."""
         model = MLUncertaintyModel(ensemble_size=3, seed=42)

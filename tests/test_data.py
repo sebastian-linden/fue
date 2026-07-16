@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 # Adjust the import based on your exact project structure
-from fue import Data
+from pyfue import Data
 
 
 class TestData:
@@ -187,7 +187,7 @@ class TestData:
         assert cleaned_df.iloc[0]["latitude"] == 50.1111
         assert cleaned_df.iloc[1]["latitude"] == 50.1112
 
-    @patch("fue.data.OpenMeteoClient")
+    @patch("pyfue.data.OpenMeteoClient")
     def test_fetch_forecast(self, MockClient):
         """
         Test that fetch_forecast initializes the client, calls the API,

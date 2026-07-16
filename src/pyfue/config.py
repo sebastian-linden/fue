@@ -1,5 +1,5 @@
 """
-Configuration management system for the fue package.
+Configuration management system for the pyfue package.
 
 This module handles reading and writing the 'config.json' settings file. It keeps
 track of the cities we want to download, API keys, timezones, and the specific

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from fue.tuner import HyperparameterTuner
+from pyfue.tuner import HyperparameterTuner
 
 
 # ---------------------------------------------------------

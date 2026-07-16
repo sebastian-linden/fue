@@ -9,7 +9,7 @@ import pytest
 # Add src directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from fue.config import Config
+from pyfue.config import Config
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ class TestConfigInit:
 
     def test_config_loads_successfully(self, temp_config_dir):
         """Test that Config loads the config.json file successfully."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -64,7 +64,7 @@ class TestConfigInit:
 
     def test_config_extracts_cities(self, temp_config_dir):
         """Test that cities defined in the fixture are extracted correctly."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -74,7 +74,7 @@ class TestConfigInit:
 
     def test_config_reformats_coordinates(self, temp_config_dir):
         """Test that coordinates are reformatted for Open-Meteo API."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -87,7 +87,7 @@ class TestConfigInit:
 
     def test_config_cities_removed_from_params(self, temp_config_dir):
         """Test that the 'cities' key is removed from params after initialization."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -99,7 +99,7 @@ class TestConfigRepr:
 
     def test_repr_contains_cities(self, temp_config_dir):
         """Test that __repr__ includes city information."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -109,7 +109,7 @@ class TestConfigRepr:
 
     def test_repr_contains_config_params(self, temp_config_dir):
         """Test that __repr__ includes configuration parameters."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -125,7 +125,7 @@ class TestSetters:
 
     def test_set_timezone(self, temp_config_dir):
         """Test setting timezone."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -134,7 +134,7 @@ class TestSetters:
 
     def test_set_past_days(self, temp_config_dir):
         """Test setting past_days."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -143,7 +143,7 @@ class TestSetters:
 
     def test_set_past_days_invalid_negative(self, temp_config_dir):
         """Test that negative past_days raises error."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -152,7 +152,7 @@ class TestSetters:
 
     def test_set_past_days_invalid_type(self, temp_config_dir):
         """Test that non-integer past_days raises error."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -161,7 +161,7 @@ class TestSetters:
 
     def test_set_forecast_days(self, temp_config_dir):
         """Test setting forecast_days."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -170,7 +170,7 @@ class TestSetters:
 
     def test_set_forecast_days_invalid_negative(self, temp_config_dir):
         """Test that negative forecast_days raises error."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -179,7 +179,7 @@ class TestSetters:
 
     def test_set_daily_variables(self, temp_config_dir):
         """Test setting daily variables."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -189,7 +189,7 @@ class TestSetters:
 
     def test_set_daily_variables_invalid_type(self, temp_config_dir):
         """Test that non-list daily variables raise error."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -202,7 +202,7 @@ class TestUpdate:
 
     def test_update_single_param(self, temp_config_dir):
         """Test updating a single parameter."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -211,7 +211,7 @@ class TestUpdate:
 
     def test_update_multiple_params(self, temp_config_dir):
         """Test updating multiple parameters at once."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -222,7 +222,7 @@ class TestUpdate:
 
     def test_update_invalid_parameter(self, temp_config_dir):
         """Test that an invalid parameter name raises a KeyError."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -231,7 +231,7 @@ class TestUpdate:
 
     def test_update_validates_parameters(self, temp_config_dir):
         """Test that update correctly triggers validation logic."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -244,7 +244,7 @@ class TestAddCity:
 
     def test_add_city_success(self, temp_config_dir):
         """Test adding a new city to an isolated config."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -259,7 +259,7 @@ class TestAddCity:
 
     def test_add_city_maintains_alignment(self, temp_config_dir):
         """Test that adding a city maintains alignment of internal data structures."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -272,7 +272,7 @@ class TestAddCity:
 
     def test_add_city_duplicate_error(self, temp_config_dir):
         """Test that adding a duplicate city name raises a ValueError."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -282,7 +282,7 @@ class TestAddCity:
 
     def test_add_city_invalid_coordinates(self, temp_config_dir):
         """Test that non-numeric coordinates raise a ValueError."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -298,7 +298,7 @@ class TestRemoveCity:
 
     def test_remove_city_success(self, temp_config_dir):
         """Test removing a city from an isolated config."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -313,7 +313,7 @@ class TestRemoveCity:
 
     def test_remove_city_maintains_alignment(self, temp_config_dir):
         """Test that removing city maintains alignment of internal data structures."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -325,7 +325,7 @@ class TestRemoveCity:
 
     def test_remove_city_nonexistent_error(self, temp_config_dir):
         """Test that removing nonexistent city raises a ValueError."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -334,7 +334,7 @@ class TestRemoveCity:
 
     def test_remove_city_removes_from_coordinates(self, temp_config_dir):
         """Test that removing city also correctly cleans up coordinates arrays."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         config = Config(path=temp_config_dir)
 
@@ -350,7 +350,7 @@ class TestRemoveCity:
 class TestSave:
     def test_save_creates_valid_json(self, temp_config_dir):
         """Test that save creates a valid JSON file using the temporary path."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         # Initialize with the temporary config path provided by the fixture
         config = Config(path=temp_config_dir)
@@ -368,7 +368,7 @@ class TestSave:
 
     def test_save_can_be_reloaded(self, temp_config_dir):
         """Test that saved config additions can be reloaded."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         # Initialize with the temporary config path
         config = Config(path=temp_config_dir)
@@ -385,7 +385,7 @@ class TestSave:
 class TestPreprocessing:
     def test_preprocessing_rule_save_and_load(self, temp_config_dir):
         """Test that preprocessing rules are saved and loaded correctly in isolation."""
-        from fue.config import Config
+        from pyfue.config import Config
 
         # Load the configuration from our isolated sandbox path
         config = Config(path=temp_config_dir)

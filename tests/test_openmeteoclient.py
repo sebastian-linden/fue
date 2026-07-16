@@ -4,12 +4,12 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from fue.config import Config
+from pyfue.config import Config
 
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from fue.openmeteoclient import OpenMeteoClient
+from pyfue.openmeteoclient import OpenMeteoClient
 
 
 class TestOpenMeteoClientInit:
@@ -73,7 +73,7 @@ class TestOpenMeteoClientLogic:
         client = OpenMeteoClient(config=custom_config)
         assert client.config is custom_config
 
-    @patch("fue.openmeteoclient.openmeteo_requests.Client")
+    @patch("pyfue.openmeteoclient.openmeteo_requests.Client")
     def test_fetch_forecast_data_processing(self, MockAPIClient):
         """
         Test that fetch_forecast correctly requests data from the API and

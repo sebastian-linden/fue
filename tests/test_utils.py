@@ -4,7 +4,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from fue.utils import daylength, generate_run_id
+from pyfue.utils import daylength, generate_run_id
 
 
 class TestUtils:
@@ -68,7 +68,7 @@ def test_generate_run_id_with_purpose():
     # Freeze the clock deterministically using standard standard library patch tools
     fixed_time = datetime(2026, 7, 7, 10, 15, 30)
 
-    with patch("fue.utils.datetime") as mock_datetime:
+    with patch("pyfue.utils.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_time
         mock_datetime.strftime = datetime.strftime  # Keep string formatting intact
 
@@ -82,7 +82,7 @@ def test_generate_run_id_default_fallback():
     """Test that omitting a purpose falls back smoothly to a standard prefix structure."""
     fixed_time = datetime(2026, 7, 7, 10, 15, 30)
 
-    with patch("fue.utils.datetime") as mock_datetime:
+    with patch("pyfue.utils.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_time
         mock_datetime.strftime = datetime.strftime
 

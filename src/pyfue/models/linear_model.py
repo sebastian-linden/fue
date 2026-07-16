@@ -1,5 +1,5 @@
 """
-Multi-output linear regression model implementation for the fue package.
+Multi-output linear regression model implementation for the pyfue package.
 
 This module provides a concrete subclass that fits a standard multi-output
 linear regression to estimate the absolute prediction deviations of target

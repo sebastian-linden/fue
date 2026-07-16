@@ -1,5 +1,5 @@
 """
-Command-line interface (CLI) for the Forecast Uncertainty Estimation (FUE) package.
+Command-line interface (CLI) for the Forecast Uncertainty Estimation (pyfue) package.
 
 This module utilizes Typer to provide terminal-based execution of core pipeline
 tasks, including data ingestion, dataset summarization, and model hyperparameter tuning.
@@ -14,16 +14,16 @@ import joblib
 import typer
 
 # The callback handles the top-level app description
-app = typer.Typer(help="FUE: Forecast Uncertainty Estimation CLI.")
+app = typer.Typer(help="pyfue: Forecast Uncertainty Estimation CLI.")
 
 
 @app.callback()
 def main():
     """
-    Main entry point for the FUE Command Line Interface.
+    Main entry point for the pyfue Command Line Interface.
 
     This function acts as the parent callback for the Typer application,
-    establishing the root `fue` command from which all sub-commands
+    establishing the root `pyfue` command from which all sub-commands
     (e.g., `download`, `dataset-summary`, `tune`) are executed.
 
 
@@ -51,7 +51,7 @@ def download():
     -------
     None
     """
-    from fue import Data
+    from pyfue import Data
 
     D = Data()
     D.combine_and_store_forecasts(D.fetch_forecast())
@@ -85,7 +85,7 @@ def dataset_summary(
     -------
     None
     """
-    from fue.data import Data
+    from pyfue.data import Data
 
     data = Data()
     data.read_raw()
@@ -98,7 +98,7 @@ def dataset_summary(
     waiting_cities = total_cities - active_cities
 
     # Format the terminal presentation block
-    print("\n=== FUE DATA INVENTORY STATUS ===")
+    print("\n=== pyfue DATA INVENTORY STATUS ===")
     print(f"Total Unique Cities Tracked: {total_cities}")
     print(f"Active in Pipeline (>= {threshold} rows): {active_cities}")
     print(f"Awaiting Graduation (< {threshold} rows): {waiting_cities}")
@@ -169,10 +169,10 @@ def train(
         If an unrecognized `model_type` is passed or an uncaught exception drops
         during the pipeline ingestion and serialization phases.
     """
-    from fue.config import Config
-    from fue.data import Data
-    from fue.models import LinearUncertaintyModel, MLUncertaintyModel
-    from fue.utils import generate_run_id
+    from pyfue.config import Config
+    from pyfue.data import Data
+    from pyfue.models import LinearUncertaintyModel, MLUncertaintyModel
+    from pyfue.utils import generate_run_id
 
     typer.echo(f"Initializing training pipeline for model type: {model_type.upper()}")
 
@@ -249,13 +249,13 @@ def evaluate(
         If no serialized model checkpoints are present on disk, if the specified
         `run_id` folder does not exist, or if data streaming fails.
     """
-    from fue.data import Data
+    from pyfue.data import Data
 
     runs_dir = Path("runs")
     if not run_id:
         run_id = get_latest_run_id(runs_dir)
         if not run_id:
-            typer.secho("❌ No models found. Please run 'fue train' first.", fg=typer.colors.RED)
+            typer.secho("❌ No models found. Please run 'pyfue train' first.", fg=typer.colors.RED)
             raise typer.Abort()
 
     model_path = runs_dir / run_id / "model.joblib"
@@ -328,13 +328,13 @@ def forecast(
         If model files are unreadable, API communication errors manifest, or index mapping
         mismatches interrupt cell formatting steps.
     """
-    from fue.forecast import Forecast
+    from pyfue.forecast import Forecast
 
     runs_dir = Path("runs")
     if not run_id:
         run_id = get_latest_run_id(runs_dir)
         if not run_id:
-            typer.secho("❌ No models found. Please run 'fue train' first.", fg=typer.colors.RED)
+            typer.secho("❌ No models found. Please run 'pyfue train' first.", fg=typer.colors.RED)
             raise typer.Abort()
 
     model_path = runs_dir / run_id / "model.joblib"
@@ -355,7 +355,7 @@ def forecast(
 
         if plot:
             typer.echo("Rendering plot window...")
-            from fue import Config
+            from pyfue import Config
 
             F.plot(Config().default_target_columns)
         else:
@@ -419,11 +419,11 @@ def tune():
     """
     from pathlib import Path
 
-    from fue.config import Config
-    from fue.data import Data
-    from fue.models import MLUncertaintyModel
-    from fue.tuner import HyperparameterTuner
-    from fue.utils import generate_run_id
+    from pyfue.config import Config
+    from pyfue.data import Data
+    from pyfue.models import MLUncertaintyModel
+    from pyfue.tuner import HyperparameterTuner
+    from pyfue.utils import generate_run_id
 
     run_id = generate_run_id(purpose="tune")
     run_dir = Path("runs") / run_id
