@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>fue.openmeteoclient &mdash; fue 12.08.2026 documentation</title>
+  <title>pyfue.openmeteoclient &mdash; pyfue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
@@ -30,7 +30,7 @@
           
           
           <a href="../../index.html" class="icon icon-home">
-            fue
+            pyfue
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -54,7 +54,6 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api/fue.html">Core API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/models.html">Models API Reference</a></li>
 </ul>
 
@@ -64,7 +63,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">fue</a>
+          <a href="../../index.html">pyfue</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -73,7 +72,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">fue.openmeteoclient</li>
+      <li class="breadcrumb-item active">pyfue.openmeteoclient</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -82,7 +81,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for fue.openmeteoclient</h1><div class="highlight"><pre>
+  <h1>Source code for pyfue.openmeteoclient</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">API Client for fetching weather forecasts from Open-Meteo.</span>
 
@@ -104,7 +103,7 @@
 
 
 <div class="viewcode-block" id="OpenMeteoClient">
-<a class="viewcode-back" href="../../api/fue.html#fue.OpenMeteoClient">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#pyfue.OpenMeteoClient">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OpenMeteoClient</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A client used to fetch and format weather data from the Open-Meteo API.</span>
@@ -140,7 +139,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;OpenMeteoClient initialized with configuration.&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="OpenMeteoClient.fetch_forecast">
-<a class="viewcode-back" href="../../api/fue.html#fue.OpenMeteoClient.fetch_forecast">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#pyfue.OpenMeteoClient.fetch_forecast">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Downloads forward-looking weather forecast values for all target cities.</span>

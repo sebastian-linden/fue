@@ -1,7 +1,7 @@
 Mathematical Background & Modeling
 ==================================
 
-This section details the mathematical and algorithmic architecture used by the ``fue`` package to estimate forecast uncertainty. 
+This section details the mathematical and algorithmic architecture used by the ``pyfue`` package to estimate forecast uncertainty. 
 
 Rather than computing post-hoc statistical variances or classic standard deviations around a single machine learning prediction, this package reframes uncertainty estimation entirely. We treat uncertainty as a **primary target variable** by directly training estimators to predict the real-world absolute error magnitude of numerical weather simulations.
 

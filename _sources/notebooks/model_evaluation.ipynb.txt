@@ -19,9 +19,9 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from fue.config import Config\n",
-    "from fue.data import Data\n",
-    "from fue.models import MLUncertaintyModel\n",
+    "from pyfue.config import Config\n",
+    "from pyfue.data import Data\n",
+    "from pyfue.models import MLUncertaintyModel\n",
     "\n",
     "# Generate dataset\n",
     "config = Config()\n",
@@ -74,7 +74,7 @@
     "\n",
     "This is where a convergence study comes in. By training the model on progressively larger subsets of our training data (10%, 20%, 40%, etc.) and evaluating it against our holdout validation set at each step, we can plot a learning curve. \n",
     "\n",
-    "Why do this? If the error curve is still trending sharply downward at 100%, it tells us we should probably keep running `fue download` because collecting more historical data will directly improve performance. If the curve has completely flattened out, our model has likely hit its capacity limits for this specific architecture, and more data won't help much without tuning the hyperparameters."
+    "Why do this? If the error curve is still trending sharply downward at 100%, it tells us we should probably keep running `pyfue download` because collecting more historical data will directly improve performance. If the curve has completely flattened out, our model has likely hit its capacity limits for this specific architecture, and more data won't help much without tuning the hyperparameters."
    ]
   },
   {
@@ -163,7 +163,7 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "fue (3.14.4)",
+   "display_name": "pyfue (3.14.4)",
    "language": "python",
    "name": "python3"
   },

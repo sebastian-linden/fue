@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Management Workflow &mdash; fue 12.08.2026 documentation</title>
+  <title>Data Management Workflow &mdash; pyfue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -36,7 +36,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            fue
+            pyfue
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -60,7 +60,6 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../api/fue.html">Core API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/models.html">Models API Reference</a></li>
 </ul>
 
@@ -70,7 +69,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">fue</a>
+          <a href="../index.html">pyfue</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -101,7 +100,7 @@ available, these models are re-run, which happens about every 3-6 hours. The out
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
 
-from fue import Data
+from pyfue import Data
 
 data = Data()
 root_dir = &quot;../../..&quot;
@@ -241,7 +240,7 @@ data.raw.head()
 </div></div>
 </div>
 <p>If you don’t have any data yet you will have to spend a considerable amount of time collecting data. You can fetch new forecasts either using <code class="docutils literal notranslate"><span class="pre">Data().fetch_forecast()</span></code> + <code class="docutils literal notranslate"><span class="pre">Data().combine_and_store_forecasts()</span></code> or - and this is the much more convenient solution - use the terminal and type:</p>
-<div class="highlight-batch notranslate"><div class="highlight"><pre><span></span>fue download
+<div class="highlight-batch notranslate"><div class="highlight"><pre><span></span>pyfue download
 </pre></div>
 </div>
 <p>I dedicated an entire document on the CLI (Command Line Interface) of this package. This command does the same as running the following two lines. However, the CLI command doesn’t have the option to pass a costom path, so if you want to store your data somewhere else, either modify the <code class="docutils literal notranslate"><span class="pre">cli.py</span></code> file in the package or write your own Python script following the steps shown in this notebook.</p>

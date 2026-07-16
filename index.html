@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>fue documentation &mdash; fue 12.08.2026 documentation</title>
+  <title>pyfue documentation &mdash; pyfue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="#" class="icon icon-home">
-            fue
+            pyfue
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -56,7 +56,6 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/fue.html">Core API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/models.html">Models API Reference</a></li>
 </ul>
 
@@ -66,7 +65,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">fue</a>
+          <a href="#">pyfue</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -74,7 +73,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">fue documentation</li>
+      <li class="breadcrumb-item active">pyfue documentation</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -84,9 +83,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="fue-documentation">
-<h1>fue documentation<a class="headerlink" href="#fue-documentation" title="Link to this heading"></a></h1>
-<p>Welcome to the documentation for the Forecast Uncertainty Estimation (fue) package.
+  <section id="pyfue-documentation">
+<h1>pyfue documentation<a class="headerlink" href="#pyfue-documentation" title="Link to this heading"></a></h1>
+<p>Welcome to the documentation for the Forecast Uncertainty Estimation (pyfue) package.
 It is built around the idea that a weather forecasts are reliable only to a certain
 degree. There might be significant uncertainty attached to forecasts, that are not
 clearly stated in the apps we use daily. This hobby project aims at finding these
@@ -95,10 +94,10 @@ several days later, when weather station measurements show us how accurate a for
 really was. I had the idea for this project for a while and now that I am taking a
 course on sustainable computational engineering (aka how to write code that others
 can understand and use), I finally had a good reason to realize the project.</p>
-<p>The project is split into two modules: the core <strong>fue</strong> and the <strong>fue.models</strong> module.
-The core <strong>fue</strong> module includes fetching forecasting data from the open-meteo.com API, cleaning
+<p>The project is split into two modules: the core <strong>pyfue</strong> and the <strong>pyfue.models</strong> module.
+The core <strong>pyfue</strong> module includes fetching forecasting data from the open-meteo.com API, cleaning
 and preprocessing of data and the generation of valid traing and validation datasets.
-<strong>fue.models</strong> is focused on using a mathematical model to map a certain forecast
+<strong>pyfue.models</strong> is focused on using a mathematical model to map a certain forecast
 to attached uncertainties.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
@@ -153,18 +152,10 @@ to attached uncertainties.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/fue.html">Core API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/fue.html#fue.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/fue.html#fue.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/fue.html#fue.Forecast"><code class="docutils literal notranslate"><span class="pre">Forecast</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/fue.html#fue.HyperparameterTuner"><code class="docutils literal notranslate"><span class="pre">HyperparameterTuner</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/fue.html#fue.OpenMeteoClient"><code class="docutils literal notranslate"><span class="pre">OpenMeteoClient</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="api/models.html">Models API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/models.html#fue.models.LinearUncertaintyModel"><code class="docutils literal notranslate"><span class="pre">LinearUncertaintyModel</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/models.html#fue.models.MLUncertaintyModel"><code class="docutils literal notranslate"><span class="pre">MLUncertaintyModel</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/models.html#fue.models.UncertaintyModel"><code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/models.html#pyfue.models.LinearUncertaintyModel"><code class="docutils literal notranslate"><span class="pre">LinearUncertaintyModel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/models.html#pyfue.models.MLUncertaintyModel"><code class="docutils literal notranslate"><span class="pre">MLUncertaintyModel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/models.html#pyfue.models.UncertaintyModel"><code class="docutils literal notranslate"><span class="pre">UncertaintyModel</span></code></a></li>
 </ul>
 </li>
 </ul>

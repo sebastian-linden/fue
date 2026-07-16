@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>fue.forecast &mdash; fue 12.08.2026 documentation</title>
+  <title>pyfue.forecast &mdash; pyfue 12.08.2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
@@ -30,7 +30,7 @@
           
           
           <a href="../../index.html" class="icon icon-home">
-            fue
+            pyfue
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -54,7 +54,6 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api/fue.html">Core API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/models.html">Models API Reference</a></li>
 </ul>
 
@@ -64,7 +63,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">fue</a>
+          <a href="../../index.html">pyfue</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -73,7 +72,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">fue.forecast</li>
+      <li class="breadcrumb-item active">pyfue.forecast</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -82,9 +81,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for fue.forecast</h1><div class="highlight"><pre>
+  <h1>Source code for pyfue.forecast</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Forecast inference and visualization pipeline for the fue package.</span>
+<span class="sd">Forecast inference and visualization pipeline for the pyfue package.</span>
 
 <span class="sd">This module maps fitted machine learning and linear uncertainty estimators onto</span>
 <span class="sd">freshly pulled weather forecasts. It applies physical boundary safeguards (such as</span>
@@ -105,7 +104,7 @@
 
 
 <div class="viewcode-block" id="Forecast">
-<a class="viewcode-back" href="../../api/fue.html#fue.Forecast">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#pyfue.Forecast">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Forecast</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applies trained error-prediction models to weather forecasts and handles plotting.</span>
@@ -175,7 +174,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Forecast.fetch_forecast">
-<a class="viewcode-back" href="../../api/fue.html#fue.Forecast.fetch_forecast">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#pyfue.Forecast.fetch_forecast">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_forecast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">forecast_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span> <span class="n">past_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Downloads a fresh forecast profile for a single city from the data client layer.</span>
@@ -255,7 +254,7 @@
 
 
 <div class="viewcode-block" id="Forecast.compute_uncertainties">
-<a class="viewcode-back" href="../../api/fue.html#fue.Forecast.compute_uncertainties">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#pyfue.Forecast.compute_uncertainties">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_uncertainties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uncertainty_model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs the active weather forecast through our estimator to predict absolute error margins.</span>
@@ -362,7 +361,7 @@
                 <span class="k">return</span> <span class="n">variable</span>
 
 <div class="viewcode-block" id="Forecast.plot">
-<a class="viewcode-back" href="../../api/fue.html#fue.Forecast.plot">[docs]</a>
+<a class="viewcode-back" href="../../api/fue.html#pyfue.Forecast.plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_variables</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Renders line plots showing forecast tracks with shaded error ranges.</span>
