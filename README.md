@@ -1,59 +1,93 @@
-# fue
+# fue (Forecast Uncertainty Estimation)
 
-![PyPI version](https://img.shields.io/pypi/v/fue.svg)
+[![PyPI version](https://img.shields.io/pypi/v/fue.svg)](https://pypi.org/project/fue/)
+[![Documentation Status](https://img.shields.io/badge/docs-latest-blue.svg)](https://sebastian-linden.github.io/fue/)
+[![Code License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to see how they hold up over time. By comparing early predictions to the actual weather, it calculates the "real" uncertainty of a forecast. It’s built for hikers and outdoor enthusiasts who want to know if that 18°C Saturday is a sure thing or just a hopeful guess.
+## Abstract
 
-* [GitHub](https://github.com/sebastian-linden/fue/) | [PyPI](https://pypi.org/project/fue/) | [Documentation](https://sebastian-linden.github.io/fue/)
-* Created by [Sebastian Linden](https://audrey.feldroy.com/) | GitHub [@sebastian-linden](https://github.com/sebastian-linden) | PyPI [@sebastian-linden](https://pypi.org/user/sebastian-linden/)
-* MIT License
+Welcome to the `pyfue` package. This package enables you to estimate empiric error bounds for weather forecasts of your city. Numerical weather simulations used for todays forecasts will produce a timeseries of numbers (e.g. temperature, precipitation sum) that are in reality just the mean values of an underlying probability distribution with some variance around the mean. Since the error bounds of these distributions are generally not available, I developed this package to estimate these error bounds empirically. This package enables you to train linear or non-linear models on historic forecasts errors to predict expected error bounds for forecasts of your city.
+
+
+## Background
+
+Being an outdoor enthusiast, I am looking at the weather forecasts regularly and more than once I had to change my plans on short notice, because the weather turned out to be less inviting than I had anticipated. Naturally I came ask myself how reliable weather forecasts really are, especially in Aachen, where the weather isn't very stable. I initially planned to build my own Arduino weather station on the balcony and then compare forecasts from previous days to what my weather station would measure.
+
+I postponed this project for a while and only thought about this idea again when taking a graduate course called "Sustainable Computational Engineering" by Dr. sc. Anil Yildiz at RWTH Aachen University. As a final project we would have to write our own Python package that follows state of the art conventions for scientific programming. I took this opportunity to turn a hobby project idea into my first Python package.
+
+## The use of pen & paper, human and artificial intelligence in this project
+
+Since AI generated content has flooded the internet, I came to value more and more honest human written text. On the other side, I value well written code and easy to understand documentation. Therefore, I want to state very clearly how and where I used AI in this project.
+
+I initialized this project using the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template, which may or may not contain AI generated markdown files. From that starting point, I used:
+- **Pen & Paper** to come up with the basic math for my analysis and to draft and revise my package architecture
+- **Artificial Intelligence** to implement specific features (one at a time), fix bugs, write tests, implement logging and write all of the inline documentation (i.e. docstrings) as well as some parts of the long-form documentation.
+- **My Human Intelligence** to plan the package development roadmap, proof-read, correct and accept AI generated code and documentation, write most long-form documentation.
+
+Most of the following sections of this README file are also AI generated and checked by me.
 
 ## Features
 
-* TODO
+- **Multi-Model Architecture**: Seamlessly swap between standard Linear Regression models and non-linear, ensemble-based Multi-Layer Perceptrons (MLPs).
+- **Scientifically Rigorous Pipeline**: Avoids geographical and temporal data leakage using a custom chronological multi-city data splitting engine.
+- **Automated Data Ingestion**: Built-in client for the Open-Meteo API to fetch, parse, and pair historical forecasts with ground-truth measurements.
+- **Professional CLI**: A Typer-powered Command Line Interface for automated data downloading, dataset summarization, and headless model tuning.
+- **Physical Constraints**: Implements target log-transformations and intelligent feature engineering (e.g., $\sqrt{\text{delta\_days}}$) to ensure uncertainty boundaries never violate physical reality.
 
-## Documentation
+## Installation
 
-Documentation is built with [Zensical](https://zensical.org/) and deployed to GitHub Pages.
+**End-User Installation (PyPI)**
+The easiest way to install `fue` is via pip:
+```bash
+pip install fue
+```
 
-* **Live site:** https://sebastian-linden.github.io/fue/
-* **Preview locally:** `just docs-serve` (serves at http://localhost:8000)
-* **Build:** `just docs-build`
-
-API documentation is auto-generated from docstrings using [mkdocstrings](https://mkdocstrings.github.io/).
-
-Docs deploy automatically on push to `main` via GitHub Actions. To enable this, go to your repo's Settings > Pages and set the source to **GitHub Actions**.
-
-## Development
-
-To set up for local development:
+**Developer Installation**
+If you want to build fue from source or contribute to the project:
 
 ```bash
-# Clone your fork
-git clone git@github.com:your_username/fue.git
+# 1. Clone the repository
+git clone [https://github.com/YourUsername/fue.git](https://github.com/YourUsername/fue.git)
 cd fue
 
-# Install in editable mode with live updates
-uv tool install --editable .
+# 2. Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows use: call venv\Scripts\activate.bat
+
+# 3. Install locally in editable mode
+pip install -e .
 ```
 
-This installs the CLI globally but with live updates - any changes you make to the source code are immediately available when you run `fue`.
-
-Run tests:
-
-```bash
-uv run pytest
+## Project Structure
+```txt
+fue/
+├── src/fue/
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── base.py                 # Abstract base class
+│   │   ├── linear_model.py         # Linear regression subclass
+│   │   ├── ml_model.py             # MLP subclass
+│   │   └── preprocessor.py         # Stateful data transformations
+│   ├── __init__.py
+│   ├── cli.py                      # Typer CLI application
+│   ├── config.py                   # Global configuration & constants
+│   ├── data.py                     # Dataset generation and training/validation splitting 
+│   ├── forecast.py                 # Inference and visualization module
+│   ├── openmeteoclient.py          # API interaction
+│   └── utils.py                    # Math & geo helpers (e.g., Haversine)
+├── tests/                          # Pytest suite
+├── docs/                           # Sphinx documentation
+└── README.md
 ```
 
-Run quality checks (format, lint, type check, test):
+## Documentation
+Comprehensive documentation including API references, mathematical methodologies, and workflow tutorials are hosted on [GitHub Pages](https://sebastian-linden.github.io/fue/index.html).
 
-```bash
-just qa
-```
 
 ## Author
 
-fue was created in 2026 by Sebastian Linden.
+fue was created in 2026 by Sebastian Linden and co-authored by Google's Gemini AI.
 
 Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.
 

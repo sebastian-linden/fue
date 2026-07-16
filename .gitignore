@@ -47,27 +47,32 @@ dmypy.json
 .pyre/
 .pytype/
 
-# Documentation build output
-site/
-
-# IDE files
-# .idea/
-# .vscode/
-
-# Backup
-data/backup
-
-# Personal notes
-notes/
-
 # Cache
 scripts/.cache.sqlite
 .cache.sqlite
 
-# Settings
-.vscode
-
 # Runs
 runs/
-scripts/runs/
+scripts/
 /runs/
+
+# Documentation build output
+docs/build/
+site/
+
+# IDE files
+.idea/
+.vscode/
+
+# Data (Never commit large datasets or backups)
+data/backup/
+data/raw/
+
+# Cache
+.cache.sqlite
+
+# Personal notes
+notes/
+
+# Runs and Model Weights (This single line safely covers ./runs/ and ./scripts/runs/)
+runs/
