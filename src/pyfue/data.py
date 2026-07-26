@@ -7,8 +7,6 @@ measurements, and splitting data cleanly by city proximity groups for machine le
 """
 
 import logging
-import os
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -29,19 +27,16 @@ class Data:
     and packages data frames so they are structured perfectly for downstream training models.
     """
 
-    def __init__(self, data_root: Path | str | None = None) -> None:
+    def __init__(self, config: Config) -> None:
         """Sets up default file paths and tracking names for different categories of variables."""
-        # 1. Resolve to a safe, persistent home directory
-        if data_root is None:
-            self.PATH_TO_DATA = Path.home() / ".pyfue" / "data"
+
+        # Get path
+        if config is None:
+            logger.error("Configuration argument is None.")
+            raise TypeError("Configuration argument is None.")
         else:
-            self.PATH_TO_DATA = Path(data_root)
-            
-        self.PATH_TO_RAW = self.PATH_TO_DATA / "raw" / "forecasts.csv"
-        
-        # 2. Ensure directories actually exist before Pandas tries to read/write!
-        self.PATH_TO_RAW.parent.mkdir(parents=True, exist_ok=True)
-        (self.PATH_TO_DATA / "backup").mkdir(parents=True, exist_ok=True)
+            self.config = config
+            self.path = self.config.data_path
 
         # This is the data as fetched from the open-meteo API.
         self.raw = pd.DataFrame()
@@ -50,10 +45,10 @@ class Data:
         self.weather_variables = []
         self.numeric_variables = []
 
-        logger.debug("Initialized Data handler with raw data path %s", self.PATH_TO_RAW)
+        logger.debug("Initialized Data handler with raw data path %s", self.path)
         return None
 
-    def read_raw(self, path: str | Path | None = None) -> None:
+    def read_raw(self) -> None:
         """
         Reads the local raw forecast CSV file from disk into memory.
 
@@ -75,20 +70,17 @@ class Data:
         FileNotFoundError
             If no forecast csv source matches the determined path target.
         """
-        if path is not None:
-            self.PATH_TO_RAW = path
-            logger.debug("Using custom raw data path %s", self.PATH_TO_RAW)
 
         try:
-            self.raw = pd.read_csv(self.PATH_TO_RAW)
+            self.raw = pd.read_csv(self.path)
             self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=True)
             self.weather_variables = [c for c in self.raw.columns if c not in self.meta_variables]
             self.numeric_variables = self.weather_variables + ["latitude", "longitude"]
         except Exception as exc:
-            logger.error("Failed to read raw forecasts from %s", self.PATH_TO_RAW, exc_info=True)
+            logger.error("Failed to read raw forecasts from %s", self.path, exc_info=True)
             raise FileNotFoundError("forecasts.csv was not found") from exc
 
-        logger.info(f"Raw data read from {self.PATH_TO_RAW}. Total records: {len(self.raw)}")
+        logger.info(f"Raw data read from {self.path}. Total records: {len(self.raw)}")
         return None
 
     def convert_to_best_dtypes(self, df: pd.DataFrame, sun_duration_to_hours: bool = False) -> pd.DataFrame:
@@ -148,6 +140,10 @@ class Data:
             The consolidated design matrix containing core feature columns, lead timelines,
             and target absolute difference values.
         """
+
+        if self.raw.empty:
+            self.read_raw()
+
         # 1. Separate data by city
         raw_copy = self.raw.copy()
         raw_copy["forecast_for"] = pd.to_datetime(raw_copy["forecast_for"])
@@ -331,25 +327,16 @@ class Data:
         logger.debug("Duplicate removal reduced rows from %d to %d", rows_before, len(df))
         return df
 
-    def fetch_forecast(self, config: Config | None = None) -> pd.DataFrame:
+    def fetch_forecast(self) -> pd.DataFrame:
         """
         Uses the internal OpenMeteoClient to download live forward-looking forecasts.
-
-        Parameters
-        ----------
-        config : Config or None, default=None
-            An active Config instance holding coordinate keys. If None, builds a
-            fresh internal client defaults instance.
 
         Returns
         -------
         pd.DataFrame
             Live weather point predictions structured into typed pandas rows.
         """
-        if config is None:
-            client = OpenMeteoClient()
-        else:
-            client = OpenMeteoClient(config=config)
+        client = OpenMeteoClient(config=self.config)
 
         try:
             current_forecasts = client.fetch_forecast()
@@ -390,12 +377,12 @@ class Data:
         try:
             self.raw = pd.concat([self.raw, current_forecasts])
             self.remove_duplicates(self.raw)
-            self.raw.to_csv(self.PATH_TO_RAW, index=False)
+            self.raw.to_csv(self.path, index=False)
         except Exception:
-            logger.error("Failed to combine and store forecasts in %s", self.PATH_TO_RAW, exc_info=True)
+            logger.error("Failed to combine and store forecasts in %s", self.path, exc_info=True)
             raise
 
-        logger.info("Forecasts stored to %s", self.PATH_TO_RAW)
+        logger.info("Forecasts stored to %s", self.path)
         return None
 
     def get_collection_summary(self, threshold: int = 100) -> pd.DataFrame:

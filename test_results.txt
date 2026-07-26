@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0
+rootdir: /home/linden/code/uni/sce/pyfue
+configfile: pyproject.toml
+collected 134 items
+
+tests/test_config.py .................................                   [ 24%]
+tests/test_data.py .........                                             [ 31%]
+tests/test_forecast.py ................................................  [ 67%]
+tests/test_linear_model.py ..........                                    [ 74%]
+tests/test_ml_model.py ....                                              [ 77%]
+tests/test_openmeteoclient.py ......                                     [ 82%]
+tests/test_preprocessor.py ...............                               [ 93%]
+tests/test_tuner.py ...                                                  [ 95%]
+tests/test_utils.py ......                                               [100%]
+
+============================= 134 passed in 1.26s ==============================

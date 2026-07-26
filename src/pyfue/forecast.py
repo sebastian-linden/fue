@@ -7,6 +7,7 @@ clipping metrics at zero or capping sunshine hours via astronomical day length)
 and renders localized error-bound graphs.
 """
 
+import copy
 import logging
 import warnings
 
@@ -14,6 +15,7 @@ import matplotlib.pyplot as plt
 
 from .config import Config
 from .data import Data
+from .defaults import COLORS, TITLES, UNITS
 from .utils import daylength
 
 logger = logging.getLogger(__name__)
@@ -28,60 +30,11 @@ class Forecast:
     shaded confidence bands ($\\pm \text{error}$) on meteorological lines.
     """
 
-    # Class-level plot specifications for known variables
-    _KNOWN_COLORS = {
-        # Raw features
-        "temperature_2m_max": "crimson",
-        "temperature_2m_min": "royalblue",
-        "precipitation_sum": "teal",
-        "sunshine_duration": "gold",
-        "wind_speed_10m_mean": "slategray",
-        "precipitation_probability_mean": "cornflowerblue",
-        # Target variables
-        "abs_diff__temperature_2m_max": "darkred",
-        "abs_diff__temperature_2m_min": "navy",
-        "abs_diff__precipitation_sum": "darkcyan",
-        "abs_diff__sunshine_duration": "darkorange",
-        "abs_diff__wind_speed_10m_mean": "dimgray",
-        "abs_diff__precipitation_probability_mean": "mediumpurple",
-    }
-    _KNOWN_UNITS = {
-        # Raw features
-        "temperature_2m_max": "°C",
-        "temperature_2m_min": "°C",
-        "precipitation_sum": "mm",
-        "sunshine_duration": "h",
-        "wind_speed_10m_mean": "m/s",
-        "precipitation_probability_mean": "%",
-        # Target variables
-        "abs_diff__temperature_2m_max": "°C",
-        "abs_diff__temperature_2m_min": "°C",
-        "abs_diff__precipitation_sum": "mm",
-        "abs_diff__sunshine_duration": "h",
-        "abs_diff__wind_speed_10m_mean": "m/s",
-        "abs_diff__precipitation_probability_mean": "%",
-    }
-    _KNOWN_TITLES = {
-        # Raw features
-        "temperature_2m_max": "Maximum Temperature (2m)",
-        "temperature_2m_min": "Minimum Temperature (2m)",
-        "precipitation_sum": "Total Daily Precipitation",
-        "sunshine_duration": "Daily Sunshine Duration",
-        "wind_speed_10m_mean": "Mean Wind Speed (10m)",
-        "precipitation_probability_mean": "Mean Precipitation Probability",
-        # Target variables
-        "abs_diff__temperature_2m_max": "Max Temperature Forecast Absolute Error",
-        "abs_diff__temperature_2m_min": "Min Temperature Forecast Absolute Error",
-        "abs_diff__precipitation_sum": "Precipitation Forecast Absolute Error",
-        "abs_diff__sunshine_duration": "Sunshine Duration Forecast Absolute Error",
-        "abs_diff__wind_speed_10m_mean": "Mean Wind Speed Forecast Absolute Error",
-        "abs_diff__precipitation_probability_mean": "Precipitation Probability Forecast Absolute Error",
-    }
-
-    def __init__(self) -> None:
+    def __init__(self, config: Config) -> None:
         """
         Initializes an empty forecast profile container with default tracking states.
         """
+        self.config = config
         self.forecast = None
         self.uncertainty_model = None
         self.uncertainty_predictions = None
@@ -129,9 +82,8 @@ class Forecast:
 
         logger.info("Fetching forecast for %s", location_name)
 
-        self.past_days = past_days
         # Create a custom Config() object and fetch data using that
-        one_city_config = Config()
+        one_city_config = copy.deepcopy(self.config)
         if location_name not in one_city_config.cities:
             available_cities = ", ".join(sorted(one_city_config.cities))
             raise ValueError(
@@ -141,8 +93,8 @@ class Forecast:
         one_city_config.params["latitude"] = one_city_config.city_coordinates[location_name]["lat"]
         one_city_config.params["longitude"] = one_city_config.city_coordinates[location_name]["lon"]
         one_city_config.set_forecast_days(forecast_days)
-        one_city_config.set_past_days(self.past_days)
-        self.forecast = Data().fetch_forecast(config=one_city_config)
+        one_city_config.set_past_days(past_days)
+        self.forecast = Data(config=one_city_config).fetch_forecast()
 
         # Validate that forecast has required columns
         required_columns = {"forecast_for", "forecasted_on"}
@@ -240,11 +192,11 @@ class Forecast:
             If an invalid configuration string type token is requested.
         """
         if spec_type == "color":
-            specs = self._KNOWN_COLORS
+            specs = COLORS
         elif spec_type == "unit":
-            specs = self._KNOWN_UNITS
+            specs = UNITS
         elif spec_type == "title":
-            specs = self._KNOWN_TITLES
+            specs = TITLES
         else:
             raise ValueError(f"Invalid spec_type: {spec_type}. Must be 'color', 'unit', or 'title'")
 

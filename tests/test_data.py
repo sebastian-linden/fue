@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -5,15 +6,38 @@ import pandas as pd
 import pytest
 
 # Adjust the import based on your exact project structure
-from pyfue import Data
+from pyfue import Config, Data
+
+
+@pytest.fixture
+def test_config(tmp_path):
+    """Creates a complete temporary config.json for Data class testing."""
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        json.dumps(
+            {
+                "data_path": "data/forecasts.csv",
+                "runs_dir": "runs",
+                "cities": {"london": {"lat": 51.5, "lon": -0.12}},
+                "daily": ["temperature_2m_max"],
+                "timezone": "UTC",
+                "past_days": 5,
+                "forecast_days": 10,
+                "preprocessing": {},
+                "default_feature_columns": ["temperature_2m_max"],
+                "default_target_columns": ["abs_diff__temperature_2m_max"],
+            }
+        )
+    )
+    return Config(path=config_file)
 
 
 class TestData:
     """Test suite for the Data class handling forecast and measurement data."""
 
-    def test_init(self):
+    def test_init(self, test_config):
         """Test the initialization of the Data class to ensure attributes are set correctly."""
-        data = Data()
+        data = Data(test_config)
 
         # Check that the raw DataFrame is initialized and empty
         assert isinstance(data.raw, pd.DataFrame)
@@ -25,23 +49,16 @@ class TestData:
         assert data.numeric_variables == []
 
         # Check path resolutions
-        assert isinstance(data.PATH_TO_DATA, Path)
-        assert data.PATH_TO_DATA.name == "data"
-        assert isinstance(data.PATH_TO_RAW, str)
-        assert data.PATH_TO_RAW.endswith("forecasts.csv")
+        assert isinstance(data.path, Path)
 
-    def test_read_raw_success(self):
+    def test_read_raw_success(self, test_config):
         """Test reading a valid raw data file updates paths and variables correctly."""
-        data = Data()
+        data = Data(test_config)
+        data.path = "tests/test_forecasts.csv"
 
-        # Path to the specific subset you created for testing
-        test_file_path = "tests/test_forecasts.csv"
-
-        # Execute the method
-        data.read_raw(path=test_file_path)
+        data.read_raw()
 
         # Assertions
-        assert data.PATH_TO_RAW == test_file_path
         assert not data.raw.empty
 
         # Check that weather and numeric variables were populated
@@ -53,17 +70,18 @@ class TestData:
         for meta_var in data.meta_variables:
             assert meta_var not in data.weather_variables
 
-    def test_read_raw_file_not_found(self):
+    def test_read_raw_file_not_found(self, test_config):
         """Test that the correct exception is raised when the raw data file is missing."""
-        data = Data()
+        data = Data(test_config)
 
         # Using pytest.raises to catch the specific exception and error message
         with pytest.raises(FileNotFoundError, match="forecasts.csv was not found"):
-            data.read_raw(path="does_not_exist_123.csv")
+            data.config.data_path = "tests/does_not_exist_123.csv"  # or appropriate config attribute
+            data.read_raw()
 
-    def test_convert_to_best_dtypes(self):
+    def test_convert_to_best_dtypes(self, test_config):
         """Test that the dtype conversion method enforces strings, datetimes, and numerics, and handles units."""
-        data = Data()
+        data = Data(test_config)
 
         # Create a mock DataFrame with incorrect, raw types
         mock_df = pd.DataFrame(
@@ -91,14 +109,16 @@ class TestData:
         assert pd.api.types.is_numeric_dtype(cleaned_df["temperature_2m"])
         assert cleaned_df["temperature_2m"].iloc[0] == 20.5
 
-    def test_generate_dataset(self):
+    def test_generate_dataset(self, test_config):
         """
         Verifies that the dataset generation pipeline successfully processes
         multi-city raw data into a single, unified DataFrame with the correct
         tracking and feature columns.
         """
-        data = Data()
-        data.read_raw("tests/test_forecasts.csv")
+        data = Data(test_config)
+        data.path = "tests/test_forecasts.csv"
+
+        data.read_raw()
 
         # Generate the dataset (now processes all available data at once)
         dataset = data.generate_dataset()
@@ -117,14 +137,16 @@ class TestData:
         assert len(unique_cities) == 6, "Dataset should contain exactly 6 pooled cities"
         assert set(unique_cities) == {"london", "berlin", "aachen", "paris", "rome", "madrid"}
 
-    def test_split_dataset(self):
+    def test_split_dataset(self, test_config):
         """
         Verifies the Stratified Climatic Block strategy.
         Mathematically asserts that the Haversine pairing algorithm successfully
         prevents spatial data leakage between the training and validation subsets.
         """
-        data = Data()
-        data.read_raw("tests/test_forecasts.csv")
+        data = Data(test_config)
+        data.path = "tests/test_forecasts.csv"
+
+        data.read_raw()
 
         # Split the dataset using the deterministic random state
         train_df, val_df = data.split_dataset(data.raw, val_fraction=0.3, random_state=42)
@@ -149,12 +171,12 @@ class TestData:
         assert val_cities == {"berlin", "rome"}, "Validation split distribution drifted"
         assert train_cities == {"london", "aachen", "paris", "madrid"}, "Train split distribution drifted"
 
-    def test_remove_duplicates(self):
+    def test_remove_duplicates(self, test_config):
         """
         Test that duplicate forecasts are removed based on weather variables,
         respecting the 4-decimal place rounding tolerance.
         """
-        data = Data()
+        data = Data(test_config)
 
         # Manually set the variable lists to isolate this test from read_raw()
         data.weather_variables = ["temperature_2m", "wind_speed_10m"]
@@ -188,12 +210,12 @@ class TestData:
         assert cleaned_df.iloc[1]["latitude"] == 50.1112
 
     @patch("pyfue.data.OpenMeteoClient")
-    def test_fetch_forecast(self, MockClient):
+    def test_fetch_forecast(self, MockClient, test_config):
         """
         Test that fetch_forecast initializes the client, calls the API,
         and correctly processes the data types without making real network requests.
         """
-        data = Data()
+        data = Data(test_config)
 
         # Setup the fake OpenMeteoClient and dictate what it should return
         mock_instance = MockClient.return_value
@@ -212,8 +234,9 @@ class TestData:
         result_df = data.fetch_forecast()
 
         # Assertions
-        # 1. Verify the client was instantiated correctly (no config passed)
-        MockClient.assert_called_once_with()
+        # 1. Verify the client was instantiated correctly by asserting it receives the config
+        MockClient.assert_called_once_with(config=test_config)
+
         # 2. Verify the fetch method was actually called
         mock_instance.fetch_forecast.assert_called_once()
 
@@ -221,16 +244,16 @@ class TestData:
         assert pd.api.types.is_numeric_dtype(result_df["temperature_2m"])
         assert result_df["temperature_2m"].iloc[0] == 22.5
 
-    def test_combine_and_store_forecasts(self, tmp_path):
+    def test_combine_and_store_forecasts(self, test_config, tmp_path):
         """
         Test combining existing forecast data with new fetched rows,
         ensuring duplicates are handled and mutations are cleanly written to disk.
         """
-        data = Data()
+        data = Data(test_config)
 
         # 1. Setup our sandboxed temporary file paths
         temp_csv = tmp_path / "temp_forecasts.csv"
-        data.PATH_TO_RAW = str(temp_csv)
+        data.path = str(temp_csv)
 
         # 2. Extract a real baseline dataframe from your test file to seed the test
         real_sample_df = pd.read_csv("tests/test_forecasts.csv").head(2)

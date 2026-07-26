@@ -1,41 +1,68 @@
+import json
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-
-from pyfue.config import Config
+import pytest
 
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from pyfue.config import Config
 from pyfue.openmeteoclient import OpenMeteoClient
+
+
+@pytest.fixture
+def test_config(tmp_path):
+    """Fixture providing a Config object for OpenMeteoClient tests."""
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        json.dumps(
+            {
+                "data_path": "data/forecasts.csv",
+                "runs_dir": "runs",
+                "cities": {"london": {"lat": 51.5, "lon": -0.12}},
+                "daily": ["temperature_2m_max"],
+                "timezone": "UTC",
+                "past_days": 5,
+                "forecast_days": 10,
+            }
+        )
+    )
+    return Config(path=config_file)
+
+
+@pytest.fixture
+def client(test_config):
+    """Fixture providing OpenMeteoClient initialized with test_config."""
+    return OpenMeteoClient(config=test_config)
 
 
 class TestOpenMeteoClientInit:
     """Test suite for OpenMeteoClient initialization"""
 
-    def test_client_initialization(self):
+    def test_client_initialization(self, test_config):
         """Test that OpenMeteoClient initializes without errors"""
-        client = OpenMeteoClient()
+        client = OpenMeteoClient(config=test_config)
         assert client is not None
         assert hasattr(client, "openmeteo")
         assert hasattr(client, "config")
         assert hasattr(client, "url")
 
-    def test_url_is_correct(self):
+    def test_url_is_correct(self, test_config):
         """Test that the API URL is set correctly"""
-        client = OpenMeteoClient()
+        client = OpenMeteoClient(config=test_config)
         assert client.url == "https://api.open-meteo.com/v1/forecast"
 
-    def test_cache_session_initialized(self):
+    def test_cache_session_initialized(self, test_config):
         """Test that cache session is initialized"""
-        client = OpenMeteoClient()
+        client = OpenMeteoClient(config=test_config)
         assert client.cache_session is not None
 
-    def test_config_loaded(self):
+    def test_config_loaded(self, test_config):
         """Test that config is loaded"""
-        client = OpenMeteoClient()
+        client = OpenMeteoClient(config=test_config)
         assert client.config is not None
         assert hasattr(client.config, "params")
         assert hasattr(client.config, "cities")
@@ -44,9 +71,9 @@ class TestOpenMeteoClientInit:
 class TestOpenMeteoClientIntegration:
     """Integration tests for OpenMeteoClient"""
 
-    def test_client_setup_complete(self):
+    def test_client_setup_complete(self, test_config):
         """Test that all components are properly set up"""
-        client = OpenMeteoClient()
+        client = OpenMeteoClient(config=test_config)
 
         # Verify all necessary attributes exist
         assert hasattr(client, "cache_session")
@@ -67,20 +94,13 @@ class TestOpenMeteoClientIntegration:
 class TestOpenMeteoClientLogic:
     """Test suite for the logic and data processing of the OpenMeteoClient."""
 
-    def test_init_with_custom_config(self):
-        """Test that passing a custom config skips default initialization (Line 26)."""
-        custom_config = Config()
-        client = OpenMeteoClient(config=custom_config)
-        assert client.config is custom_config
-
     @patch("pyfue.openmeteoclient.openmeteo_requests.Client")
-    def test_fetch_forecast_data_processing(self, MockAPIClient):
+    def test_fetch_forecast_data_processing(self, MockAPIClient, test_config):
         """
         Test that fetch_forecast correctly requests data from the API and
         properly formats the deeply nested response into a flat Pandas DataFrame.
         """
         # 1. Setup a controlled config so we know exactly what is being requested
-        test_config = Config()
         test_config.cities = ["Aachen"]
         test_config.city_coordinates = {"Aachen": {"lat": 50.77, "lon": 6.08}}
         test_config.params["latitude"] = [50.77]
@@ -99,8 +119,8 @@ class TestOpenMeteoClientLogic:
         # Mock the 'Daily' sub-object and its time attributes
         mock_daily = MagicMock()
         # UNIX timestamps for 2 days
-        mock_daily.Time.return_value = 1685577600  # e.g., June 1, 2023
-        mock_daily.TimeEnd.return_value = 1685750400  # e.g., June 3, 2023
+        mock_daily.Time.return_value = 1685577600  # June 1, 2023
+        mock_daily.TimeEnd.return_value = 1685750400  # June 3, 2023
         mock_daily.Interval.return_value = 86400  # 1 day in seconds
 
         # Mock the variables array (temperature and precipitation)

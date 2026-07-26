@@ -1,205 +1,55 @@
 {
     "cities": {
-        "aachen": {
-            "lat": 50.7753,
-            "lon": 6.0839
-        },
-        "munich": {
-            "lat": 48.1351,
-            "lon": 11.582
-        },
-        "hamburg": {
-            "lat": 53.5511,
-            "lon": 9.9937
-        },
-        "freiburg": {
-            "lat": 47.999,
-            "lon": 7.8421
-        },
-        "leipzig": {
-            "lat": 51.3397,
-            "lon": 12.3731
-        },
-        "frankfurt": {
-            "lat": 50.1109,
-            "lon": 8.6821
-        },
-        "darmstadt": {
-            "lat": 49.8787,
-            "lon": 8.6469
-        },
-        "berlin": {
-            "lat": 52.52,
-            "lon": 13.405
-        },
-        "valencia": {
-            "lat": 39.4699,
-            "lon": -0.3763
-        },
-        "madrid": {
-            "lat": 40.4168,
-            "lon": -3.7038
-        },
-        "london": {
-            "lat": 51.5074,
-            "lon": -0.1278
-        },
-        "amsterdam": {
-            "lat": 52.3676,
-            "lon": 4.9041
-        },
-        "paris": {
-            "lat": 48.8566,
-            "lon": 2.3522
-        },
-        "prag": {
-            "lat": 50.0755,
-            "lon": 14.4378
-        },
-        "rome": {
-            "lat": 41.9028,
-            "lon": 12.4964
-        },
-        "zurich": {
-            "lat": 47.3769,
-            "lon": 8.5472
-        },
-        "lisbon": {
-            "lat": 38.7223,
-            "lon": -9.1393
-        },
-        "vienna": {
-            "lat": 48.2082,
-            "lon": 16.3738
-        },
-        "bergen": {
-            "lat": 60.3913,
-            "lon": 5.3249
-        },
-        "stockholm": {
-            "lat": 59.3293,
-            "lon": 18.0686
-        },
-        "marseille": {
-            "lat": 43.2965,
-            "lon": 5.3698
-        },
-        "lyon": {
-            "lat": 45.7640,
-            "lon": 4.8357
-        },
-        "bordeaux": {
-            "lat": 44.8378,
-            "lon": -0.5792
-        },
-        "brussels": {
-            "lat": 50.8503,
-            "lon": 4.3517
-        },
-        "dublin": {
-            "lat": 53.3498,
-            "lon": -6.2603
-        },
-        "edinburgh": {
-            "lat": 55.9533,
-            "lon": -3.1883
-        },
-        "milan": {
-            "lat": 45.4642,
-            "lon": 9.1900
-        },
-        "naples": {
-            "lat": 40.8518,
-            "lon": 14.2681
-        },
-        "palermo": {
-            "lat": 38.1157,
-            "lon": 13.3614
-        },
-        "barcelona": {
-            "lat": 41.3851,
-            "lon": 2.1734
-        },
-        "seville": {
-            "lat": 37.3891,
-            "lon": -5.9845
-        },
-        "porto": {
-            "lat": 41.1579,
-            "lon": -8.6291
-        },
-        "geneva": {
-            "lat": 46.2044,
-            "lon": 6.1432
-        },
-        "innsbruck": {
-            "lat": 47.2692,
-            "lon": 11.4041
-        },
-        "warsaw": {
-            "lat": 52.2297,
-            "lon": 21.0122
-        },
-        "krakow": {
-            "lat": 50.0647,
-            "lon": 19.9450
-        },
-        "budapest": {
-            "lat": 47.4979,
-            "lon": 19.0402
-        },
-        "bucharest": {
-            "lat": 44.4268,
-            "lon": 26.1025
-        },
-        "sofia": {
-            "lat": 42.6977,
-            "lon": 23.3219
-        },
-        "belgrade": {
-            "lat": 44.7866,
-            "lon": 20.4489
-        },
-        "zagreb": {
-            "lat": 45.8150,
-            "lon": 15.9819
-        },
-        "athens": {
-            "lat": 37.9838,
-            "lon": 23.7275
-        },
-        "thessaloniki": {
-            "lat": 40.6401,
-            "lon": 22.9444
-        },
-        "copenhagen": {
-            "lat": 55.6761,
-            "lon": 12.5683
-        },
-        "oslo": {
-            "lat": 59.9139,
-            "lon": 10.7522
-        },
-        "helsinki": {
-            "lat": 60.1699,
-            "lon": 24.9384
-        },
-        "tromso": {
-            "lat": 69.6492,
-            "lon": 18.9553
-        },
-        "riga": {
-            "lat": 56.9496,
-            "lon": 24.1052
-        },
-        "vilnius": {
-            "lat": 54.6872,
-            "lon": 25.2797
-        },
-        "tallinn": {
-            "lat": 59.4370,
-            "lon": 24.7536
-        }
+        "aachen": {"lat": 50.7753,"lon": 6.0839},
+        "munich": {"lat": 48.1351,"lon": 11.582},
+        "hamburg": {"lat": 53.5511,"lon": 9.9937},
+        "freiburg": {"lat": 47.999,"lon": 7.8421},
+        "leipzig": {"lat": 51.3397,"lon": 12.3731},
+        "frankfurt": {"lat": 50.1109,"lon": 8.6821},
+        "darmstadt": {"lat": 49.8787,"lon": 8.6469},
+        "berlin": {"lat": 52.52,"lon": 13.405},
+        "valencia": {"lat": 39.4699,"lon": -0.3763},
+        "madrid": {"lat": 40.4168,"lon": -3.7038},
+        "london": {"lat": 51.5074,"lon": -0.1278},
+        "amsterdam": {"lat": 52.3676,"lon": 4.9041},
+        "paris": {"lat": 48.8566,"lon": 2.3522},
+        "prag": {"lat": 50.0755,"lon": 14.4378},
+        "rome": {"lat": 41.9028,"lon": 12.4964},
+        "zurich": {"lat": 47.3769,"lon": 8.5472},
+        "lisbon": {"lat": 38.7223,"lon": -9.1393},
+        "vienna": {"lat": 48.2082,"lon": 16.3738},
+        "bergen": {"lat": 60.3913,"lon": 5.3249},
+        "stockholm": {"lat": 59.3293,"lon": 18.0686},
+        "marseille": {"lat": 43.2965,"lon": 5.3698},
+        "lyon": {"lat": 45.7640,"lon": 4.8357},
+        "bordeaux": {"lat": 44.8378,"lon": -0.5792},
+        "brussels": {"lat": 50.8503,"lon": 4.3517},
+        "dublin": {"lat": 53.3498,"lon": -6.2603},
+        "edinburgh": {"lat": 55.9533,"lon": -3.1883},
+        "milan": {"lat": 45.4642,"lon": 9.1900},
+        "naples": {"lat": 40.8518,"lon": 14.2681},
+        "palermo": {"lat": 38.1157,"lon": 13.3614},
+        "barcelona": {"lat": 41.3851,"lon": 2.1734},
+        "seville": {"lat": 37.3891,"lon": -5.9845},
+        "porto": {"lat": 41.1579,"lon": -8.6291},
+        "geneva": {"lat": 46.2044,"lon": 6.1432},
+        "innsbruck": {"lat": 47.2692,"lon": 11.4041},
+        "warsaw": {"lat": 52.2297,"lon": 21.0122},
+        "krakow": {"lat": 50.0647,"lon": 19.9450},
+        "budapest": {"lat": 47.4979,"lon": 19.0402},
+        "bucharest": {"lat": 44.4268,"lon": 26.1025},
+        "sofia": {"lat": 42.6977,"lon": 23.3219},
+        "belgrade": {"lat": 44.7866,"lon": 20.4489},
+        "zagreb": {"lat": 45.8150,"lon": 15.9819},
+        "athens": {"lat": 37.9838,"lon": 23.7275},
+        "thessaloniki": {"lat": 40.6401,"lon": 22.9444},
+        "copenhagen": {"lat": 55.6761,"lon": 12.5683},
+        "oslo": {"lat": 59.9139,"lon": 10.7522},
+        "helsinki": {"lat": 60.1699,"lon": 24.9384},
+        "tromso": {"lat": 69.6492,"lon": 18.9553},
+        "riga": {"lat": 56.9496,"lon": 24.1052},
+        "vilnius": {"lat": 54.6872,"lon": 25.2797},
+        "tallinn": {"lat": 59.4370,"lon": 24.7536}
     },
     "daily": [
         "temperature_2m_max",
@@ -227,7 +77,7 @@
         "wind_speed_10m_mean": "log",
         "precipitation_probability_mean": "min-max"
     },
-    "default_feature_columns": [
+    "feature_columns": [
         "latitude",
         "longitude",
         "day_of_year",
@@ -241,11 +91,13 @@
         "wind_speed_10m_mean",
         "precipitation_probability_mean"
     ],
-    "default_target_columns": [    
+    "target_columns": [    
         "abs_diff__temperature_2m_max",
         "abs_diff__temperature_2m_min",
         "abs_diff__precipitation_sum",
         "abs_diff__wind_speed_10m_mean",
         "abs_diff__precipitation_probability_mean"
-    ]
+    ],
+    "data_path": "data/raw/forecasts.csv",
+    "runs_dir": "runs"
 }

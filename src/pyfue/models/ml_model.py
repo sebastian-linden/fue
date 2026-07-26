@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from sklearn.neural_network import MLPRegressor
 
+from ..config import Config
 from .base import UncertaintyModel
 
 # Initialize module-scoped logger
@@ -30,7 +31,7 @@ class MLUncertaintyModel(UncertaintyModel):
 
     def __init__(
         self,
-        config=None,
+        config: Config,
         hidden_layer_sizes: tuple = (32, 16),
         max_iter: int = 500,
         alpha: float = 0.01,

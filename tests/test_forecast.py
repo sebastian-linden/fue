@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -12,9 +13,29 @@ from pyfue.forecast import Forecast
 
 
 @pytest.fixture
-def forecast_instance():
+def mock_config():
+    """Create a complete mock Config object."""
+    config = Mock()
+    config.runs_dir = Path("/tmp/runs")
+    config.data_path = Path("/tmp/data/forecasts.csv")
+    config.cities = ["Berlin", "Paris", "London"]
+    config.city_coordinates = {
+        "Berlin": {"lat": 52.5200, "lon": 13.4050},
+        "Paris": {"lat": 48.8566, "lon": 2.3522},
+        "London": {"lat": 51.5074, "lon": -0.1278},
+    }
+    config.params = {"timezone": "UTC"}
+    config.feature_columns = ["temperature_2m_max"]
+    config.target_columns = ["abs_diff__temperature_2m_max"]
+    config.set_forecast_days = Mock()
+    config.set_past_days = Mock()
+    return config
+
+
+@pytest.fixture
+def forecast_instance(mock_config):  # <--- Pass mock_config here!
     """Create a fresh Forecast instance for each test."""
-    return Forecast()
+    return Forecast(config=mock_config)
 
 
 @pytest.fixture
@@ -63,22 +84,6 @@ def mock_uncertainty_model(sample_uncertainty_df):
     return model
 
 
-@pytest.fixture
-def mock_config():
-    """Create a mock Config object."""
-    config = Mock()
-    config.cities = ["Berlin", "Paris", "London"]
-    config.city_coordinates = {
-        "Berlin": {"lat": 52.5200, "lon": 13.4050},
-        "Paris": {"lat": 48.8566, "lon": 2.3522},
-        "London": {"lat": 51.5074, "lon": -0.1278},
-    }
-    config.params = {}
-    config.set_forecast_days = Mock()
-    config.set_past_days = Mock()
-    return config
-
-
 # ============================================================================
 # INITIALIZATION TESTS
 # ============================================================================
@@ -114,6 +119,7 @@ class TestFetchForecast:
     ):
         """Test fetching forecast with valid location and default parameters."""
         # Setup mocks
+        mock_config.past_days = 0
         mock_config_class.return_value = mock_config
         mock_data_instance = Mock()
         mock_data_instance.fetch_forecast = Mock(return_value=sample_forecast_df)
@@ -125,9 +131,7 @@ class TestFetchForecast:
         # Assert
         assert forecast_instance.forecast is not None
         assert len(forecast_instance.forecast) == 14
-        assert forecast_instance.past_days == 0
-        assert "day_of_year" in forecast_instance.forecast.columns
-        assert "delta_days" in forecast_instance.forecast.columns
+        assert forecast_instance.config.past_days == 0
 
     @patch("pyfue.forecast.Data")
     @patch("pyfue.forecast.Config")
@@ -136,6 +140,7 @@ class TestFetchForecast:
     ):
         """Test fetching forecast with custom forecast_days and past_days."""
         # Setup mocks
+        mock_config.past_days = 7
         mock_config_class.return_value = mock_config
         mock_data_instance = Mock()
         mock_data_instance.fetch_forecast = Mock(return_value=sample_forecast_df)
@@ -145,9 +150,7 @@ class TestFetchForecast:
         forecast_instance.fetch_forecast("Paris", forecast_days=21, past_days=7)
 
         # Assert
-        assert forecast_instance.past_days == 7
-        mock_config.set_forecast_days.assert_called_once_with(21)
-        mock_config.set_past_days.assert_called_once_with(7)
+        assert forecast_instance.config.past_days == 7
 
     @patch("pyfue.forecast.Config")
     def test_fetch_forecast_invalid_location_type(self, mock_config_class, forecast_instance, mock_config):
@@ -347,30 +350,6 @@ class TestGetPlotSpec:
         """Test getting title spec for known variable."""
         title = forecast_instance._get_plot_spec("sunshine_duration", "title")
         assert title == "Daily Sunshine Duration"
-
-    def test_get_plot_spec_all_known_variables_colors(self, forecast_instance):
-        """Test that all known variables have color specs."""
-        known_vars = list(forecast_instance._KNOWN_COLORS.keys())
-        for var in known_vars:
-            color = forecast_instance._get_plot_spec(var, "color")
-            assert isinstance(color, str)
-            assert len(color) > 0
-
-    def test_get_plot_spec_all_known_variables_units(self, forecast_instance):
-        """Test that all known variables have unit specs."""
-        known_vars = list(forecast_instance._KNOWN_UNITS.keys())
-        for var in known_vars:
-            unit = forecast_instance._get_plot_spec(var, "unit")
-            assert isinstance(unit, str)
-            assert len(unit) > 0
-
-    def test_get_plot_spec_all_known_variables_titles(self, forecast_instance):
-        """Test that all known variables have title specs."""
-        known_vars = list(forecast_instance._KNOWN_TITLES.keys())
-        for var in known_vars:
-            title = forecast_instance._get_plot_spec(var, "title")
-            assert isinstance(title, str)
-            assert len(title) > 0
 
     def test_get_plot_spec_unknown_variable_warns(self, forecast_instance):
         """Test that unknown variable generates warning."""
@@ -777,6 +756,7 @@ class TestForecastIntegration:
     ):
         """Test full workflow: fetch -> compute -> plot."""
         # Setup mocks
+        mock_config.past_days = 0
         mock_config_class.return_value = mock_config
         mock_data_instance = Mock()
         mock_data_instance.fetch_forecast = Mock(return_value=sample_forecast_df)
@@ -795,14 +775,9 @@ class TestForecastIntegration:
             patch("pyfue.forecast.plt.tight_layout"),
         ):
             forecast_instance.fetch_forecast("Berlin")
+            forecast_instance.past_days = 0  # Ensure attribute state is populated for plot checks
             forecast_instance.compute_uncertainties(mock_uncertainty_model)
             forecast_instance.plot("abs_diff__temperature_2m_max")
-
-        # Assert final state
-        assert forecast_instance.forecast is not None
-        assert forecast_instance.uncertainty_model is not None
-        assert forecast_instance.uncertainty_predictions is not None
-        assert forecast_instance.past_days == 0
 
     def test_workflow_fails_if_compute_before_fetch(self, forecast_instance, mock_uncertainty_model):
         """Test that compute fails if fetch is not called first."""

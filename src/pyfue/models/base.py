@@ -37,33 +37,13 @@ class UncertaintyModel(ABC):
         internal configuration default mapping is created.
     """
 
-    def __init__(self, config: Config | None = None) -> None:
+    def __init__(self, config: Config) -> None:
+        """Initialize an uncertainty model
+
+        Args:
+            config (Config): Config object containing pyfue parameters
         """
-        Prepares features statefully and triggers the submodel training calculations.
-
-        Verifies that your target outputs include the explicit absolute difference prefix,
-        learns and applies adjustments using the data preprocessor, builds input
-        design data frames, and forwards the cleaned states down to your chosen submodel.
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            The input weather training lines pooled from local source storage.
-        feature_columns : list of str
-            The explicit names of rows used as features for the models.
-        target_columns : list of str
-            The calculated forecast deviation columns we want to estimate (must begin with 'abs_diff__').
-
-        Returns
-        -------
-        UncertaintyModel
-            The current class instance with trained tracking weights.
-        """
-        if config is None:
-            logger.debug("No configuration provided; initializing default Config object.")
-            self.config = Config()
-        else:
-            self.config = config
+        self.config = config
         self.preprocessor = Preprocessor(self.config.get_preprocessing_rules())
         self.raw_feature_columns = None
         self.processed_feature_columns = None
@@ -344,8 +324,6 @@ class UncertaintyModel(ABC):
             dynamically via generation hooks.
         metrics : dict or None, default=None
             Leaderboard error values to save inside the metadata file sheet.
-        runs_dir : str, default="runs"
-            The base directory location name on your filesystem.
 
         Returns
         -------
@@ -357,10 +335,10 @@ class UncertaintyModel(ABC):
         # 1. Fallback to automatic timestamped naming if no ID is passed explicitly
 
         if run_id is None:
-            run_id = generate_run_id(prefix=self.__class__.__name__)
+            run_id = generate_run_id(purpose=self.__class__.__name__)
             logger.debug("No explicit run_id provided. Auto-generated identifier: %s", run_id)
 
-        run_path = Path.home() / ".pyfue" / "runs" / run_id
+        run_path = Path(self.config.runs_dir) / run_id
         run_path.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -398,7 +376,7 @@ class UncertaintyModel(ABC):
             raise
 
     @classmethod
-    def load(cls, run_id: str | Path) -> "UncertaintyModel":
+    def load(cls, runs_dir: str | Path, run_id: str) -> "UncertaintyModel":
         """
         Restores a trained estimator model from a persistent binary checkpoint file.
 
@@ -410,20 +388,13 @@ class UncertaintyModel(ABC):
         ----------
         run_id : str
             The tracking string folder label name to restore.
-        runs_dir : str, default="runs"
-            The repository destination folder name where experiment assets are stored.
 
         Returns
         -------
         UncertaintyModel
             The restored instance, ready to generate forward inferences immediately.
         """
-
-        if str(run_id).endswith(".joblib"):
-            model_file = Path(run_id)
-        else:
-            # Fixed Path
-            model_file = Path.home() / ".pyfue" / "runs" / str(run_id) / "model.joblib"
+        model_file = Path(runs_dir) / run_id / "model.joblib"
 
         logger.info("Attempting to restore model checkpoint state for run tracking key: %s", run_id)
         logger.debug("Target file lookup path resolved to: %s", model_file)

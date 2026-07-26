@@ -13,6 +13,9 @@ from typing import Annotated
 import joblib
 import typer
 
+# Initialize module-scoped logger
+logger = logging.getLogger(__name__)
+
 # The callback handles the top-level app description
 app = typer.Typer(help="pyfue: Forecast Uncertainty Estimation CLI.")
 
@@ -24,8 +27,7 @@ def main():
 
     This function acts as the parent callback for the Typer application,
     establishing the root `pyfue` command from which all sub-commands
-    (e.g., `download`, `dataset-summary`, `tune`) are executed.
-
+    (e.g., `init`, `download`, `train`) are executed.
 
     Returns
     -------
@@ -35,101 +37,197 @@ def main():
 
 
 @app.command()
-def download():
+def init():
     """
-    Fetches and stores raw weather forecast data via the Open-Meteo API.
+    Initializes a new pyfue workspace in the current directory.
 
-    This command reads the target cities and geographical parameters from the
-    internal config settings, requests the corresponding data using the Data
-    layer, and persistently stores the combined results on disk.
-
-    .. note::
-       This docstring was automatically generated with the assistance of AI.
-
+    Creates a local `config.json` and a `runs/` directory, allowing you to
+    isolate your data and experiments cleanly per project. It interactively
+    prompts the user to define their local workspace preferences.
 
     Returns
     -------
     None
+
+    Raises
+    ------
+    typer.Abort
+        If the packaged default configuration template cannot be located.
     """
-    from pyfue import Data
+    import os
 
-    D = Data()
-    D.combine_and_store_forecasts(D.fetch_forecast())
-    print("Successfully stored forecasts.")
+    from .defaults import CONFIGURATION
 
+    typer.secho("Initializing pyfue project workspace...", fg=typer.colors.CYAN, bold=True)
 
-@app.command()
-def dataset_summary(
-    threshold: Annotated[
-        int,
-        typer.Option(
-            min=0,
-            help="The minimum number of valid records required for a city to be considered 'active' in the pipeline.",
-        ),
-    ] = 100,
-):
-    """
-    Generates and prints a summary report of the current local data inventory.
+    # Prompt user for workspace preferences
+    config_file = typer.prompt(
+        "Where should configuration data be stored? (relative to this folder)", default="config.json"
+    )
+    data_file = typer.prompt("Where should forecast data be stored? (relative to this folder)", default="forecasts.csv")
+    runs_dir_input = typer.prompt("Where should training runs be stored? (relative to this folder)", default="runs")
 
-    Evaluates the local data storage to calculate total unique cities tracked
-    and the number of cities meeting the minimum row threshold for training.
-    Outputs a formatted table of pipeline readiness to the terminal.
+    config_dest = Path.cwd() / config_file
+    runs_dir = Path.cwd() / runs_dir_input
+    data_dest = Path.cwd() / data_file
 
-    Parameters
-    ----------
-    threshold : int, default=100
-        The minimum number of valid chronological records required for a city
-        to be considered 'active' and ready for the machine learning pipeline.
+    # Create config file
+    with open(config_dest, "w", encoding="utf-8") as file:
+        config_data = CONFIGURATION
+        config_data["data_path"] = data_dest
+        config_data["runs_path"] = runs_dir
+        json.dump(config_data, file, indent=4)
+    logger.info(f"Configuration saved to {config_dest}")
 
-    Returns
-    -------
-    None
-    """
-    from pyfue.data import Data
+    # Create data file
+    with open(data_dest, "w") as _:
+        logger.info(f"Data file created at {data_dest}")
 
-    data = Data()
-    data.read_raw()
+    # Create runs directory
+    os.mkdir(runs_dir)
+    logger.info(f"run/ directory created at {runs_dir}")
 
-    # Fetch the calculation matrix from the data layer
-    summary_df = data.get_collection_summary(threshold=threshold)
-
-    total_cities = len(summary_df)
-    active_cities = len(summary_df[summary_df["status"] == "ACTIVE"])
-    waiting_cities = total_cities - active_cities
-
-    # Format the terminal presentation block
-    print("\n=== pyfue DATA INVENTORY STATUS ===")
-    print(f"Total Unique Cities Tracked: {total_cities}")
-    print(f"Active in Pipeline (>= {threshold} rows): {active_cities}")
-    print(f"Awaiting Graduation (< {threshold} rows): {waiting_cities}")
-    print("=" * 50)
-    print(f"{'City Name':<20} | {'Valid Records':<13} | {'Pipeline Status'}")
-    print("-" * 50)
-
-    for _, row in summary_df.iterrows():
-        icon = "✅ ACTIVE" if row["status"] == "ACTIVE" else "⏳ WAITING"
-        print(f"{row['location_name']:<20} | {row['valid_records']:<13} | {icon}")
-    print("=" * 50 + "\n")
+    # Output success message
+    typer.secho("\nWorkspace initialized successfully!", fg=typer.colors.GREEN, bold=True)
+    typer.echo(f"Config created at: {config_dest.name}")
+    typer.echo(f"Runs directory created at: {runs_dir.name}/")
+    typer.echo(f"Data target set to: {data_file}")
+    typer.echo("\nYou can now run 'pyfue download' to fetch your first data points.")
 
 
 # --- Helper Functions ---
 
 
 def get_latest_run_id(runs_dir: Path) -> str | None:
-    """Finds the most recently created run directory."""
+    """
+    Finds the most recently created run directory within the specified folder.
+
+    Parameters
+    ----------
+    runs_dir : pathlib.Path
+        The path to the directory containing model run folders.
+
+    Returns
+    -------
+    str or None
+        The name of the most recently modified run folder, or None if the directory
+        does not exist or contains no valid subdirectories.
+    """
     if not runs_dir.exists() or not runs_dir.is_dir():
         return None
 
-    # List all subdirectories, sort by creation/modification time (newest last)
-    subdirs = [d for d in runs_dir.iterdir() if d.is_dir()]
-    if not subdirs:
+    # Get all subdirectories in the runs folder
+    run_folders = [d for d in runs_dir.iterdir() if d.is_dir()]
+    if not run_folders:
         return None
 
-    latest_dir = max(subdirs, key=lambda d: d.stat().st_mtime)
-    return latest_dir.name
+    # Return the name of the most recently modified folder
+    latest_run = max(run_folders, key=lambda d: d.stat().st_mtime)
+    return latest_run.name
 
 
 # --- Typer Commands ---
+
+
+@app.command()
+def download(
+    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+):
+    """
+    Fetches and stores raw weather forecast data via the Open-Meteo API.
+
+    This command reads the target cities and geographical parameters from the
+    local config settings, requests the corresponding data using the Data
+    layer, and persistently stores the combined results on disk.
+
+    Parameters
+    ----------
+    config_path : pathlib.Path, optional
+        Path to a custom config.json file.
+    data_path : pathlib.Path, optional
+        Path to a custom forecast data tracking file.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    typer.Abort
+        If the workspace configuration cannot be found.
+    """
+    from pyfue.config import Config
+    from pyfue.data import Data
+
+    try:
+        config = Config(path=config_path)
+        D = Data(config)
+
+        typer.echo(f"Downloading data for {len(config.cities)} cities...")
+        D.combine_and_store_forecasts(D.fetch_forecast())
+        typer.secho("✅ Successfully stored forecasts.", fg=typer.colors.GREEN)
+    except FileNotFoundError as e:
+        typer.secho(f"❌ Initialization Error: {e}", fg=typer.colors.RED)
+        typer.echo("Did you forget to run 'pyfue init' in this directory?")
+        raise typer.Abort() from e
+
+
+@app.command()
+def dataset_summary(
+    threshold: Annotated[
+        int, typer.Option("--t", min=0, help="Minimum records required for a city to be 'active'.")
+    ] = 100,
+    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+):
+    """
+    Generates and prints a summary report of the current local data inventory.
+
+    Evaluates the historical records assembled by the pipeline and outputs a
+    color-coded terminal table detailing which cities have gathered enough data
+    points to be actively used during model training splits.
+
+    Parameters
+    ----------
+    threshold : int, default=100
+        The minimum number of valid records required for a city to be active.
+    config_path : pathlib.Path, optional
+        Path to a custom config.json file.
+
+    Returns
+    -------
+    None
+    """
+    from pyfue.config import Config
+    from pyfue.data import Data
+
+    try:
+        config = Config(path=config_path)
+        data = Data(config)
+
+        # Fetch the calculation matrix from the data layer
+        summary_df = data.get_collection_summary(threshold=threshold)
+
+        total_cities = len(summary_df)
+        active_cities = len(summary_df[summary_df["status"] == "ACTIVE"])
+        waiting_cities = total_cities - active_cities
+
+        # Format the terminal presentation block
+        print("\n=== pyfue DATA INVENTORY STATUS ===")
+        print(f"Total Unique Cities Tracked: {total_cities}")
+        print(f"Active in Pipeline (>= {threshold} rows): {active_cities}")
+        print(f"Awaiting Graduation (< {threshold} rows): {waiting_cities}")
+        print("=" * 50)
+        print(f"{'City Name':<20} | {'Valid Records':<13} | {'Pipeline Status'}")
+        print("-" * 50)
+
+        for _, row in summary_df.iterrows():
+            icon = "✅ ACTIVE" if row["status"] == "ACTIVE" else "⏳ WAITING"
+            print(f"{row['location_name']:<20} | {row['valid_records']:<13} | {icon}")
+        print("=" * 50 + "\n")
+
+    except Exception as e:
+        typer.secho(f"❌ Error: {e}", fg=typer.colors.RED)
+        raise typer.Abort() from e
 
 
 @app.command()
@@ -137,27 +235,25 @@ def train(
     model_type: Annotated[str, typer.Option("--model", help="Type of model to train: 'ml' or 'linear'")] = "ml",
     alpha: Annotated[float | None, typer.Option(help="Regularization strength (ML only)")] = 0.01,
     layers: Annotated[str | None, typer.Option(help="Hidden layer sizes, e.g., '16,8' (ML only)")] = "16,8",
+    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Executes the training pipeline for a specified uncertainty estimation model.
 
-    Ingests pooled meteorological data, applies a chronological test-train partition
-    to protect against temporal leakage, initializes either a linear or multilayer
-    perceptron network model, fits the parameters statefully, and dumps the binary
-    artifacts along with run metadata onto the local filesystem.
+    Ingests the local dataset, performs a safe chronological train/validation split,
+    instantiates the requested estimator, fits the data statefully, evaluates out-of-sample
+    metrics, and saves the trained model checkpoint to the runs directory.
 
     Parameters
     ----------
     model_type : str, default="ml"
-        The structural category of the model estimator. Options are 'ml' for the
-        Multi-Layer Perceptron ensemble or 'linear' for Multi-Output Linear Regression.
-    alpha : float or None, default=0.01
-        L2 regularization weight penalty parameter (ridge regression equivalent).
-        Only evaluated if `model_type` is set to 'ml'.
-    layers : str or None, default="16,8"
-        A comma-separated string mapping out the dimensional configuration of the
-        hidden layers (e.g., '16,8' yields a 2-layer hidden layout). Only evaluated
-        if `model_type` is set to 'ml'.
+        The class of model to train ('ml' for MLP, 'linear' for regression).
+    alpha : float, optional, default=0.01
+        The L2 penalty regularization parameter for MLP models.
+    layers : str, optional, default="16,8"
+        Comma-separated string denoting hidden layer neurons for MLP models.
+    config_path : pathlib.Path, optional
+        Path to a custom config.json file.
 
     Returns
     -------
@@ -177,26 +273,23 @@ def train(
     typer.echo(f"Initializing training pipeline for model type: {model_type.upper()}")
 
     try:
-        config = Config()
-        data = Data()
-        data.read_raw()
+        config = Config(path=config_path)
+        data = Data(config)
         dataset = data.generate_dataset()
-
-        typer.echo("Splitting dataset chronologically...")
         train_df, val_df = data.split_dataset(dataset, val_fraction=0.2)
 
         # Instantiate correct model
         if model_type.lower() == "ml":
             parsed_layers = tuple(int(x.strip()) for x in layers.split(","))  # ty: ignore [unresolved-attribute]
-            model = MLUncertaintyModel(hidden_layer_sizes=parsed_layers, alpha=alpha)  # ty: ignore [invalid-argument-type]
+            model = MLUncertaintyModel(config, hidden_layer_sizes=parsed_layers, alpha=alpha)  # ty: ignore [invalid-argument-type]
         elif model_type.lower() == "linear":
-            model = LinearUncertaintyModel(config)
+            model = LinearUncertaintyModel(config=config)
         else:
             typer.secho(f"Error: Unknown model type '{model_type}'. Choose 'ml' or 'linear'.", fg=typer.colors.RED)
             raise typer.Abort()
 
         typer.echo("Fitting model...")
-        model.fit(train_df, config.default_feature_columns, config.default_target_columns)
+        model.fit(train_df, config.feature_columns, config.target_columns)
 
         # Save state
         run_id = generate_run_id(purpose=f"train_{model_type}")
@@ -223,21 +316,24 @@ def train(
 @app.command()
 def evaluate(
     run_id: Annotated[str | None, typer.Option(help="Specific run ID to evaluate. Defaults to latest.")] = None,
+    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Validates a saved model's predictive skill using historical validation holdouts.
 
-    Loads a serialized checkpoint model matching the given tracking run ID, generates
-    the comparative evaluation datasets, extracts the out-of-sample chronological
-    validation split, and prints a tabular layout of absolute residual scores (MAE, RMSE)
-    broken down by target meteorological column vector.
+    Loads a trained checkpoint from the local disk and passes the out-of-sample
+    validation fraction through its predictive layer, outputting scoring metrics
+    (like MAE and RMSE) directly to the terminal.
 
     Parameters
     ----------
-    run_id : str or None, default=None
-        The unique directory token identifier matching an entry inside the local
-        `runs/` inventory directory. If None, automatically scans for and targets
-        the chronologically latest directory modification.
+    run_id : str, optional
+        The specific directory ID string inside the runs folder. If None, the
+        most recently modified run is used.
+    config_path : pathlib.Path, optional
+        Path to a custom config.json file.
+    data_path : pathlib.Path, optional
+        Path to a custom forecast data tracking file.
 
     Returns
     -------
@@ -249,26 +345,24 @@ def evaluate(
         If no serialized model checkpoints are present on disk, if the specified
         `run_id` folder does not exist, or if data streaming fails.
     """
-    from pyfue.data import Data
+    import os
 
-    runs_dir = Path("runs")
-    if not run_id:
-        run_id = get_latest_run_id(runs_dir)
+    from pyfue.data import Config, Data
+
+    runs_dir = Path.cwd() / "runs"
+    if run_id is None:
+        run_id = get_latest_run_id(Path.cwd() / "runs")
         if not run_id:
-            typer.secho("❌ No models found. Please run 'pyfue train' first.", fg=typer.colors.RED)
+            typer.secho("❌ No runs found in the local ./runs directory.", fg=typer.colors.RED)
             raise typer.Abort()
-
-    model_path = runs_dir / run_id / "model.joblib"
-    if not model_path.exists():
-        typer.secho(f"❌ Model file not found at {model_path}", fg=typer.colors.RED)
-        raise typer.Abort()
+    model_path = os.path.join(runs_dir, run_id, "model.joblib")
 
     try:
         typer.echo(f"Loading model from run: {run_id}")
         model = joblib.load(model_path)
 
-        data = Data()
-        data.read_raw()
+        config = Config(config_path)
+        data = Data(config)
         dataset = data.generate_dataset()
         _, val_df = data.split_dataset(dataset, val_fraction=0.2)
 
@@ -292,6 +386,7 @@ def forecast(
     plot: Annotated[
         bool, typer.Option("--plot", help="Pop open a matplotlib window instead of terminal table")
     ] = False,
+    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Generates forward operational forecasts decorated with custom uncertainty bounds.
@@ -328,6 +423,8 @@ def forecast(
         If model files are unreadable, API communication errors manifest, or index mapping
         mismatches interrupt cell formatting steps.
     """
+    from pyfue.config import Config
+    from pyfue.defaults import UNITS
     from pyfue.forecast import Forecast
 
     runs_dir = Path("runs")
@@ -346,7 +443,8 @@ def forecast(
         typer.echo(f"Loading model from run: {run_id}")
         model = joblib.load(model_path)
 
-        F = Forecast()
+        config = Config(config_path)
+        F = Forecast(config)
         typer.echo(f"Fetching {days}-day forecast for {loc.capitalize()}...")
         F.fetch_forecast(location_name=loc.lower(), forecast_days=days)
 
@@ -355,9 +453,8 @@ def forecast(
 
         if plot:
             typer.echo("Rendering plot window...")
-            from pyfue import Config
 
-            F.plot(Config().default_target_columns)
+            F.plot(config.target_columns)
         else:
             # Map target columns to their base forecast keys and cleaner header labels
             mapping = {
@@ -389,7 +486,7 @@ def forecast(
                 for target_col, (base_col, _) in mapping.items():
                     val = df_base[base_col].iloc[idx]  # ty: ignore [not-subscriptable]
                     err = df_unc[target_col].iloc[idx]  # ty: ignore [not-subscriptable]
-                    unit = F._KNOWN_UNITS.get(target_col, "")
+                    unit = UNITS.get(target_col, "")
 
                     # Format as: value (± error) unit
                     cell_text = f"{val:.1f} (± {err:.1f}) {unit}"
@@ -404,7 +501,9 @@ def forecast(
 
 
 @app.command()
-def tune():
+def tune(
+    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+):
     """
     Executes hyperparameter optimization (HPO) across the active dataset.
 
@@ -440,12 +539,11 @@ def tune():
     typer.echo(f"Starting HPO pipeline. Detailed iterations logged to: {log_file}")
 
     try:
-        config = Config()
-        feature_columns = config.default_feature_columns
-        target_columns = config.default_target_columns
+        config = Config(config_path)
+        feature_columns = config.feature_columns
+        target_columns = config.target_columns
 
-        data = Data()
-        data.read_raw()
+        data = Data(config)
         dataset = data.generate_dataset()
 
         typer.echo("Splitting dataset chronologically...")

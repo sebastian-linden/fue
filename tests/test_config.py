@@ -6,16 +6,17 @@ from pathlib import Path
 
 import pytest
 
+from pyfue.config import Config
+
 # Add src directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from pyfue.config import Config
+CONFIG_PATH = Path("../config.json")
 
 
 @pytest.fixture
 def config():
     """Fixture to provide a Config instance for tests."""
-    return Config()
+    return Config(CONFIG_PATH)
 
 
 @pytest.fixture
@@ -25,6 +26,8 @@ def temp_config_dir():
 
     # Build a specific test config file that includes baseline preprocessing configurations
     test_config = {
+        "data_path": "test_forecasts.csv",
+        "runs_dir": "runs",
         "preprocessing": {"precipitation": "log", "humidity": "min-max"},
         "cities": {
             "test_city1": {"lat": 50.0, "lon": 10.0},
@@ -407,28 +410,23 @@ class TestConfigEdgeCases:
     """Test suite specifically targeting configuration error handling and fallback logic."""
 
     def test_init_file_not_found(self):
-        """Test that initialization properly halts if the config file does not exist (Line 23)."""
-        with pytest.raises(FileNotFoundError, match="The file 'config.json' was not found"):
+        """Test that initialization properly halts if the config file does not exist."""
+        # Updated pattern to match the actual exception string output
+        with pytest.raises(FileNotFoundError, match="ghost_config.json was not found"):
             Config(path="fake_directory/ghost_config.json")
 
     def test_init_missing_optional_keys(self, tmp_path):
-        """Test initialization fallback branches when the JSON is missing optional metadata keys (Lines 35-44)."""
-        # Create a barebones config missing 'cities', 'preprocessing', and 'default' columns
         minimal_config = {"timezone": "UTC", "past_days": 5}
-
         config_path = tmp_path / "minimal_config.json"
-        with open(config_path, "w") as f:
-            json.dump(minimal_config, f)
+        config_path.write_text(json.dumps(minimal_config))
 
-        # Initialize with the minimal config
         config = Config(path=config_path)
 
-        # Verify that the 'else' fallback logic executed correctly
         assert config.preprocessing == {}
         assert config.city_coordinates == {}
-        # Ensure it safely handled the missing default column definitions without crashing
-        assert not hasattr(config, "default_feature_columns")
-        assert not hasattr(config, "default_target_columns")
+        # Check your new attribute names:
+        assert config.feature_columns == []
+        assert config.target_columns == []
 
     def test_remove_city_not_found_raises_error(self, temp_config_dir):
         """Test the defensive trap when attempting to remove a non-existent city (Line 115)."""

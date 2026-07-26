@@ -10,7 +10,7 @@ shared-data = { "config.json" = "config.json" }
 [project]
 name = "pyfue"
 version = "0.1.1"
-description = "A Python tool that tracks 14-day weather forecasts from the Open-Meteo API to see how they hold up over time. By comparing early predictions to the actual weather, it calculates the \"real\" uncertainty of a forecast. It’s built for hikers and outdoor enthusiasts who want to know if that 18°C Saturday is a sure thing or just a hopeful guess."
+description = "Want to know if a weather forecast is reliable? The fue Python package quantifies forecast accuracy by training ML models to predict the absolute error of numerical weather predictions. By analyzing historical performance across custom city sets, it turns abstract forecasts into actionable confidence levels for planning your next trip."
 readme = "README.md"
 authors = [
   {name = "Sebastian Linden", email = "sebastian.bennet.linden@rwth-aachen.de"}

@@ -27,7 +27,7 @@ class OpenMeteoClient:
     raw API responses directly into pandas DataFrames for our pipeline.
     """
 
-    def __init__(self, config: Config | None = None):
+    def __init__(self, config: Config):
         """
         Sets up the API endpoint URL, a cached network session, and configuration settings.
 
@@ -46,10 +46,7 @@ class OpenMeteoClient:
         # Make sure all required weather variables are listed here
         # The order of variables in hourly or daily is important to assign them correctly below
         self.url = "https://api.open-meteo.com/v1/forecast"
-        if config is not None:
-            self.config = config
-        else:
-            self.config = Config()
+        self.config = config
         logger.info("OpenMeteoClient initialized with configuration.")
 
     def fetch_forecast(self) -> pd.DataFrame:
