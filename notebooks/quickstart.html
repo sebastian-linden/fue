@@ -116,11 +116,11 @@ from pyfue.models import LinearUncertaintyModel, MLUncertaintyModel
 <h2>Data Workflow<a class="headerlink" href="#Data-Workflow" title="Link to this heading"></a></h2>
 <p>Initialize Configuration (using the default settings from config.json) and Data objects</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>config = Config()
-data = Data()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>config = Config(path=&quot;../../../config.json&quot;)
+data = Data(config)
 </pre></div>
 </div>
 </div>
@@ -139,11 +139,11 @@ dataset = data.generate_dataset()
 <h2>Train a Linear Model<a class="headerlink" href="#Train-a-Linear-Model" title="Link to this heading"></a></h2>
 <p>Extract the configured feature and target column names</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>features = config.default_feature_columns
-targets = config.default_target_columns
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>features = config.feature_columns
+targets = config.target_columns
 </pre></div>
 </div>
 </div>
@@ -193,10 +193,10 @@ ml_model.fit(dataset, features, targets)
 <h2>Generate a Forecast<a class="headerlink" href="#Generate-a-Forecast" title="Link to this heading"></a></h2>
 <p>… for a specific city and for a certain number of days</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast = Forecast()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast = Forecast(config)
 forecast.fetch_forecast(location_name=&quot;aachen&quot;, forecast_days=14, past_days=0)
 </pre></div>
 </div>

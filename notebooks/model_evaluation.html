@@ -97,7 +97,7 @@
 <p>Once we’ve collected a decent amount of data, the next logical question is: how good is our model at actually predicting uncertainty? We need a robust way to evaluate its performance before we start trusting it with live operational forecasts.</p>
 <p>The first step, as always, is setting up our data pipeline. We need to load our raw inventory and split it into training and validation sets. A standard random split isn’t usually the best choice for weather data due to temporal correlation (which can lead to data leakage), but our <code class="docutils literal notranslate"><span class="pre">Data().split_dataset()</span></code> method is designed to handle the chronological partitioning for us automatically.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pyfue.config import Config
@@ -105,15 +105,15 @@ from pyfue.data import Data
 from pyfue.models import MLUncertaintyModel
 
 # Generate dataset
-config = Config()
-data = Data()
+config = Config(path=&quot;../../../config.json&quot;)
+data = Data(config)
 data.read_raw()
 dataset = data.generate_dataset()
 
 # Split data
 train_df, val_df = data.split_dataset(dataset, val_fraction=0.2, random_state=42)
-features = config.default_feature_columns
-targets = config.default_target_columns
+features = config.feature_columns
+targets = config.target_columns
 </pre></div>
 </div>
 </div>

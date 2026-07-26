@@ -124,33 +124,13 @@
 <span class="sd">        internal configuration default mapping is created.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Prepares features statefully and triggers the submodel training calculations.</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize an uncertainty model</span>
 
-<span class="sd">        Verifies that your target outputs include the explicit absolute difference prefix,</span>
-<span class="sd">        learns and applies adjustments using the data preprocessor, builds input</span>
-<span class="sd">        design data frames, and forwards the cleaned states down to your chosen submodel.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        df : pd.DataFrame</span>
-<span class="sd">            The input weather training lines pooled from local source storage.</span>
-<span class="sd">        feature_columns : list of str</span>
-<span class="sd">            The explicit names of rows used as features for the models.</span>
-<span class="sd">        target_columns : list of str</span>
-<span class="sd">            The calculated forecast deviation columns we want to estimate (must begin with &#39;abs_diff__&#39;).</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UncertaintyModel</span>
-<span class="sd">            The current class instance with trained tracking weights.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            config (Config): Config object containing pyfue parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No configuration provided; initializing default Config object.&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="o">=</span> <span class="n">Preprocessor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_preprocessing_rules</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw_feature_columns</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">processed_feature_columns</span> <span class="o">=</span> <span class="kc">None</span>
@@ -448,8 +428,6 @@
 <span class="sd">            dynamically via generation hooks.</span>
 <span class="sd">        metrics : dict or None, default=None</span>
 <span class="sd">            Leaderboard error values to save inside the metadata file sheet.</span>
-<span class="sd">        runs_dir : str, default=&quot;runs&quot;</span>
-<span class="sd">            The base directory location name on your filesystem.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -461,10 +439,10 @@
         <span class="c1"># 1. Fallback to automatic timestamped naming if no ID is passed explicitly</span>
 
         <span class="k">if</span> <span class="n">run_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">run_id</span> <span class="o">=</span> <span class="n">generate_run_id</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="n">run_id</span> <span class="o">=</span> <span class="n">generate_run_id</span><span class="p">(</span><span class="n">purpose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No explicit run_id provided. Auto-generated identifier: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
 
-        <span class="n">run_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.pyfue&quot;</span> <span class="o">/</span> <span class="s2">&quot;runs&quot;</span> <span class="o">/</span> <span class="n">run_id</span>
+        <span class="n">run_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">runs_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">run_id</span>
         <span class="n">run_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -505,7 +483,7 @@
 <div class="viewcode-block" id="UncertaintyModel.load">
 <a class="viewcode-back" href="../../../api/models.html#pyfue.models.UncertaintyModel.load">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">runs_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Restores a trained estimator model from a persistent binary checkpoint file.</span>
 
@@ -517,20 +495,13 @@
 <span class="sd">        ----------</span>
 <span class="sd">        run_id : str</span>
 <span class="sd">            The tracking string folder label name to restore.</span>
-<span class="sd">        runs_dir : str, default=&quot;runs&quot;</span>
-<span class="sd">            The repository destination folder name where experiment assets are stored.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        UncertaintyModel</span>
 <span class="sd">            The restored instance, ready to generate forward inferences immediately.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.joblib&quot;</span><span class="p">):</span>
-            <span class="n">model_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Fixed Path</span>
-            <span class="n">model_file</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.pyfue&quot;</span> <span class="o">/</span> <span class="s2">&quot;runs&quot;</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;model.joblib&quot;</span>
+        <span class="n">model_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">runs_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">run_id</span> <span class="o">/</span> <span class="s2">&quot;model.joblib&quot;</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to restore model checkpoint state for run tracking key: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target file lookup path resolved to: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_file</span><span class="p">)</span>

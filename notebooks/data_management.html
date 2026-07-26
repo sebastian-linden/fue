@@ -96,24 +96,22 @@ available, these models are re-run, which happens about every 3-6 hours. The out
 <p><code class="docutils literal notranslate"><span class="pre">data/raw/forecasts.csv</span></code></p>
 <p>When using an instance of a Data object to read the raw data, then it will first look there. However you can pass your own path:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
 
-from pyfue import Data
+from pyfue import Config, Data
 
-data = Data()
-root_dir = &quot;../../..&quot;
-default_path = os.path.join(root_dir, &quot;data/raw/forecasts.csv&quot;)
-data.read_raw(path=default_path)
+config = Config(path=&quot;../../../config.json&quot;)
+data = Data(config)
+data.read_raw()
 data.raw.head()
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
 <div>
