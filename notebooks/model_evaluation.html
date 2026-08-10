@@ -97,7 +97,7 @@
 <p>Once we’ve collected a decent amount of data, the next logical question is: how good is our model at actually predicting uncertainty? We need a robust way to evaluate its performance before we start trusting it with live operational forecasts.</p>
 <p>The first step, as always, is setting up our data pipeline. We need to load our raw inventory and split it into training and validation sets. A standard random split isn’t usually the best choice for weather data due to temporal correlation (which can lead to data leakage), but our <code class="docutils literal notranslate"><span class="pre">Data().split_dataset()</span></code> method is designed to handle the chronological partitioning for us automatically.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pyfue.config import Config
@@ -122,7 +122,7 @@ targets = config.target_columns
 <p>Now that our data is prepped, we can initialize our uncertainty estimator. In this example, we’ll use a Multi-Layer Perceptron (MLP) architecture.</p>
 <p>Because neural networks are highly sensitive to their random starting weights—meaning two identically configured models might converge to slightly different solutions—we use an ensemble approach. By training a small group of models (in this case, 5) and averaging their predictions, we smooth out that random initialization variance and get a much more stable, reliable prediction of the uncertainty bounds.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ml_model = MLUncertaintyModel(
@@ -142,7 +142,7 @@ targets = config.target_columns
 <p>This is where a convergence study comes in. By training the model on progressively larger subsets of our training data (10%, 20%, 40%, etc.) and evaluating it against our holdout validation set at each step, we can plot a learning curve.</p>
 <p>Why do this? If the error curve is still trending sharply downward at 100%, it tells us we should probably keep running <code class="docutils literal notranslate"><span class="pre">pyfue</span> <span class="pre">download</span></code> because collecting more historical data will directly improve performance. If the curve has completely flattened out, our model has likely hit its capacity limits for this specific architecture, and more data won’t help much without tuning the hyperparameters.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(f&quot;Running Convergence Study across {len(train_df)} training samples...&quot;)
@@ -167,7 +167,7 @@ ml_model.plot_learning_curve(convergence_history=convergence_results, metric=&qu
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Running Convergence Study across 10549 training samples...
+Running Convergence Study across 17554 training samples...
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -180,7 +180,7 @@ Running Convergence Study across 10549 training samples...
 <p>Finally, with our convergence study complete, we can train the model one last time using the entire training pool to ensure it has the maximum amount of information possible.</p>
 <p>Once fitted, we’ll evaluate its predictive skill against the validation holdouts we set aside earlier. The output will give us the Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE) broken down by each meteorological target variable. This tabular summary provides a clear, quantitative baseline of our model’s accuracy.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># 4. Final Evaluation Summary
@@ -202,11 +202,11 @@ for target, metrics in final_metrics.items():
 <div class="highlight"><pre>
 
 === Final Validation Metrics ===
-abs_diff__temperature_2m_max                  | MAE: 3.035 | RMSE: 3.823
-abs_diff__temperature_2m_min                  | MAE: 2.111 | RMSE: 2.663
-abs_diff__precipitation_sum                   | MAE: 1.414 | RMSE: 2.740
-abs_diff__wind_speed_10m_mean                 | MAE: 2.073 | RMSE: 2.659
-abs_diff__precipitation_probability_mean      | MAE: 6.015 | RMSE: 9.960
+abs_diff__temperature_2m_max                  | MAE: 2.993 | RMSE: 3.715
+abs_diff__temperature_2m_min                  | MAE: 2.078 | RMSE: 2.605
+abs_diff__precipitation_sum                   | MAE: 1.522 | RMSE: 3.183
+abs_diff__wind_speed_10m_mean                 | MAE: 2.107 | RMSE: 2.674
+abs_diff__precipitation_probability_mean      | MAE: 5.870 | RMSE: 9.299
 </pre></div></div>
 </div>
 </section>

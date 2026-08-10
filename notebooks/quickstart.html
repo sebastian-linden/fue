@@ -101,7 +101,7 @@
 <section id="Imports">
 <h2>Imports<a class="headerlink" href="#Imports" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pyfue.config import Config
@@ -116,7 +116,7 @@ from pyfue.models import LinearUncertaintyModel, MLUncertaintyModel
 <h2>Data Workflow<a class="headerlink" href="#Data-Workflow" title="Link to this heading"></a></h2>
 <p>Initialize Configuration (using the default settings from config.json) and Data objects</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>config = Config(path=&quot;../../../config.json&quot;)
@@ -126,7 +126,7 @@ data = Data(config)
 </div>
 <p>Read the historical raw dataset from disk to train a quick baseline model</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data.read_raw()
@@ -139,7 +139,7 @@ dataset = data.generate_dataset()
 <h2>Train a Linear Model<a class="headerlink" href="#Train-a-Linear-Model" title="Link to this heading"></a></h2>
 <p>Extract the configured feature and target column names</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>features = config.feature_columns
@@ -148,7 +148,7 @@ targets = config.target_columns
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>linear_model = LinearUncertaintyModel(config=config)
@@ -157,19 +157,19 @@ linear_model.fit(dataset, features, targets)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;pyfue.models.linear_model.LinearUncertaintyModel at 0x713112a2f770&gt;
+&lt;pyfue.models.linear_model.LinearUncertaintyModel at 0x70bf962e4ec0&gt;
 </pre></div></div>
 </div>
 </section>
 <section id="Train-a-Machine-Learning-Model">
 <h2>Train a Machine Learning Model<a class="headerlink" href="#Train-a-Machine-Learning-Model" title="Link to this heading"></a></h2>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ml_model = MLUncertaintyModel(
@@ -180,12 +180,12 @@ ml_model.fit(dataset, features, targets)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;pyfue.models.ml_model.MLUncertaintyModel at 0x7131126fb0e0&gt;
+&lt;pyfue.models.ml_model.MLUncertaintyModel at 0x70bf96048980&gt;
 </pre></div></div>
 </div>
 </section>
@@ -193,7 +193,7 @@ ml_model.fit(dataset, features, targets)
 <h2>Generate a Forecast<a class="headerlink" href="#Generate-a-Forecast" title="Link to this heading"></a></h2>
 <p>… for a specific city and for a certain number of days</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast = Forecast(config)
@@ -203,7 +203,7 @@ forecast.fetch_forecast(location_name=&quot;aachen&quot;, forecast_days=14, past
 </div>
 <p>Use the uncertainty model to estimate uncertainty bounds and visualize them</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast.compute_uncertainties(linear_model)
@@ -215,19 +215,34 @@ forecast.plot(target_variables=[&quot;abs_diff__temperature_2m_max&quot;, &quot;
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_quickstart_15_0.png" src="../_images/notebooks_quickstart_15_0.png" />
+<div class="highlight"><pre>
+past days:  0
+</pre></div></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <img alt="../_images/notebooks_quickstart_15_1.png" src="../_images/notebooks_quickstart_15_1.png" />
 </div>
 </div>
-<p>Now, we plot the uncertainty bounds using the machine learning model</p>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+past days:  0
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quickstart_15_3.png" src="../_images/notebooks_quickstart_15_3.png" />
+</div>
+</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>forecast.compute_uncertainties(ml_model)
@@ -239,14 +254,38 @@ forecast.plot(target_variables=[&quot;abs_diff__temperature_2m_max&quot;, &quot;
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_quickstart_17_0.png" src="../_images/notebooks_quickstart_17_0.png" />
+<div class="highlight"><pre>
+past days:  0
+</pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quickstart_16_1.png" src="../_images/notebooks_quickstart_16_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+past days:  0
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_quickstart_17_1.png" src="../_images/notebooks_quickstart_17_1.png" />
+<img alt="../_images/notebooks_quickstart_16_3.png" src="../_images/notebooks_quickstart_16_3.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
 </div>
 </div>
 </section>

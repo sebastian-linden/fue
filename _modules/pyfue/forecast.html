@@ -123,9 +123,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Forecast.fetch_forecast">
 <a class="viewcode-back" href="../../api/pyfue.html#pyfue.Forecast.fetch_forecast">[docs]</a>
@@ -183,6 +183,7 @@
         <span class="n">one_city_config</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one_city_config</span><span class="o">.</span><span class="n">city_coordinates</span><span class="p">[</span><span class="n">location_name</span><span class="p">][</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span>
         <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_forecast_days</span><span class="p">(</span><span class="n">forecast_days</span><span class="p">)</span>
         <span class="n">one_city_config</span><span class="o">.</span><span class="n">set_past_days</span><span class="p">(</span><span class="n">past_days</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">one_city_config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">one_city_config</span><span class="p">)</span><span class="o">.</span><span class="n">fetch_forecast</span><span class="p">()</span>
 
         <span class="c1"># Validate that forecast has required columns</span>
@@ -347,8 +348,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Forecast data has not been fetched. Call &#39;fetch_forecast()&#39; first.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Uncertainty predictions have not been computed. Call &#39;compute_uncertainties()&#39; first.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;past_days is not set. This should have been set during fetch_forecast().&quot;</span><span class="p">)</span>
 
         <span class="k">match</span> <span class="n">target_variables</span><span class="p">:</span>
             <span class="k">case</span> <span class="nb">str</span><span class="p">():</span>
@@ -369,7 +368,7 @@
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plotting </span><span class="si">%d</span><span class="s2"> target variable(s)&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_variables</span><span class="p">))</span>
 
-        <span class="n">days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="s2">, </span><span class="si">%d</span><span class="s2">-%m-%Y&quot;</span><span class="p">)</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="s2">&quot;forecast_for&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="se">\n</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> %h&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">abs_diff__var</span> <span class="ow">in</span> <span class="n">target_variables</span><span class="p">:</span>
             <span class="n">var</span> <span class="o">=</span> <span class="n">abs_diff__var</span><span class="p">[</span><span class="mi">10</span><span class="p">:]</span>  <span class="c1"># &quot;abs_diff__&quot; has 10 letters</span>
@@ -389,7 +388,15 @@
             <span class="n">var_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forecast</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="c1"># Non-destructive: make a copy before modifying</span>
             <span class="n">var_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncertainty_predictions</span><span class="p">[</span><span class="n">abs_diff__var</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">var_diff</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">past_days</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_days</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;past_days&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">past_days</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;past_days is not set&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;past days: &quot;</span><span class="p">,</span> <span class="n">past_days</span><span class="p">)</span>
+            <span class="n">var_diff</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">past_days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="n">ub</span> <span class="o">=</span> <span class="n">var_series</span> <span class="o">+</span> <span class="n">var_diff</span>
             <span class="n">lb</span> <span class="o">=</span> <span class="n">var_series</span> <span class="o">-</span> <span class="n">var_diff</span>
@@ -416,6 +423,7 @@
             <span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">)</span>
             <span class="n">error_title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_spec</span><span class="p">(</span><span class="n">abs_diff__var</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">)</span>
 
+            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">var_series</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">days</span><span class="p">,</span>
@@ -426,9 +434,12 @@
                 <span class="n">label</span><span class="o">=</span><span class="n">error_title</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">var</span> <span class="o">==</span> <span class="s2">&quot;precipitation_probability_mean&quot;</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>

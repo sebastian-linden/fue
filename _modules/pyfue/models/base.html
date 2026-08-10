@@ -483,7 +483,7 @@
 <div class="viewcode-block" id="UncertaintyModel.load">
 <a class="viewcode-back" href="../../../api/models.html#pyfue.models.UncertaintyModel.load">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">runs_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UncertaintyModel&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Restores a trained estimator model from a persistent binary checkpoint file.</span>
 
@@ -501,6 +501,7 @@
 <span class="sd">        UncertaintyModel</span>
 <span class="sd">            The restored instance, ready to generate forward inferences immediately.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">runs_dir</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">runs_dir</span>
         <span class="n">model_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">runs_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">run_id</span> <span class="o">/</span> <span class="s2">&quot;model.joblib&quot;</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to restore model checkpoint state for run tracking key: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>

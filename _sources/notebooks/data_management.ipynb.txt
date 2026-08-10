@@ -18,7 +18,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "id": "814bfc57",
    "metadata": {},
    "outputs": [
@@ -185,8 +185,6 @@
     }
    ],
    "source": [
-    "import os\n",
-    "\n",
     "from pyfue import Config, Data\n",
     "\n",
     "config = Config(path=\"../../../config.json\")\n",
