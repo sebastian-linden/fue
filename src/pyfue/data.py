@@ -73,7 +73,7 @@ class Data:
 
         try:
             self.raw = pd.read_csv(self.path)
-            self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=True)
+            self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=False)
             self.weather_variables = [c for c in self.raw.columns if c not in self.meta_variables]
             self.numeric_variables = self.weather_variables + ["latitude", "longitude"]
         except Exception as exc:
@@ -344,7 +344,7 @@ class Data:
             logger.error("Forecast fetch failed while calling OpenMeteoClient", exc_info=True)
             raise
 
-        current_forecasts = self.convert_to_best_dtypes(current_forecasts)
+        current_forecasts = self.convert_to_best_dtypes(current_forecasts, sun_duration_to_hours=True)
         logger.debug("Fetched %d forecast rows from Open-Meteo", len(current_forecasts))
         return current_forecasts
 
@@ -369,7 +369,7 @@ class Data:
 
         if self.raw.empty:
             self.read_raw()
-        self.raw = self.convert_to_best_dtypes(self.raw)
+        self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=False)
 
         if current_forecasts.empty:
             logger.warning("No fresh forecast rows were provided; nothing will be added to storage")

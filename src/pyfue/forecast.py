@@ -36,9 +36,9 @@ class Forecast:
         """
         self.config = config
         self.forecast = None
+        self.past_days = None
         self.uncertainty_model = None
         self.uncertainty_predictions = None
-        self.past_days = None
 
     def fetch_forecast(self, location_name: str, forecast_days: int = 14, past_days: int = 0) -> None:
         """
@@ -94,6 +94,7 @@ class Forecast:
         one_city_config.params["longitude"] = one_city_config.city_coordinates[location_name]["lon"]
         one_city_config.set_forecast_days(forecast_days)
         one_city_config.set_past_days(past_days)
+        self.config = one_city_config
         self.forecast = Data(config=one_city_config).fetch_forecast()
 
         # Validate that forecast has required columns
@@ -252,8 +253,6 @@ class Forecast:
             raise ValueError("Forecast data has not been fetched. Call 'fetch_forecast()' first.")
         if self.uncertainty_predictions is None:
             raise ValueError("Uncertainty predictions have not been computed. Call 'compute_uncertainties()' first.")
-        if self.past_days is None:
-            raise ValueError("past_days is not set. This should have been set during fetch_forecast().")
 
         match target_variables:
             case str():
@@ -274,7 +273,7 @@ class Forecast:
 
         logger.info("Plotting %d target variable(s)", len(target_variables))
 
-        days = self.forecast["forecast_for"].dt.strftime("%a, %d-%m-%Y")
+        days = self.forecast["forecast_for"].dt.strftime("%a\n %d %h")
 
         for abs_diff__var in target_variables:
             var = abs_diff__var[10:]  # "abs_diff__" has 10 letters
@@ -294,7 +293,15 @@ class Forecast:
             var_series = self.forecast[var].copy()
             # Non-destructive: make a copy before modifying
             var_diff = self.uncertainty_predictions[abs_diff__var].copy()
-            var_diff.iloc[: self.past_days + 1] = 0
+            past_days = (
+                self.past_days
+                if self.past_days is not None
+                else getattr(self.config, "params", {}).get("past_days", None)
+            )
+            if past_days is None:
+                raise ValueError("past_days is not set")
+            print("past days: ", past_days)
+            var_diff.iloc[: past_days + 1] = 0
 
             ub = var_series + var_diff
             lb = var_series - var_diff
@@ -321,6 +328,7 @@ class Forecast:
             title = self._get_plot_spec(var, "title")
             error_title = self._get_plot_spec(abs_diff__var, "title")
 
+            plt.figure(figsize=(8, 4))
             plt.plot(days, var_series, color=color, label=title)
             plt.fill_between(
                 x=days,
@@ -331,9 +339,12 @@ class Forecast:
                 label=error_title,
             )
             plt.grid(True)
-            plt.xticks(rotation=90)
+            plt.xticks(rotation=0)
             plt.title(title)
             plt.ylabel(f"{title} in {unit}")
+
+            if var == "precipitation_probability_mean":
+                plt.ylim((0, 100))
             plt.legend()
             plt.tight_layout()
             plt.show()

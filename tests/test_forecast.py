@@ -24,7 +24,7 @@ def mock_config():
         "Paris": {"lat": 48.8566, "lon": 2.3522},
         "London": {"lat": 51.5074, "lon": -0.1278},
     }
-    config.params = {"timezone": "UTC"}
+    config.params = {"timezone": "UTC", "past_days": 0}
     config.feature_columns = ["temperature_2m_max"]
     config.target_columns = ["abs_diff__temperature_2m_max"]
     config.set_forecast_days = Mock()
@@ -424,7 +424,7 @@ class TestPlot:
         # Setup
         forecast_instance.forecast = sample_forecast_df
         forecast_instance.uncertainty_predictions = sample_uncertainty_df
-        forecast_instance.past_days = 0
+        # forecast_instance.past_days = 0
 
         # Execute
         forecast_instance.plot("abs_diff__temperature_2m_max")
@@ -484,15 +484,6 @@ class TestPlot:
         forecast_instance.past_days = 0
 
         with pytest.raises(ValueError, match="Uncertainty predictions have not been computed"):
-            forecast_instance.plot("abs_diff__temperature_2m_max")
-
-    def test_plot_past_days_not_set_raises_error(self, forecast_instance, sample_forecast_df, sample_uncertainty_df):
-        """Test that past_days not set raises ValueError."""
-        forecast_instance.forecast = sample_forecast_df
-        forecast_instance.uncertainty_predictions = sample_uncertainty_df
-        forecast_instance.past_days = None
-
-        with pytest.raises(ValueError, match="past_days is not set"):
             forecast_instance.plot("abs_diff__temperature_2m_max")
 
     def test_plot_none_target_variables_raises_error(

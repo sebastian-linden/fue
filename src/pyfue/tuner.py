@@ -15,6 +15,7 @@ import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.model_selection import ParameterGrid
 
+from .config import Config
 from .models import MLUncertaintyModel, UncertaintyModel
 from .utils import generate_run_id
 
@@ -86,6 +87,7 @@ class HyperparameterTuner:
 
     def search(
         self,
+        config: Config,
         train_df: pd.DataFrame,
         val_df: pd.DataFrame,
         feature_columns: list,
@@ -141,7 +143,7 @@ class HyperparameterTuner:
 
             for i, params in enumerate(grid):
                 # 1. Instantiate the model dynamically with the current grid slice
-                model = self.model_class(**params)
+                model = self.model_class(config=config, **params)
 
                 # 2. Train on the 80% pool
                 model.fit(train_df, feature_columns, target_columns)

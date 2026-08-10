@@ -514,91 +514,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyfue"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "openmeteo-requests" },
-    { name = "pandas" },
-    { name = "requests-cache" },
-    { name = "retry-requests" },
-    { name = "rich" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-    { name = "seaborn" },
-    { name = "typer" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "coverage" },
-    { name = "nbsphinx" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme" },
-    { name = "sphinxcontrib-bibtex" },
-    { name = "ty" },
-]
-docs = [
-    { name = "nbsphinx" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme" },
-    { name = "sphinxcontrib-bibtex" },
-]
-lint = [
-    { name = "ruff" },
-]
-test = [
-    { name = "coverage" },
-    { name = "pytest" },
-]
-typecheck = [
-    { name = "ty" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "openmeteo-requests" },
-    { name = "pandas" },
-    { name = "requests-cache" },
-    { name = "retry-requests" },
-    { name = "rich" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-    { name = "seaborn" },
-    { name = "typer" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "coverage" },
-    { name = "nbsphinx", specifier = ">=0.9.8" },
-    { name = "pytest" },
-    { name = "ruff", specifier = ">=0.15.10" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
-    { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0" },
-    { name = "ty" },
-]
-docs = [
-    { name = "nbsphinx", specifier = ">=0.9.8" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
-    { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0" },
-]
-lint = [{ name = "ruff", specifier = ">=0.15.10" }]
-test = [
-    { name = "coverage" },
-    { name = "pytest" },
-]
-typecheck = [{ name = "ty" }]
-
-[[package]]
 name = "h11"
 version = "0.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1389,6 +1304,91 @@ sdist = { url = "https://files.pythonhosted.org/packages/1b/7d/92392ff7815c21062
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0c/c3/44f3fbbfa403ea2a7c779186dc20772604442dde72947e7d01069cbe98e3/pycparser-3.0-py3-none-any.whl", hash = "sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992", size = 48172, upload-time = "2026-01-21T14:26:50.693Z" },
 ]
+
+[[package]]
+name = "pyfue"
+version = "0.1.1"
+source = { editable = "." }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "openmeteo-requests" },
+    { name = "pandas" },
+    { name = "requests-cache" },
+    { name = "retry-requests" },
+    { name = "rich" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "seaborn" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "coverage" },
+    { name = "nbsphinx" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+    { name = "sphinxcontrib-bibtex" },
+    { name = "ty" },
+]
+docs = [
+    { name = "nbsphinx" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+    { name = "sphinxcontrib-bibtex" },
+]
+lint = [
+    { name = "ruff" },
+]
+test = [
+    { name = "coverage" },
+    { name = "pytest" },
+]
+typecheck = [
+    { name = "ty" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "openmeteo-requests" },
+    { name = "pandas" },
+    { name = "requests-cache" },
+    { name = "retry-requests" },
+    { name = "rich" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "seaborn" },
+    { name = "typer" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "coverage" },
+    { name = "nbsphinx", specifier = ">=0.9.8" },
+    { name = "pytest" },
+    { name = "ruff", specifier = ">=0.15.10" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
+    { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0" },
+    { name = "ty" },
+]
+docs = [
+    { name = "nbsphinx", specifier = ">=0.9.8" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
+    { name = "sphinxcontrib-bibtex", specifier = ">=2.7.0" },
+]
+lint = [{ name = "ruff", specifier = ">=0.15.10" }]
+test = [
+    { name = "coverage" },
+    { name = "pytest" },
+]
+typecheck = [{ name = "ty" }]
 
 [[package]]
 name = "pygments"

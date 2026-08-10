@@ -187,7 +187,7 @@ class TestLinearUncertaintyModel:
         run_path, saved_id = original_model.save(run_id=run_id)
 
         # Pass both runs_dir and run_id to match load(runs_dir, run_id)
-        loaded_model = LinearUncertaintyModel.load(runs_dir=tmp_path, run_id=saved_id)
+        loaded_model = LinearUncertaintyModel.load(test_config, run_id=saved_id)
 
         # Assertions to verify restored state match
         assert loaded_model.target_columns == original_model.target_columns

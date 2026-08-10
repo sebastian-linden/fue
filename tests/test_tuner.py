@@ -1,8 +1,10 @@
+import json
 from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
 
+from pyfue import Config
 from pyfue.tuner import HyperparameterTuner
 
 
@@ -23,6 +25,29 @@ def dummy_data():
     features = ["feature_1", "feature_2"]
     targets = ["abs_diff__target_A", "abs_diff__target_B"]
     return df, df.copy(), features, targets  # train_df, val_df, features, targets
+
+
+@pytest.fixture
+def test_config(tmp_path):
+    """Provides a valid Config object for model testing."""
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        json.dumps(
+            {
+                "data_path": "data/forecasts.csv",
+                "runs_dir": "runs",
+                "cities": {"london": {"lat": 51.5, "lon": -0.12}},
+                "daily": ["temperature_2m_max"],
+                "timezone": "UTC",
+                "past_days": 5,
+                "forecast_days": 10,
+                "preprocessing": {},
+                "default_feature_columns": ["temperature_2m_max"],
+                "default_target_columns": ["abs_diff__temperature_2m_max"],
+            }
+        )
+    )
+    return Config(path=config_file)
 
 
 # ---------------------------------------------------------
@@ -97,7 +122,7 @@ class TestHyperparameterTuner:
         )
 
         # 4. Execute Search
-        best_model, history = tuner.search(train_df, val_df, features, targets, run_id="test_hpo_run")
+        best_model, history = tuner.search(test_config, train_df, val_df, features, targets, run_id="test_hpo_run")  # ty: ignore [invalid-argument-type]
 
         # 5. Assertions
         assert len(history) == 3, "Grid search should execute exactly 3 times."

@@ -98,7 +98,7 @@ def init():
 # --- Helper Functions ---
 
 
-def get_latest_run_id(runs_dir: Path) -> str | None:
+def get_latest_run_id(runs_dir: Path) -> str:
     """
     Finds the most recently created run directory within the specified folder.
 
@@ -114,12 +114,12 @@ def get_latest_run_id(runs_dir: Path) -> str | None:
         does not exist or contains no valid subdirectories.
     """
     if not runs_dir.exists() or not runs_dir.is_dir():
-        return None
+        return ""
 
     # Get all subdirectories in the runs folder
     run_folders = [d for d in runs_dir.iterdir() if d.is_dir()]
     if not run_folders:
-        return None
+        return ""
 
     # Return the name of the most recently modified folder
     latest_run = max(run_folders, key=lambda d: d.stat().st_mtime)
@@ -131,7 +131,7 @@ def get_latest_run_id(runs_dir: Path) -> str | None:
 
 @app.command()
 def download(
-    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+    config_path: Annotated[str, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Fetches and stores raw weather forecast data via the Open-Meteo API.
@@ -160,7 +160,7 @@ def download(
     from pyfue.data import Data
 
     try:
-        config = Config(path=config_path)
+        config = Config(path=Path(config_path))
         D = Data(config)
 
         typer.echo(f"Downloading data for {len(config.cities)} cities...")
@@ -177,7 +177,7 @@ def dataset_summary(
     threshold: Annotated[
         int, typer.Option("--t", min=0, help="Minimum records required for a city to be 'active'.")
     ] = 100,
-    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+    config_path: Annotated[str, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Generates and prints a summary report of the current local data inventory.
@@ -201,7 +201,7 @@ def dataset_summary(
     from pyfue.data import Data
 
     try:
-        config = Config(path=config_path)
+        config = Config(Path(config_path))
         data = Data(config)
 
         # Fetch the calculation matrix from the data layer
@@ -233,9 +233,9 @@ def dataset_summary(
 @app.command()
 def train(
     model_type: Annotated[str, typer.Option("--model", help="Type of model to train: 'ml' or 'linear'")] = "ml",
-    alpha: Annotated[float | None, typer.Option(help="Regularization strength (ML only)")] = 0.01,
-    layers: Annotated[str | None, typer.Option(help="Hidden layer sizes, e.g., '16,8' (ML only)")] = "16,8",
-    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+    alpha: Annotated[float, typer.Option(help="Regularization strength (ML only)")] = 0.01,
+    layers: Annotated[str, typer.Option(help="Hidden layer sizes, e.g., '16,8' (ML only)")] = "16,8",
+    config_path: Annotated[str, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Executes the training pipeline for a specified uncertainty estimation model.
@@ -273,16 +273,15 @@ def train(
     typer.echo(f"Initializing training pipeline for model type: {model_type.upper()}")
 
     try:
-        config = Config(path=config_path)
+        config = Config(Path(config_path))
         data = Data(config)
         dataset = data.generate_dataset()
         train_df, val_df = data.split_dataset(dataset, val_fraction=0.2)
 
         # Instantiate correct model
         if model_type.lower() == "ml":
-            parsed_layers = tuple(int(x.strip()) for x in layers.split(","))  # ty: ignore [unresolved-attribute]
-            model = MLUncertaintyModel(config, hidden_layer_sizes=parsed_layers, alpha=alpha)  # ty: ignore [invalid-argument-type]
-        elif model_type.lower() == "linear":
+            parsed_layers = tuple(int(x.strip()) for x in layers.split(","))
+            model = MLUncertaintyModel(config, hidden_layer_sizes=parsed_layers, alpha=alpha)
             model = LinearUncertaintyModel(config=config)
         else:
             typer.secho(f"Error: Unknown model type '{model_type}'. Choose 'ml' or 'linear'.", fg=typer.colors.RED)
@@ -315,8 +314,8 @@ def train(
 
 @app.command()
 def evaluate(
-    run_id: Annotated[str | None, typer.Option(help="Specific run ID to evaluate. Defaults to latest.")] = None,
-    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+    run_id: Annotated[str, typer.Option(help="Specific run ID to evaluate. Defaults to latest.")] = "",
+    config_path: Annotated[str, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Validates a saved model's predictive skill using historical validation holdouts.
@@ -361,7 +360,7 @@ def evaluate(
         typer.echo(f"Loading model from run: {run_id}")
         model = joblib.load(model_path)
 
-        config = Config(config_path)
+        config = Config(Path(config_path))
         data = Data(config)
         dataset = data.generate_dataset()
         _, val_df = data.split_dataset(dataset, val_fraction=0.2)
@@ -382,11 +381,11 @@ def evaluate(
 def forecast(
     loc: Annotated[str, typer.Option("--city", help="City name, e.g., 'aachen'")],
     days: Annotated[int, typer.Option("--days", help="Days to forecast")] = 7,
-    run_id: Annotated[str | None, typer.Option(help="Specific run ID to use. Defaults to latest.")] = None,
+    run_id: Annotated[str, typer.Option("--id", help="Specific run ID to use. Defaults to latest.")] = "",
     plot: Annotated[
         bool, typer.Option("--plot", help="Pop open a matplotlib window instead of terminal table")
     ] = False,
-    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+    config_path: Annotated[str, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Generates forward operational forecasts decorated with custom uncertainty bounds.
@@ -430,7 +429,7 @@ def forecast(
     runs_dir = Path("runs")
     if not run_id:
         run_id = get_latest_run_id(runs_dir)
-        if not run_id:
+        if run_id == "":
             typer.secho("❌ No models found. Please run 'pyfue train' first.", fg=typer.colors.RED)
             raise typer.Abort()
 
@@ -443,7 +442,7 @@ def forecast(
         typer.echo(f"Loading model from run: {run_id}")
         model = joblib.load(model_path)
 
-        config = Config(config_path)
+        config = Config(Path(config_path))
         F = Forecast(config)
         typer.echo(f"Fetching {days}-day forecast for {loc.capitalize()}...")
         F.fetch_forecast(location_name=loc.lower(), forecast_days=days)
@@ -502,7 +501,7 @@ def forecast(
 
 @app.command()
 def tune(
-    config_path: Annotated[str | Path, typer.Option("--config", help="Path to custom config.json")] = "",
+    config_path: Annotated[str, typer.Option("--config", help="Path to custom config.json")] = "",
 ):
     """
     Executes hyperparameter optimization (HPO) across the active dataset.
@@ -539,7 +538,7 @@ def tune(
     typer.echo(f"Starting HPO pipeline. Detailed iterations logged to: {log_file}")
 
     try:
-        config = Config(config_path)
+        config = Config(Path(config_path))
         feature_columns = config.feature_columns
         target_columns = config.target_columns
 
@@ -567,6 +566,7 @@ def tune(
 
         # Unpack correctly matching the tuple returned by search()
         best_model, history = tuner.search(
+            config=config,
             train_df=train_df,
             val_df=val_df,
             feature_columns=feature_columns,

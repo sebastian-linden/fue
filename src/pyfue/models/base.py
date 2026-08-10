@@ -376,7 +376,7 @@ class UncertaintyModel(ABC):
             raise
 
     @classmethod
-    def load(cls, runs_dir: str | Path, run_id: str) -> "UncertaintyModel":
+    def load(cls, config: Config, run_id: str) -> "UncertaintyModel":
         """
         Restores a trained estimator model from a persistent binary checkpoint file.
 
@@ -394,6 +394,7 @@ class UncertaintyModel(ABC):
         UncertaintyModel
             The restored instance, ready to generate forward inferences immediately.
         """
+        runs_dir = config.runs_dir
         model_file = Path(runs_dir) / run_id / "model.joblib"
 
         logger.info("Attempting to restore model checkpoint state for run tracking key: %s", run_id)
