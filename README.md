@@ -33,7 +33,7 @@ Most of the following sections of this README file are also AI generated and che
 - **Scientifically Rigorous Pipeline**: Avoids geographical and temporal data leakage using a custom chronological multi-city data splitting engine.
 - **Automated Data Ingestion**: Built-in client for the Open-Meteo API to fetch, parse, and pair historical forecasts with ground-truth measurements.
 - **Professional CLI**: A Typer-powered Command Line Interface for automated data downloading, dataset summarization, and headless model tuning.
-- **Physical Constraints**: Implements target log-transformations and intelligent feature engineering (e.g., $\sqrt{\text{delta\_days}}$) to ensure uncertainty boundaries never violate physical reality.
+- **Physical Constraints**: Implements target log-transformations and intelligent feature engineering to ensure uncertainty boundaries never violate physical reality.
 
 ## Installation
 
@@ -57,6 +57,14 @@ source venv/bin/activate  # On Windows use: call venv\Scripts\activate.bat
 
 # 3. Install locally in editable mode
 pip install -e .
+```
+
+**Quick Setup**
+To generate the basic folder structure for the package to run without issues:
+
+```bash
+# This will guide you through the process
+pyfue init
 ```
 
 ## Project Structure
@@ -84,6 +92,12 @@ pyfue/
 ## Documentation
 Comprehensive documentation including API references, mathematical methodologies, and workflow tutorials are hosted on [GitHub Pages](https://sebastian-linden.github.io/pyfue/index.html).
 
+## Data
+The data, that I collected while working on this project can be found on the Coscine data repository under the following link:
+
+```
+https://0d3c12b3-5332-4892-80b6-584d9141ac31.global.datastorage.nrw/forecasts.csv?X-Amz-Expires=86400&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AAB10CA81B3CA758256A%2F20260812%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260812T173713Z&X-Amz-SignedHeaders=host&X-Amz-Signature=b10e1c9d7037309bf4a4382ca2eb6abdd0bc7e9374d85ca8197d599f12907040
+```
 
 ## Author
 
