@@ -7,7 +7,7 @@
 
 ## Abstract
 
-Welcome to the `pyfue` package. This package enables you to estimate empiric error bounds for weather forecasts of your city. Numerical weather simulations used for todays forecasts will produce a timeseries of numbers (e.g. temperature, precipitation sum) that are in reality just the mean values of an underlying probability distribution with some variance around the mean. Since the error bounds of these distributions are generally not available, I developed this package to estimate these error bounds empirically. This package enables you to train linear or non-linear models on historic forecasts errors to predict expected error bounds for forecasts of your city.
+Welcome to the `pyfue` package. This package enables you to estimate empiric error bounds for weather forecasts of your city. Numerical weather simulations used for todays forecasts will produce a timeseries of numbers (e.g. temperature, precipitation sum) that are in reality just the the most likely values of an underlying probability distribution with some variance around the mean. Since the error bounds of these distributions are generally not available, I developed this package to estimate these error bounds empirically. This package enables you to train linear or non-linear models on historic forecasts errors to predict expected error bounds for forecasts of your city.
 
 
 ## Background

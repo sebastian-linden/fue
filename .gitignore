@@ -73,6 +73,7 @@ data/raw/
 
 # Personal notes
 notes/
+sandbox/
 
 # Runs and Model Weights (This single line safely covers ./runs/ and ./scripts/runs/)
 runs/

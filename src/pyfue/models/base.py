@@ -103,6 +103,8 @@ class UncertaintyModel(ABC):
         # 3. Segregate clean feature arrays and multi-target vectors
         self.X = scaled_df[self.processed_feature_columns]
         self.Y = scaled_df[self.target_columns]
+        print(self.X.columns)
+        print(self.Y.columns)
         logger.debug("Segregated matrices created. X shape: %s, Y shape: %s.", self.X.shape, self.Y.shape)
 
         # 4. Pass matrices down to subclass calculations

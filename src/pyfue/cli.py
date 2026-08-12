@@ -67,15 +67,15 @@ def init():
     data_file = typer.prompt("Where should forecast data be stored? (relative to this folder)", default="forecasts.csv")
     runs_dir_input = typer.prompt("Where should training runs be stored? (relative to this folder)", default="runs")
 
-    config_dest = Path.cwd() / config_file
-    runs_dir = Path.cwd() / runs_dir_input
-    data_dest = Path.cwd() / data_file
+    config_dest = Path(config_file)
+    runs_dir = Path(runs_dir_input)
+    data_dest = Path(data_file)
 
     # Create config file
     with open(config_dest, "w", encoding="utf-8") as file:
         config_data = CONFIGURATION
-        config_data["data_path"] = data_dest
-        config_data["runs_path"] = runs_dir
+        config_data["data_path"] = str(data_dest)
+        config_data["runs_dir"] = str(runs_dir)
         json.dump(config_data, file, indent=4)
     logger.info(f"Configuration saved to {config_dest}")
 
@@ -161,10 +161,13 @@ def download(
 
     try:
         config = Config(path=Path(config_path))
+        print(config.data_path)
         D = Data(config)
 
         typer.echo(f"Downloading data for {len(config.cities)} cities...")
-        D.combine_and_store_forecasts(D.fetch_forecast())
+        forecast = D.fetch_forecast()
+        typer.echo(f"Successfully fetched new forecast records.")
+        D.combine_and_store_forecasts(forecast)
         typer.secho("✅ Successfully stored forecasts.", fg=typer.colors.GREEN)
     except FileNotFoundError as e:
         typer.secho(f"❌ Initialization Error: {e}", fg=typer.colors.RED)

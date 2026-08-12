@@ -6,6 +6,7 @@ units, applying our custom 12-hour boundary rule to separate predictions from gr
 measurements, and splitting data cleanly by city proximity groups for machine learning.
 """
 
+import os
 import logging
 
 import numpy as np
@@ -42,13 +43,14 @@ class Data:
         self.raw = pd.DataFrame()
 
         self.meta_variables = ["location_name", "latitude", "longitude", "forecasted_on", "forecast_for"]
-        self.weather_variables = []
-        self.numeric_variables = []
+        self.weather_variables = self.config.params["daily"]
+        self.columns = self.meta_variables + self.weather_variables
+        self.numeric_variables = self.weather_variables + ["latitude", "longitude"]
 
         logger.debug("Initialized Data handler with raw data path %s", self.path)
         return None
 
-    def read_raw(self) -> None:
+    def read_raw(self) -> bool:
         """
         Reads the local raw forecast CSV file from disk into memory.
 
@@ -63,25 +65,32 @@ class Data:
 
         Returns
         -------
-        None
+        bool
+            True if the file was read successfully, False otherwise.
 
         Raises
         ------
         FileNotFoundError
             If no forecast csv source matches the determined path target.
         """
-
-        try:
-            self.raw = pd.read_csv(self.path)
-            self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=False)
-            self.weather_variables = [c for c in self.raw.columns if c not in self.meta_variables]
-            self.numeric_variables = self.weather_variables + ["latitude", "longitude"]
-        except Exception as exc:
-            logger.error("Failed to read raw forecasts from %s", self.path, exc_info=True)
-            raise FileNotFoundError("forecasts.csv was not found") from exc
-
+        if os.path.exists(self.path) is False:
+            print("Couldn't find %s" % self.path)
+            logger.error("Couldn't find %s", self.path, exc_info=True)
+            raise FileNotFoundError("%s was not found", self.path) from exc
+        elif os.stat(self.path).st_size == 0:
+            print("File %s is empty; no data will be loaded" % self.path)
+            logger.warning("File %s is empty; no data will be loaded", self.path)
+            self.raw = pd.DataFrame(columns=self.columns)
+            return False
+        else:
+            try:
+                self.raw = pd.read_csv(self.path)
+                self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=False)
+            except Exception as exc:
+                logger.error("Failed to read raw forecasts correctly from %s", self.path, exc_info=True)
+                raise BaseException("%s was found, but couldn't be read successfully", self.path) from exc
         logger.info(f"Raw data read from {self.path}. Total records: {len(self.raw)}")
-        return None
+        return True
 
     def convert_to_best_dtypes(self, df: pd.DataFrame, sun_duration_to_hours: bool = False) -> pd.DataFrame:
         """
@@ -368,8 +377,11 @@ class Data:
         logger.info("Combining newly fetched forecasts with stored data")
 
         if self.raw.empty:
-            self.read_raw()
-        self.raw = self.convert_to_best_dtypes(self.raw, sun_duration_to_hours=False)
+            status = self.read_raw()
+            print("Read raw data status:", status)
+            if status is False:
+                logger.warning("No existing raw data was found; starting fresh with new forecasts")
+                self.raw = pd.DataFrame()
 
         if current_forecasts.empty:
             logger.warning("No fresh forecast rows were provided; nothing will be added to storage")

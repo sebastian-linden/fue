@@ -88,7 +88,7 @@ CONFIGURATION = {
         "wind_speed_10m_mean": "log",
         "precipitation_probability_mean": "min-max",
     },
-    "default_feature_columns": [
+    "feature_columns": [
         "latitude",
         "longitude",
         "day_of_year",
@@ -102,7 +102,7 @@ CONFIGURATION = {
         "wind_speed_10m_mean",
         "precipitation_probability_mean",
     ],
-    "default_target_columns": [
+    "target_columns": [
         "abs_diff__temperature_2m_max",
         "abs_diff__temperature_2m_min",
         "abs_diff__precipitation_sum",
