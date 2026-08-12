@@ -6,8 +6,8 @@ units, applying our custom 12-hour boundary rule to separate predictions from gr
 measurements, and splitting data cleanly by city proximity groups for machine learning.
 """
 
-import os
 import logging
+import os
 
 import numpy as np
 import pandas as pd
@@ -74,11 +74,11 @@ class Data:
             If no forecast csv source matches the determined path target.
         """
         if os.path.exists(self.path) is False:
-            print("Couldn't find %s" % self.path)
+            print(f"Couldn't find {self.path}")
             logger.error("Couldn't find %s", self.path, exc_info=True)
-            raise FileNotFoundError("%s was not found", self.path) from exc
+            raise FileNotFoundError("%s was not found", self.path)
         elif os.stat(self.path).st_size == 0:
-            print("File %s is empty; no data will be loaded" % self.path)
+            print(f"File {self.path} is empty; no data will be loaded")
             logger.warning("File %s is empty; no data will be loaded", self.path)
             self.raw = pd.DataFrame(columns=self.columns)
             return False

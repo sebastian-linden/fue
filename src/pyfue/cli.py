@@ -166,7 +166,7 @@ def download(
 
         typer.echo(f"Downloading data for {len(config.cities)} cities...")
         forecast = D.fetch_forecast()
-        typer.echo(f"Successfully fetched new forecast records.")
+        typer.echo("Successfully fetched new forecast records.")
         D.combine_and_store_forecasts(forecast)
         typer.secho("✅ Successfully stored forecasts.", fg=typer.colors.GREEN)
     except FileNotFoundError as e:

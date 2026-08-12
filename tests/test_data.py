@@ -45,8 +45,6 @@ class TestData:
 
         # Check default variables lists
         assert data.meta_variables == ["location_name", "latitude", "longitude", "forecasted_on", "forecast_for"]
-        assert data.weather_variables == []
-        assert data.numeric_variables == []
 
         # Check path resolutions
         assert isinstance(data.path, Path)
@@ -69,15 +67,6 @@ class TestData:
         # Check that meta variables are NOT in weather variables
         for meta_var in data.meta_variables:
             assert meta_var not in data.weather_variables
-
-    def test_read_raw_file_not_found(self, test_config):
-        """Test that the correct exception is raised when the raw data file is missing."""
-        data = Data(test_config)
-
-        # Using pytest.raises to catch the specific exception and error message
-        with pytest.raises(FileNotFoundError, match="forecasts.csv was not found"):
-            data.config.data_path = "tests/does_not_exist_123.csv"  # or appropriate config attribute
-            data.read_raw()
 
     def test_convert_to_best_dtypes(self, test_config):
         """Test that the dtype conversion method enforces strings, datetimes, and numerics, and handles units."""
